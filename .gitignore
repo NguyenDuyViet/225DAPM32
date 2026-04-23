@@ -26,6 +26,7 @@ logs/
 # ========== ASP.NET ==========
 appsettings.Development.json
 publish/
+appsettings.json
 
 # ========== NODE (nếu có frontend) ==========
 node_modules/
