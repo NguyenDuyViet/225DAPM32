@@ -1,0 +1,39 @@
+# ========== BUILD ==========
+bin/
+obj/
+Debug/
+Release/
+
+# ========== VISUAL STUDIO ==========
+.vs/
+*.user
+*.suo
+*.rsuser
+
+# ========== VS CODE ==========
+.vscode/
+
+# ========== LOG ==========
+*.log
+logs/
+
+# ========== DATABASE ==========
+*.mdf
+*.ldf
+*.ndf
+*.bak
+
+# ========== ASP.NET ==========
+appsettings.Development.json
+publish/
+
+# ========== NODE (nếu có frontend) ==========
+node_modules/
+
+# ========== OS ==========
+.DS_Store
+Thumbs.db
+
+# ========== TEMP ==========
+tmp/
+temp/
