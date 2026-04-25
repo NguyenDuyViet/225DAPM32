@@ -1,0 +1,31 @@
+@model IEnumerable<_225DAPM32.Models.Restaurant>
+@{
+    ViewData["Title"] = "Quản lý Nhà hàng";
+}
+
+<h2 class="mb-4">Quản lý Nhà hàng</h2>
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Tên nhà hàng</th>
+                <th>Địa chỉ</th>
+                <th>Giờ mở</th>
+                <th>Giờ đóng</th>
+                <th>Trạng thái</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Name_Restaurant</td>
+                    <td>@item.Address</td>
+                    <td>@item.OpenTime.ToString(@"hh\:mm")</td>
+                    <td>@item.CloseTime.ToString(@"hh\:mm")</td>
+                    <td><span class="badge bg-success">Hoạt động</span></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

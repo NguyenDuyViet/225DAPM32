@@ -1,0 +1,332 @@
+@{
+    ViewData["Title"] = "Giỏ Hàng";
+}
+
+<!-- Page Header -->
+<div class="page-header bg-success text-white py-5 mb-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-4 fw-bold mb-2">
+                    <i class="fas fa-shopping-cart me-3"></i>Giỏ Hàng Của Bạn
+                </h1>
+                <p class="lead mb-0" id="cartItemCount">0 món ăn trong giỏ hàng</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="@Url.Action("Index", "Foods")" class="btn btn-light btn-lg">
+                    <i class="fas fa-plus me-2"></i>Thêm Món Ăn
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div id="cartContent">
+        <!-- Empty Cart State -->
+        <div id="emptyCart" class="text-center py-5" style="display: none;">
+            <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
+            <h3 class="text-muted">Giỏ hàng trống</h3>
+            <p class="text-muted">Hãy thêm một số món ăn ngon vào giỏ hàng của bạn!</p>
+            <a href="@Url.Action("Index", "Foods")" class="btn btn-primary btn-lg">
+                <i class="fas fa-utensils me-2"></i>Khám Phá Món Ăn
+            </a>
+        </div>
+
+        <!-- Cart Items Container -->
+        <div id="cartItemsContainer" class="row" style="display: none;">
+            <!-- Cart Items -->
+            <div class="col-lg-8">
+                <div id="cartItems" class="cart-items">
+                    <!-- Items will be loaded here by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-receipt me-2"></i>Tóm Tắt Đơn Hàng
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="orderSummary">
+                            <!-- Order summary will be loaded here by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Cart management functions
+    function getCart() {
+        const cart = localStorage.getItem('mgtn_cart');
+        return cart ? JSON.parse(cart) : [];
+    }
+
+    function saveCart(cart) {
+        localStorage.setItem('mgtn_cart', JSON.stringify(cart));
+        updateCartBadge();
+    }
+
+    function updateCartBadge() {
+        const cart = getCart();
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        const badge = document.getElementById('cartBadge') || document.querySelector('.cart-badge');
+        if (badge) {
+            badge.textContent = totalItems;
+            badge.style.display = totalItems > 0 ? 'inline' : 'none';
+        }
+        document.getElementById('cartItemCount').textContent = `${totalItems} món ăn trong giỏ hàng`;
+    }
+
+    function loadCart() {
+        const cart = getCart();
+
+        if (cart.length === 0) {
+            document.getElementById('emptyCart').style.display = 'block';
+            document.getElementById('cartItemsContainer').style.display = 'none';
+            return;
+        }
+
+        document.getElementById('emptyCart').style.display = 'none';
+        document.getElementById('cartItemsContainer').style.display = 'block';
+
+        renderCartItems(cart);
+        renderOrderSummary(cart);
+    }
+
+    function renderCartItems(cart) {
+        const cartItemsContainer = document.getElementById('cartItems');
+        cartItemsContainer.innerHTML = '';
+
+        cart.forEach((item, index) => {
+            const itemElement = document.createElement('div');
+            itemElement.className = 'cart-item card mb-3 border-0 shadow-sm';
+            itemElement.innerHTML = `
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-2">
+                            <img src="${item.image || '/images/default-food.jpg'}" alt="${item.name}"
+                                 class="img-fluid rounded" style="max-height: 80px;">
+                        </div>
+                        <div class="col-md-3">
+                            <h6 class="fw-bold mb-1">${item.name}</h6>
+                            <small class="text-muted">${item.restaurantName || 'Nhà hàng'}</small>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="quantity-controls d-flex align-items-center">
+                                <button class="btn btn-sm btn-outline-secondary quantity-btn" data-action="decrease" data-index="${index}">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <span class="mx-3 fw-bold">${item.quantity}</span>
+                                <button class="btn btn-sm btn-outline-secondary quantity-btn" data-action="increase" data-index="${index}">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="price-info">
+                                <span class="current-price fw-bold">${item.price.toLocaleString()} VND</span>
+                                <small class="text-muted d-block">đơn giá</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-end">
+                            <div class="item-total mb-2">
+                                <span class="fw-bold text-primary">${(item.price * item.quantity).toLocaleString()} VND</span>
+                            </div>
+                            <button class="btn btn-sm btn-outline-danger remove-item-btn" data-index="${index}">
+                                <i class="fas fa-trash me-1"></i>Xóa
+                            </button>
+                        </div>
+                    </div>
+                    ${item.note ? `
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="note-section">
+                                <i class="fas fa-sticky-note text-warning me-2"></i>
+                                <strong>Ghi chú:</strong> ${item.note}
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+            cartItemsContainer.appendChild(itemElement);
+        });
+
+        // Add event listeners
+        document.querySelectorAll('.quantity-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const action = this.getAttribute('data-action');
+                const index = parseInt(this.getAttribute('data-index'));
+                updateQuantity(index, action);
+            });
+        });
+
+        document.querySelectorAll('.remove-item-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const index = parseInt(this.getAttribute('data-index'));
+                removeItem(index);
+            });
+        });
+    }
+
+    function renderOrderSummary(cart) {
+        const orderSummaryContainer = document.getElementById('orderSummary');
+        const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const distinctItems = cart.length;
+        const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
+        const shipping = 25000;
+        const discount = 0;
+        const total = subtotal + shipping - discount;
+
+        orderSummaryContainer.innerHTML = `
+            <div class="summary-item d-flex justify-content-between mb-3">
+                <span>Tạm tính (${distinctItems} sản phẩm, ${totalQuantity} món):</span>
+                <span class="fw-bold">${subtotal.toLocaleString()} VND</span>
+            </div>
+            <div class="summary-item d-flex justify-content-between mb-3">
+                <span>Phí giao hàng:</span>
+                <span class="fw-bold">25,000 VND</span>
+            </div>
+            <div class="summary-item d-flex justify-content-between mb-3">
+                <span>Giảm giá:</span>
+                <span class="fw-bold text-success">-0 VND</span>
+            </div>
+            <hr>
+            <div class="total d-flex justify-content-between mb-4">
+                <span class="fw-bold fs-5">Tổng cộng:</span>
+                <span class="fw-bold fs-5 text-primary">${total.toLocaleString()} VND</span>
+            </div>
+
+            <div class="promo-code mb-4">
+                <label for="promoCode" class="form-label fw-bold">Mã giảm giá</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="promoCode" placeholder="Nhập mã giảm giá">
+                    <button class="btn btn-outline-primary" type="button">Áp dụng</button>
+                </div>
+            </div>
+
+            <div class="delivery-info mb-4">
+                <h6 class="fw-bold mb-3">
+                    <i class="fas fa-map-marker-alt me-2"></i>Thông tin giao hàng
+                </h6>
+                <div class="mb-3">
+                    <label class="form-label small">Địa chỉ giao hàng</label>
+                    <select class="form-select form-select-sm">
+                        <option>123 Đường ABC, Quận 1, TP.HCM</option>
+                        <option>456 Đường XYZ, Quận 2, TP.HCM</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small">Thời gian giao</label>
+                    <select class="form-select form-select-sm">
+                        <option>Giao ngay (30 phút)</option>
+                        <option>Đặt trước</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="payment-methods mb-4">
+                <h6 class="fw-bold mb-3">
+                    <i class="fas fa-credit-card me-2"></i>Phương thức thanh toán
+                </h6>
+                <div class="payment-options">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="paymentMethod" id="cod" checked>
+                        <label class="form-check-label" for="cod">
+                            <i class="fas fa-money-bill-wave me-2"></i>Thanh toán khi nhận hàng
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="paymentMethod" id="momo">
+                        <label class="form-check-label" for="momo">
+                            <i class="fas fa-mobile-alt me-2"></i>Ví MoMo
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="paymentMethod" id="zalopay">
+                        <label class="form-check-label" for="zalopay">
+                            <i class="fas fa-wallet me-2"></i>ZaloPay
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="paymentMethod" id="card">
+                        <label class="form-check-label" for="card">
+                            <i class="fas fa-credit-card me-2"></i>Thẻ tín dụng
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="checkout-btn">
+                <button class="btn btn-success btn-lg w-100">
+                    <i class="fas fa-shopping-cart me-2"></i>Đặt hàng ngay
+                </button>
+                <p class="text-muted small text-center mt-2">
+                    Bạn sẽ được chuyển hướng đến trang thanh toán an toàn
+                </p>
+            </div>
+        `;
+    }
+
+    function updateQuantity(index, action) {
+        const cart = getCart();
+        if (action === 'increase') {
+            cart[index].quantity++;
+        } else if (action === 'decrease' && cart[index].quantity > 1) {
+            cart[index].quantity--;
+        }
+        saveCart(cart);
+        loadCart();
+        showToast('Cập nhật số lượng thành công!', 'success');
+    }
+
+    function removeItem(index) {
+        const cart = getCart();
+        cart.splice(index, 1);
+        saveCart(cart);
+        loadCart();
+        showToast('Đã xóa món ăn khỏi giỏ hàng!', 'success');
+    }
+
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-white bg-${type} border-0`;
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+
+        const container = document.querySelector('.toast-container') || createToastContainer();
+        container.appendChild(toast);
+
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    }
+
+    function createToastContainer() {
+        const container = document.createElement('div');
+        container.className = 'toast-container position-fixed top-0 end-0 p-3';
+        container.style.zIndex = '9999';
+        document.body.appendChild(container);
+        return container;
+    }
+
+    // Load cart when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        loadCart();
+    });
+</script>

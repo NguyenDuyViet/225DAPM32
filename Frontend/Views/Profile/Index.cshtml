@@ -1,0 +1,198 @@
+@{
+    var user = ViewBag.User as _225DAPM32.Models.User;
+    var orders = ViewBag.Orders as List<_225DAPM32.Models.Order>;
+    var addresses = ViewBag.Addresses as List<_225DAPM32.Models.Address>;
+}
+
+<!-- Profile Header -->
+<div class="profile-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-3 text-center">
+                <img src="@user.Avatar" alt="Avatar" class="profile-avatar mb-3">
+            </div>
+            <div class="col-md-9">
+                <h1 class="display-4 fw-bold mb-2">@user.Username</h1>
+                <p class="lead mb-3">@user.Update_Bio</p>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h3 class="text-white">@orders.Count</h3>
+                            <small>Đơn hàng</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h3 class="text-white">@addresses.Count</h3>
+                            <small>Địa chỉ</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h3 class="text-white">@(user.Cancel_Rate * 100)%</h3>
+                            <small>Tỷ lệ hủy</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h3 class="text-white">@user.Status</h3>
+                            <small>Trạng thái</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <!-- Profile Navigation -->
+        <div class="col-md-3">
+            <div class="profile-nav p-3">
+                <h5 class="mb-3">Tài khoản</h5>
+                <nav class="nav flex-column">
+                    <a class="nav-link active" href="@Url.Action("Index", "Profile")">
+                        <i class="fas fa-tachometer-alt me-2"></i>Tổng quan
+                    </a>
+                    <a class="nav-link" href="@Url.Action("Orders", "Profile")">
+                        <i class="fas fa-shopping-bag me-2"></i>Đơn hàng
+                    </a>
+                    <a class="nav-link" href="@Url.Action("Addresses", "Profile")">
+                        <i class="fas fa-map-marker-alt me-2"></i>Địa chỉ
+                    </a>
+                    <a class="nav-link" href="@Url.Action("Settings", "Profile")">
+                        <i class="fas fa-cog me-2"></i>Cài đặt
+                    </a>
+                    <hr class="my-3">
+                    <a class="nav-link text-danger" href="#" onclick="logout()">
+                        <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Profile Content -->
+        <div class="col-md-9">
+            <div class="profile-content">
+                <!-- Recent Orders -->
+                <div class="mb-4">
+                    <h4 class="mb-3">
+                        <i class="fas fa-clock me-2"></i>Đơn hàng gần đây
+                    </h4>
+                    <div class="row">
+                        @foreach (var order in orders.Take(3))
+                        {
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="card-title mb-0">#@order.Id_Order</h6>
+                                            <span class="badge bg-@(order.Status == "completed" ? "success" : order.Status == "delivering" ? "warning" : "secondary")">
+                                                @order.Status
+                                            </span>
+                                        </div>
+                                        <p class="card-text small text-muted mb-2">
+                                            @order.Created_At.ToString("dd/MM/yyyy HH:mm")
+                                        </p>
+                                        <p class="card-text fw-bold text-primary mb-0">
+                                            @order.Total.ToString("N0") VND
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <a href="@Url.Action("Orders", "Profile")" class="btn btn-outline-primary">
+                        Xem tất cả đơn hàng
+                    </a>
+                </div>
+
+                <!-- Saved Addresses -->
+                <div class="mb-4">
+                    <h4 class="mb-3">
+                        <i class="fas fa-map-marker-alt me-2"></i>Địa chỉ đã lưu
+                    </h4>
+                    <div class="row">
+                        @foreach (var address in addresses)
+                        {
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="card-title mb-0">@address.Name</h6>
+                                            @if (address.Is_Default)
+                                            {
+                                                <span class="badge bg-primary">Mặc định</span>
+                                            }
+                                        </div>
+                                        <p class="card-text small mb-1">@address.Phone</p>
+                                        <p class="card-text">@address.AddressDetail</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <a href="@Url.Action("Addresses", "Profile")" class="btn btn-outline-primary">
+                        Quản lý địa chỉ
+                    </a>
+                </div>
+
+                <!-- Account Stats -->
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <i class="fas fa-calendar-alt fa-2x text-primary mb-2"></i>
+                                <h5>Thành viên từ</h5>
+                                <p class="text-muted">@user.Created_At.ToString("MM/yyyy")</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <i class="fas fa-clock fa-2x text-success mb-2"></i>
+                                <h5>Lần cuối online</h5>
+                                <p class="text-muted">@user.LastOnline.ToString("dd/MM/yyyy")</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <i class="fas fa-star fa-2x text-warning mb-2"></i>
+                                <h5>Đánh giá</h5>
+                                <p class="text-muted">4.8/5.0</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateAccountButton() {
+        const loggedIn = localStorage.getItem('mgtn_loggedIn') === 'true';
+        const accountIcon = document.getElementById('accountIcon');
+        const accountButton = document.getElementById('accountButton');
+        if (!accountIcon || !accountButton) return;
+        accountIcon.className = loggedIn ? 'fas fa-user' : 'fas fa-user-plus';
+        accountButton.title = loggedIn ? 'Trang cá nhân' : 'Đăng nhập / Đăng ký';
+    }
+
+    function logout() {
+        if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+            // Clear user session/localStorage
+            localStorage.removeItem('mgtn_loggedIn');
+
+            // Update UI immediately
+            updateAccountButton();
+
+            // Redirect to home page
+            window.location.href = '@Url.Action("Index", "Home")';
+        }
+    }
+</script>

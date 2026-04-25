@@ -1,0 +1,110 @@
+﻿@{
+    ViewData["Title"] = "Món Ngon Tại Nhà";
+}
+
+<!-- Hero Section -->
+<div class="hero-section py-5 mb-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold text-dark mb-4">Món Ngon Tại Nhà</h1>
+                <p class="lead text-dark mb-4">
+                    Khám phá hương vị tuyệt vời từ các nhà hàng đối tác.
+                    Đặt món ăn yêu thích chỉ với vài cú click!
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="@Url.Action("Index", "Foods")" class="btn btn-dark btn-lg">
+                        <i class="fas fa-utensils me-2"></i>Đặt Món Ngay
+                    </a>
+                    <a href="@Url.Action("Index", "Restaurants")" class="btn btn-outline-dark btn-lg">
+                        <i class="fas fa-store me-2"></i>Xem Nhà Hàng
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="hero-image">
+                    <div class="food-icons">
+                        <div class="food-icon food-icon-1">🍜</div>
+                        <div class="food-icon food-icon-2">🍕</div>
+                        <div class="food-icon food-icon-3">🍔</div>
+                        <div class="food-icon food-icon-4">🥗</div>
+                        <div class="food-icon food-icon-5">🍣</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="features-section py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="fw-bold text-dark">Tại Sao Chọn Chúng Tôi?</h2>
+                <p class="text-muted">Trải nghiệm dịch vụ giao hàng thức ăn tốt nhất</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-shipping-fast fa-3x text-primary"></i>
+                    </div>
+                    <h5 class="fw-bold">Giao Hàng Nhanh</h5>
+                    <p class="text-muted">Giao hàng trong vòng 30 phút</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-utensils fa-3x text-success"></i>
+                    </div>
+                    <h5 class="fw-bold">Đa Dạng Món Ăn</h5>
+                    <p class="text-muted">Hàng trăm món ăn từ các nhà hàng uy tín</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-star fa-3x text-warning"></i>
+                    </div>
+                    <h5 class="fw-bold">Chất Lượng Đảm Bảo</h5>
+                    <p class="text-muted">Món ăn tươi ngon, vệ sinh an toàn</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Access Section -->
+<div class="quick-access-section py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-5">
+                        <i class="fas fa-utensils fa-4x text-primary mb-3"></i>
+                        <h3 class="card-title fw-bold">Khám Phá Món Ăn</h3>
+                        <p class="card-text text-muted mb-4">Tìm kiếm và đặt món ăn yêu thích từ menu đa dạng</p>
+                        <a href="@Url.Action("Index", "Foods")" class="btn btn-primary btn-lg">
+                            Xem Món Ăn <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-5">
+                        <i class="fas fa-store fa-4x text-success mb-3"></i>
+                        <h3 class="card-title fw-bold">Khám Phá Nhà Hàng</h3>
+                        <p class="card-text text-muted mb-4">Tìm hiểu về các nhà hàng đối tác chất lượng</p>
+                        <a href="@Url.Action("Index", "Restaurants")" class="btn btn-success btn-lg">
+                            Xem Nhà Hàng <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

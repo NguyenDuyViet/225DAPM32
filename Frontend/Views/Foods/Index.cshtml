@@ -1,0 +1,181 @@
+@model IEnumerable<_225DAPM32.Models.Food>
+
+@{
+    ViewData["Title"] = "Danh Sách Món Ăn";
+}
+
+<!-- Page Header -->
+<div class="page-header bg-primary text-white py-5 mb-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-4 fw-bold mb-2">
+                    <i class="fas fa-utensils me-3"></i>Món Ăn Ngon
+                </h1>
+                <p class="lead mb-0">Khám phá hương vị tuyệt vời từ các nhà hàng đối tác</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-number">@Model.Count()</span>
+                        <span class="stat-label">Món Ăn</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Filters -->
+    <div class="filters-section mb-4">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control" placeholder="Tìm kiếm món ăn..." id="searchInput">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="categoryFilter">
+                    <option value="">Tất cả danh mục</option>
+                    <option value="1">Món Việt</option>
+                    <option value="2">Món Tây</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="sortFilter">
+                    <option value="">Sắp xếp theo</option>
+                    <option value="price-asc">Giá tăng dần</option>
+                    <option value="price-desc">Giá giảm dần</option>
+                    <option value="rating">Đánh giá cao</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-primary w-100" id="filterBtn">
+                    <i class="fas fa-filter me-1"></i>Lọc
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Food Grid -->
+    <div class="row g-4" id="foodGrid">
+        @foreach (var food in Model)
+        {
+            <div class="col-lg-4 col-md-6 food-item" data-category="@food.Id_Category" data-price="@food.Price">
+                <div class="card food-card h-100">
+                    <div class="card-img-container">
+                        <img src="@food.Image" class="card-img-top" alt="@food.Name">
+                        @if (food.Discount > 0)
+                        {
+                            <div class="discount-badge">
+                                -@((food.Discount / food.Price * 100).ToString("F0"))%
+                            </div>
+                        }
+                        <div class="card-overlay">
+                            <button class="btn btn-light btn-sm quick-view-btn" data-food-id="@food.Id_Food">
+                                <i class="fas fa-eye"></i> Xem nhanh
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title fw-bold">@food.Name</h5>
+                        <p class="card-text text-muted flex-grow-1">@food.Description</p>
+
+                        <div class="food-meta mb-3">
+                            <div class="meta-item">
+                                <i class="fas fa-clock text-warning me-1"></i>
+                                <span>@food.Prep_Time phút</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-fire text-danger me-1"></i>
+                                <span>@food.Cook_Count lần nấu</span>
+                            </div>
+                        </div>
+
+                        <div class="price-section">
+                            <div class="price">
+                                @if (food.Discount > 0)
+                                {
+                                    <span class="original-price text-muted">@food.Price.ToString("N0") VND</span>
+                                    <span class="current-price fw-bold text-success">@((food.Price - food.Discount).ToString("N0")) VND</span>
+                                }
+                                else
+                                {
+                                    <span class="current-price fw-bold">@food.Price.ToString("N0") VND</span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="card-actions mt-3">
+                            <a href="@Url.Action("Details", "Foods", new { id = food.Id_Food })" class="btn btn-primary flex-fill me-2">
+                                <i class="fas fa-info-circle me-1"></i>Chi tiết
+                            </a>
+                            <button class="btn btn-success flex-fill add-to-cart-btn" data-food-id="@food.Id_Food" data-food-name="@food.Name" data-food-price="@(food.Price - food.Discount)">
+                                <i class="fas fa-cart-plus me-1"></i>Thêm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-search fa-4x text-muted mb-3"></i>
+            <h3 class="text-muted">Không tìm thấy món ăn nào</h3>
+            <p class="text-muted">Hãy thử tìm kiếm với từ khóa khác</p>
+        </div>
+    }
+</div>
+
+<!-- Quick View Modal -->
+<div class="modal fade" id="quickViewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Xem nhanh món ăn</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="quickViewContent">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.add-to-cart-btn[data-food-id]').forEach(button => {
+            button.addEventListener('click', function(event) {
+                event.preventDefault();
+                const foodId = parseInt(this.dataset.foodId);
+                const foodName = this.dataset.foodName;
+                const price = parseInt(this.dataset.foodPrice, 10) || 0;
+
+                if (typeof window.mgtnAddToCart === 'function') {
+                    window.mgtnAddToCart(foodId, foodName, price, 1);
+                } else {
+                    const cartItems = JSON.parse(localStorage.getItem('mgtn_cart') || '[]');
+                    const existingItem = cartItems.find(item => item.id === foodId);
+                    if (existingItem) {
+                        existingItem.quantity += 1;
+                    } else {
+                        cartItems.push({ id: foodId, name: foodName, price: price, quantity: 1 });
+                    }
+                    localStorage.setItem('mgtn_cart', JSON.stringify(cartItems));
+                    if (typeof window.updateCartBadge === 'function') {
+                        window.updateCartBadge();
+                    }
+                }
+
+                if (typeof window.showToast === 'function') {
+                    window.showToast(`Đã thêm 1 ${foodName} vào giỏ hàng!`, 'success');
+                }
+            });
+        });
+    });
+</script>

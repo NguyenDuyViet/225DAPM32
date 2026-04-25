@@ -1,0 +1,37 @@
+@model _225DAPM32.Models.Food
+
+@{
+    ViewData["Title"] = "Chi Tiết Món Ăn";
+}
+
+<h1>@Model.Name</h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <img src="@Model.Image" class="img-fluid" alt="@Model.Name">
+    </div>
+    <div class="col-md-6">
+        <h3>Mô tả</h3>
+        <p>@Model.Description</p>
+        <h4>Giá: @Model.Price.ToString("N0") VND</h4>
+        @if (Model.Discount > 0)
+        {
+            <h4 class="text-danger">Giảm giá: @Model.Discount.ToString("N0") VND</h4>
+        }
+        <p><strong>Thời gian chuẩn bị:</strong> @Model.Prep_Time phút</p>
+        <p><strong>Số lần đã nấu:</strong> @Model.Cook_Count</p>
+        <form asp-controller="Cart" asp-action="AddToCart" method="post">
+            <input type="hidden" name="foodId" value="@Model.Id_Food" />
+            <div class="mb-3">
+                <label for="quantity" class="form-label">Số lượng:</label>
+                <input type="number" name="quantity" id="quantity" class="form-control" value="1" min="1" />
+            </div>
+            <div class="mb-3">
+                <label for="note" class="form-label">Ghi chú:</label>
+                <textarea name="note" id="note" class="form-control" rows="3"></textarea>
+            </div>
+            <button type="submit" class="btn btn-success">Thêm vào giỏ hàng</button>
+        </form>
+        <a href="@Url.Action("Index", "Foods")" class="btn btn-secondary">Quay lại</a>
+    </div>
+</div>

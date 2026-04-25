@@ -1,0 +1,22 @@
+@model _225DAPM32.Models.Restaurant
+@{
+    ViewData["Title"] = "Thông tin Nhà hàng";
+}
+
+<h2 class="mb-4">Thông tin Nhà hàng</h2>
+<div class="card border-0 shadow-sm">
+    <div class="row g-0 align-items-center">
+        <div class="col-md-4">
+            <img src="@Model.Image" class="img-fluid rounded-start" alt="@Model.Name_Restaurant" />
+        </div>
+        <div class="col-md-8">
+            <div class="card-body">
+                <h3 class="card-title">@Model.Name_Restaurant</h3>
+                <p class="text-muted">@Model.Description</p>
+                <p><strong>Địa chỉ:</strong> @Model.Address</p>
+                <p><strong>Giờ mở:</strong> @Model.OpenTime.ToString(@"hh\:mm") - @Model.CloseTime.ToString(@"hh\:mm")</p>
+                <button class="btn btn-primary">Chỉnh sửa thông tin</button>
+            </div>
+        </div>
+    </div>
+</div>

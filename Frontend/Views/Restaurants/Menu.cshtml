@@ -1,0 +1,239 @@
+@model List<_225DAPM32.Models.Food>
+
+@{
+    ViewData["Title"] = "Menu Nhà Hàng";
+    var restaurant = ViewBag.Restaurant as _225DAPM32.Models.Restaurant;
+}
+
+<!-- Restaurant Header -->
+<div class="restaurant-header bg-primary text-white py-4 mb-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-2">
+                <img src="@restaurant.Image" alt="@restaurant.Name_Restaurant" class="img-fluid rounded-circle" style="max-width: 80px;">
+            </div>
+            <div class="col-md-8">
+                <h1 class="h3 mb-1">@restaurant.Name_Restaurant</h1>
+                <p class="mb-1">@restaurant.Description</p>
+                <small class="opacity-75">
+                    <i class="fas fa-clock me-1"></i>@restaurant.OpenTime.ToString(@"hh\:mm") - @restaurant.CloseTime.ToString(@"hh\:mm") |
+                    <i class="fas fa-map-marker-alt me-1"></i>@restaurant.Address
+                </small>
+            </div>
+            <div class="col-md-2 text-end">
+                <a href="@Url.Action("Details", "Restaurants", new { id = restaurant.Id_Restaurant })" class="btn btn-light btn-sm">
+                    <i class="fas fa-info-circle me-1"></i>Chi tiết
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <!-- Menu Items -->
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h4 mb-0">
+                    <i class="fas fa-utensils me-2"></i>Menu (@Model.Count món)
+                </h2>
+                <div class="d-flex gap-2">
+                    <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Tìm món ăn..." style="width: 200px;">
+                    <select id="categoryFilter" class="form-select form-select-sm" style="width: 150px;">
+                        <option value="">Tất cả</option>
+                        <option value="1">Món chính</option>
+                        <option value="2">Món ăn nhanh</option>
+                    </select>
+                </div>
+            </div>
+
+            @if (Model.Any())
+            {
+                <div class="row" id="menuItems">
+                    @foreach (var food in Model)
+                    {
+                        <div class="col-lg-6 col-xl-4 mb-4">
+                            <div class="card menu-item-card h-100 border-0 shadow-sm">
+                                <div class="card-body p-0">
+                                    <div class="menu-item-image">
+                                        <img src="@food.Image" alt="@food.Name" class="img-fluid w-100" style="height: 200px; object-fit: cover;">
+                                        <div class="menu-item-overlay">
+                                            <button class="btn btn-success btn-sm add-to-cart-btn"
+                                                    onclick="handleAddToCart(@food.Id_Food, '@food.Name', @food.Price)">
+                                                <i class="fas fa-cart-plus me-1"></i>Thêm vào giỏ
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="p-3">
+                                        <h5 class="card-title mb-2">@food.Name</h5>
+                                        <p class="card-text text-muted small mb-3">@food.Description</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="fw-bold text-primary fs-5">@food.Price.ToString("N0") VND</span>
+                                            <div class="quantity-controls">
+                                                <button class="btn btn-outline-secondary btn-sm" onclick="changeQuantity(@food.Id_Food, -1)">
+                                                    <i class="fas fa-minus"></i>
+                                                </button>
+                                                <span class="mx-2 fw-bold" id="quantity-@food.Id_Food">1</span>
+                                                <button class="btn btn-outline-secondary btn-sm" onclick="changeQuantity(@food.Id_Food, 1)">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-utensils fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">Chưa có món ăn nào</h4>
+                    <p class="text-muted">Nhà hàng đang cập nhật menu</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+.menu-item-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.menu-item-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+}
+
+.menu-item-image {
+    position: relative;
+    overflow: hidden;
+}
+
+.menu-item-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.menu-item-card:hover .menu-item-overlay {
+    opacity: 1;
+}
+
+.add-to-cart-btn {
+    transform: scale(0.9);
+    transition: transform 0.2s ease;
+}
+
+.menu-item-card:hover .add-to-cart-btn {
+    transform: scale(1);
+}
+
+.quantity-controls {
+    display: flex;
+    align-items: center;
+}
+
+.restaurant-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+</style>
+
+<script>
+let cartQuantities = {};
+
+function changeQuantity(foodId, change) {
+    const current = typeof cartQuantities[foodId] === 'number' ? cartQuantities[foodId] : 1;
+    cartQuantities[foodId] = Math.max(1, current + change);
+    document.getElementById(`quantity-${foodId}`).textContent = cartQuantities[foodId];
+}
+
+function handleAddToCart(foodId, foodName, price) {
+    const quantity = cartQuantities[foodId] || 1;
+    if (quantity === 0) {
+        showToast('Vui lòng chọn số lượng!', 'warning');
+        return;
+    }
+
+    if (typeof window.mgtnAddToCart === 'function') {
+        window.mgtnAddToCart(foodId, foodName, price, quantity);
+    } else {
+        const cartItems = JSON.parse(localStorage.getItem('mgtn_cart') || '[]');
+        const existingItem = cartItems.find(item => item.id === foodId);
+        if (existingItem) {
+            existingItem.quantity += quantity;
+        } else {
+            cartItems.push({ id: foodId, name: foodName, price: price, quantity: quantity });
+        }
+        localStorage.setItem('mgtn_cart', JSON.stringify(cartItems));
+        if (typeof window.updateCartBadge === 'function') {
+            window.updateCartBadge();
+        }
+    }
+
+    showToast(`Đã thêm ${quantity} ${foodName} vào giỏ hàng!`, 'success');
+
+    // Reset quantity to default
+    cartQuantities[foodId] = 1;
+    document.getElementById(`quantity-${foodId}`).textContent = '1';
+}
+
+function showToast(message, type = 'info') {
+    // Simple toast implementation
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type} position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    toast.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+    `;
+    document.body.appendChild(toast);
+
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.remove();
+        }
+    }, 3000);
+}
+
+// Search and filter functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const categoryFilter = document.getElementById('categoryFilter');
+
+    function filterItems() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const categoryId = categoryFilter.value;
+        const items = document.querySelectorAll('.menu-item-card');
+
+        items.forEach(item => {
+            const title = item.querySelector('.card-title').textContent.toLowerCase();
+            const description = item.querySelector('.card-text').textContent.toLowerCase();
+            const matchesSearch = title.includes(searchTerm) || description.includes(searchTerm);
+            const matchesCategory = !categoryId || item.dataset.category === categoryId;
+
+            if (matchesSearch && matchesCategory) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    searchInput.addEventListener('input', filterItems);
+    categoryFilter.addEventListener('change', filterItems);
+});
+</script>

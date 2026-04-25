@@ -1,0 +1,31 @@
+@model IEnumerable<_225DAPM32.Models.Order>
+@{
+    ViewData["Title"] = "Lịch sử giao hàng";
+}
+
+<h2 class="mb-4">Lịch sử giao hàng</h2>
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Mã đơn</th>
+                <th>Trạng thái</th>
+                <th>Tổng tiền</th>
+                <th>Thời gian giao</th>
+                <th>Shipper</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in Model)
+            {
+                <tr>
+                    <td>#@order.Id_Order</td>
+                    <td><span class="badge bg-success">@order.Status</span></td>
+                    <td>@order.FinalTotal.ToString("N0") VND</td>
+                    <td>@order.Delivered_At?.ToString("HH:mm dd/MM")</td>
+                    <td>@order.DriverName</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,57 @@
+@{
+    ViewData["Title"] = "Thống kê";
+}
+
+<h2 class="mb-4">Thống kê Nhà hàng</h2>
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h5>Doanh thu</h5>
+                <canvas id="restaurantRevenue" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h5>Đơn hàng theo trạng thái</h5>
+                <canvas id="restaurantStatus" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const revenueCtx = document.getElementById('restaurantRevenue');
+        if (revenueCtx) {
+            new Chart(revenueCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'],
+                    datasets: [{
+                        label: 'Doanh thu',
+                        data: [12, 15, 18, 14, 20, 22, 25],
+                        backgroundColor: '#198754'
+                    }]
+                }
+            });
+        }
+
+        const statusCtx = document.getElementById('restaurantStatus');
+        if (statusCtx) {
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Confirmed', 'Preparing', 'Delivered'],
+                    datasets: [{
+                        data: [25, 10, 65],
+                        backgroundColor: ['#0d6efd', '#ffc107', '#198754']
+                    }]
+                }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,33 @@
+@model _225DAPM32.Areas.Shipper.Models.ShipperEarningsViewModel
+@{
+    ViewData["Title"] = "Thu nhập";
+}
+
+<h2 class="mb-4">Thu nhập</h2>
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm p-4">
+            <h5>Thu nhập tuần</h5>
+            <p class="display-6 fw-bold">@Model.WeekTotal.ToString("N0") VND</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm p-4">
+            <h5>Thu nhập hôm nay</h5>
+            <p class="display-6 fw-bold">@Model.TodayTotal.ToString("N0") VND</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm p-4">
+            <h5>Đơn hoàn thành</h5>
+            <p class="display-6 fw-bold">@Model.CompletedOrders</p>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <h5 class="card-title">Tổng quan</h5>
+        <p class="card-text">Bạn đang có @Model.PendingOrders đơn đang thực hiện. Giữ trạng thái giao hàng ổn định để tăng thu nhập.</p>
+    </div>
+</div>

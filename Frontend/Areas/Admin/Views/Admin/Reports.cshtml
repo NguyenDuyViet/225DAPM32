@@ -1,0 +1,60 @@
+@{
+    ViewData["Title"] = "Báo cáo & Thống kê";
+}
+
+<h2 class="mb-4">Báo cáo & Thống kê</h2>
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h5>Doanh thu theo tuần</h5>
+                <p class="text-muted">Biểu đồ doanh thu giúp admin theo dõi tăng trưởng.</p>
+                <canvas id="adminRevenueChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h5>Đơn hàng theo trạng thái</h5>
+                <p class="text-muted">Tổng quan về trạng thái đơn hàng đang xử lý.</p>
+                <canvas id="adminOrderStatusChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const revenueCtx = document.getElementById('adminRevenueChart');
+        if (revenueCtx) {
+            new Chart(revenueCtx, {
+                type: 'line',
+                data: {
+                    labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+                    datasets: [{
+                        label: 'Doanh thu',
+                        data: [1500, 1800, 2200, 2000, 2400, 2600, 2800],
+                        borderColor: '#0d6efd',
+                        backgroundColor: 'rgba(13, 110, 253, 0.15)',
+                        tension: 0.4
+                    }]
+                }
+            });
+        }
+        const orderStatusCtx = document.getElementById('adminOrderStatusChart');
+        if (orderStatusCtx) {
+            new Chart(orderStatusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Hoàn thành', 'Đang giao', 'Chờ xử lý'],
+                    datasets: [{
+                        data: [55, 30, 15],
+                        backgroundColor: ['#198754', '#ffc107', '#6c757d']
+                    }]
+                }
+            });
+        }
+    </script>
+}

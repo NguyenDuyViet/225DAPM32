@@ -1,0 +1,43 @@
+@model IEnumerable<_225DAPM32.Areas.Admin.Models.ViolationAlert>
+@{
+    ViewData["Title"] = "Cảnh báo vi phạm";
+}
+
+<h2 class="mb-4">Cảnh báo vi phạm</h2>
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <p>Giám sát và theo dõi các vi phạm bảo mật, hành vi bất thường hoặc truy cập trái phép trong hệ thống.</p>
+        <button class="btn btn-warning">Đã xem tất cả</button>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Cảnh báo</th>
+                <th>Mức độ</th>
+                <th>Thời gian</th>
+                <th>Trạng thái</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var alert in Model)
+            {
+                <tr>
+                    <td>
+                        <strong>@alert.Title</strong>
+                        <div class="text-muted">@alert.Description</div>
+                    </td>
+                    <td>
+                        <span class="badge @((alert.Severity == "High") ? "bg-danger" : (alert.Severity == "Medium") ? "bg-warning text-dark" : "bg-secondary")">@alert.Severity</span>
+                    </td>
+                    <td>@alert.CreatedAt.ToString("HH:mm dd/MM/yyyy")</td>
+                    <td>
+                        <span class="badge @(alert.Status == "Pending" ? "bg-warning text-dark" : "bg-success")">@alert.Status</span>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

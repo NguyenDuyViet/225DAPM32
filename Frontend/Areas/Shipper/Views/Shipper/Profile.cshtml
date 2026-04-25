@@ -1,0 +1,24 @@
+@model _225DAPM32.Areas.Shipper.Models.ShipperProfileViewModel
+@{
+    ViewData["Title"] = "Thông tin cá nhân";
+}
+
+<h2 class="mb-4">Thông tin cá nhân</h2>
+<div class="card border-0 shadow-sm p-4">
+    <div class="row align-items-center">
+        <div class="col-md-3 text-center">
+            <div class="bg-light rounded-circle mx-auto" style="width:120px;height:120px;display:flex;align-items:center;justify-content:center;">
+                <span class="display-4 text-secondary">@Model.Name.Substring(0,1)</span>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <h3>@Model.Name</h3>
+            <p><strong>Điện thoại:</strong> @Model.Phone</p>
+            <p><strong>Email:</strong> @Model.Email</p>
+            <p><strong>Trạng thái:</strong> @Model.Status</p>
+            <p><strong>Đánh giá:</strong> @Model.Rating</p>
+            <p><strong>Đơn hoàn thành:</strong> @Model.CompletedDeliveries</p>
+            <button class="btn btn-primary">Cập nhật hồ sơ</button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,45 @@
+@model IEnumerable<_225DAPM32.Areas.Admin.Models.SecurityPolicyViewModel>
+@{
+    ViewData["Title"] = "Chính sách bảo mật";
+}
+
+<h2 class="mb-4">Chính sách bảo mật</h2>
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <p>Quản lý các chính sách bảo mật áp dụng cho toàn hệ thống, bao gồm mã bảo mật, xác thực, kiểm soát truy cập và quy tắc xử lý dữ liệu.</p>
+        <button class="btn btn-primary">Thêm chính sách mới</button>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Chính sách</th>
+                <th>Hiệu lực từ</th>
+                <th>Trạng thái</th>
+                <th>Mô tả</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var policy in Model)
+            {
+                <tr>
+                    <td>@policy.Title</td>
+                    <td>@policy.EffectiveDate.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        @if (policy.IsActive)
+                        {
+                            <span class="badge bg-success">Hoạt động</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Không hoạt động</span>
+                        }
+                    </td>
+                    <td>@policy.Description</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

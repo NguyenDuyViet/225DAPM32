@@ -1,0 +1,29 @@
+@{
+    ViewData["Title"] = "Cài đặt";
+}
+
+<h2 class="mb-4">Cài đặt Shipper</h2>
+<form>
+    <div class="mb-3 row align-items-center">
+        <label class="col-sm-3 col-form-label">Chế độ nhận đơn</label>
+        <div class="col-sm-9">
+            <select class="form-select">
+                <option selected>Online</option>
+                <option>Offline</option>
+            </select>
+        </div>
+    </div>
+    <div class="mb-3 row align-items-center">
+        <label class="col-sm-3 col-form-label">Loại phương tiện</label>
+        <div class="col-sm-9">
+            <input type="text" class="form-control" value="Xe máy" />
+        </div>
+    </div>
+    <div class="mb-3 row align-items-center">
+        <label class="col-sm-3 col-form-label">Khu vực hoạt động</label>
+        <div class="col-sm-9">
+            <input type="text" class="form-control" value="Quận 1, Quận 3" />
+        </div>
+    </div>
+    <button type="submit" class="btn btn-success">Lưu cài đặt</button>
+</form>

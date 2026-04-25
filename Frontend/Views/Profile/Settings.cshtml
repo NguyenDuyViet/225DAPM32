@@ -1,0 +1,208 @@
+@{
+    var user = ViewBag.User as _225DAPM32.Models.User;
+}
+
+<div class="container">
+    <div class="row">
+        <!-- Profile Navigation -->
+        <div class="col-md-3">
+            <div class="profile-nav p-3">
+                <h5 class="mb-3">Tài khoản</h5>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="@Url.Action("Index", "Profile")">
+                        <i class="fas fa-tachometer-alt me-2"></i>Tổng quan
+                    </a>
+                    <a class="nav-link" href="@Url.Action("Orders", "Profile")">
+                        <i class="fas fa-shopping-bag me-2"></i>Đơn hàng
+                    </a>
+                    <a class="nav-link" href="@Url.Action("Addresses", "Profile")">
+                        <i class="fas fa-map-marker-alt me-2"></i>Địa chỉ
+                    </a>
+                    <a class="nav-link active" href="@Url.Action("Settings", "Profile")">
+                        <i class="fas fa-cog me-2"></i>Cài đặt
+                    </a>
+                    <hr class="my-3">
+                    <a class="nav-link text-danger" href="#" onclick="logout()">
+                        <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Settings Content -->
+        <div class="col-md-9">
+            <div class="profile-content">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["Success"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                <h2 class="mb-4">Cài đặt tài khoản</h2>
+
+                <!-- Profile Information -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-user me-2"></i>Thông tin cá nhân
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form asp-controller="Profile" asp-action="UpdateProfile" method="post">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="username" class="form-label">Tên đăng nhập</label>
+                                    <input type="text" class="form-control" id="username" name="username" value="@user.Username" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email" value="@user.Email" required>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="phone" class="form-label">Số điện thoại</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone" value="@user.Phone" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="bio" class="form-label">Tiểu sử</label>
+                                    <textarea class="form-control" id="bio" name="bio" rows="3">@user.Update_Bio</textarea>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Cập nhật thông tin
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Change Password -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-lock me-2"></i>Đổi mật khẩu
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="currentPassword" class="form-label">Mật khẩu hiện tại</label>
+                                    <input type="password" class="form-control" id="currentPassword" required>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="newPassword" class="form-label">Mật khẩu mới</label>
+                                    <input type="password" class="form-control" id="newPassword" required>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="confirmPassword" class="form-label">Xác nhận mật khẩu</label>
+                                    <input type="password" class="form-control" id="confirmPassword" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-key me-2"></i>Đổi mật khẩu
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Notification Settings -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-bell me-2"></i>Cài đặt thông báo
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="orderNotifications" checked>
+                            <label class="form-check-label" for="orderNotifications">
+                                Thông báo về đơn hàng
+                            </label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="promoNotifications" checked>
+                            <label class="form-check-label" for="promoNotifications">
+                                Thông báo khuyến mãi
+                            </label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="emailNotifications">
+                            <label class="form-check-label" for="emailNotifications">
+                                Nhận email thông báo
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save me-2"></i>Lưu cài đặt
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Danger Zone -->
+                <div class="card border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Khu vực nguy hiểm
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-3">
+                            Các hành động dưới đây không thể hoàn tác. Hãy cân nhắc kỹ trước khi thực hiện.
+                        </p>
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                            <i class="fas fa-trash me-2"></i>Xóa tài khoản
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Account Modal -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Xác nhận xóa tài khoản</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn xóa tài khoản? Hành động này không thể hoàn tác.</p>
+                <div class="alert alert-warning">
+                    <strong>Cảnh báo:</strong> Tất cả dữ liệu, đơn hàng và thông tin của bạn sẽ bị xóa vĩnh viễn.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger">Xóa tài khoản</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateAccountButton() {
+        const loggedIn = localStorage.getItem('mgtn_loggedIn') === 'true';
+        const accountIcon = document.getElementById('accountIcon');
+        const accountButton = document.getElementById('accountButton');
+        if (!accountIcon || !accountButton) return;
+        accountIcon.className = loggedIn ? 'fas fa-user' : 'fas fa-user-plus';
+        accountButton.title = loggedIn ? 'Trang cá nhân' : 'Đăng nhập / Đăng ký';
+    }
+
+    function logout() {
+        if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+            // Clear user session/localStorage
+            localStorage.removeItem('mgtn_loggedIn');
+
+            // Update UI immediately
+            updateAccountButton();
+
+            // Redirect to home page
+            window.location.href = '@Url.Action("Index", "Home")';
+        }
+    }
+</script>
