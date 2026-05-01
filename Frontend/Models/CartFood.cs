@@ -3,18 +3,18 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace _225DAPM32.Models
 {
-    public class Cart_Food
+    public class CartFood
     {
         [Key]
-        public int Id_CartFood { get; set; }
-        public int Id_Cart { get; set; }
-        public int Id_Food { get; set; }
+        public int IdCartFood { get; set; }
+        public int IdCart { get; set; }
+        public int IdFood { get; set; }
         public int Quantity { get; set; }
         public string Note { get; set; }
 
-        [ForeignKey("Id_Cart")]
+        [ForeignKey("IdCart")]
         public Cart Cart { get; set; }
-        [ForeignKey("Id_Food")]
+        [ForeignKey("IdFood")]
         public Food Food { get; set; }
     }
 }

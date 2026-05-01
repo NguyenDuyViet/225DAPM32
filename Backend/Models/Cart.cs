@@ -1,18 +1,15 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace _225DAPM32.Models
+namespace Backend.Models
 {
     public class Cart
     {
-        [Key]
         public int IdCart { get; set; }
         public int IdUser { get; set; }
         public int Total { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdateAt { get; set; }
 
-        [ForeignKey("IdUser")]
+        // Navigation properties
         public User User { get; set; }
+        public ICollection<CartFood> CartFoods { get; set; }
     }
 }

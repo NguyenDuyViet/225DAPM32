@@ -403,6 +403,11 @@ body {
     height: 100px;
   }
 }
+
+/* Footer */
+footer {
+  background: #f8f9fa;
+  padding: 1rem 0;
   color: #4a5568;
   font-size: 1.2rem;
   margin-bottom: 2rem;
@@ -575,7 +580,7 @@ footer a:hover {
 
 footer .btn-outline-light:hover {
   background-color: #ff6b35;
-  border-color: #ff6b35;
+  color: #1b6ec2 !important;
 }
 
 footer hr {

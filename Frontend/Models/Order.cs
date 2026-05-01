@@ -6,30 +6,52 @@ namespace _225DAPM32.Models
     public class Order
     {
         [Key]
-        public int Id_Order { get; set; }
-        public int Id_User { get; set; }
-        public int? Id_Address { get; set; }
-        public int? Id_Driver { get; set; }
-        public string? PaymentMethod { get; set; }
+        public int IdOrder { get; set; }
+        public int IdUser { get; set; }
+        public int IdAddress { get; set; }
+        public int? IdDriver { get; set; }
+        public string PaymentMethod { get; set; }
         public decimal Total { get; set; }
         public decimal ShippingFee { get; set; }
         public decimal Discount { get; set; }
         public decimal FinalTotal { get; set; }
-        public string Status { get; set; } // pending, confirmed, delivering, completed, canceled
-        public string? Note { get; set; }
-        public DateTime Created_At { get; set; }
-        public DateTime? Confirmed_At { get; set; }
-        public DateTime? Delivering_At { get; set; }
-        public DateTime? Delivered_At { get; set; }
-        public DateTime? Canceled_At { get; set; }
+        public string Status { get; set; } // 'pending','confirmed','delivering','completed','canceled'
+        public string Note { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ConfirmedAt { get; set; }
+        public DateTime? DeliveringAt { get; set; }
+        public DateTime? DeliveredAt { get; set; }
+        public DateTime? CanceledAt { get; set; }
+
+        // Additional frontend properties
         public string? TrackingNumber { get; set; }
         public string? DriverName { get; set; }
         public string? DriverPhone { get; set; }
         public DateTime? EstimatedDelivery { get; set; }
 
-        [ForeignKey("Id_User")]
+        [ForeignKey("IdUser")]
         public User? User { get; set; }
-        [ForeignKey("Id_Address")]
+        [ForeignKey("IdAddress")]
         public Address? Address { get; set; }
+
+        public string StatusText => Status switch
+        {
+            "completed" => "Hoàn thành",
+            "delivering" => "Đang giao",
+            "confirmed" => "Đã xác nhận",
+            "pending" => "Chờ xử lý",
+            "canceled" => "Đã hủy",
+            _ => "Không xác định"
+        };
+
+        public string StatusColor => Status switch
+        {
+            "completed" => "success",
+            "delivering" => "warning",
+            "confirmed" => "info",
+            "pending" => "primary",
+            "canceled" => "danger",
+            _ => "secondary"
+        };
     }
 }

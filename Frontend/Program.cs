@@ -15,8 +15,10 @@ builder.Services.AddControllersWithViews();
 //     options.AreaViewLocationFormats.Add("/Views/Shared/{0}.cshtml");
 // });
 
-// Add support for controllers in feature folders
-builder.Services.AddControllersWithViews();
+builder.Services.AddHttpClient("API", client =>
+{
+    client.BaseAddress = new Uri("https://jsonplaceholder.typicode.com/");
+});
 
 var app = builder.Build();
 

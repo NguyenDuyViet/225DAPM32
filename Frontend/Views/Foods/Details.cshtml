@@ -16,12 +16,12 @@
         <h4>Giá: @Model.Price.ToString("N0") VND</h4>
         @if (Model.Discount > 0)
         {
-            <h4 class="text-danger">Giảm giá: @Model.Discount.ToString("N0") VND</h4>
+            <h4 class="text-danger">Giảm giá: @(Model.Discount?.ToString("N0") ?? "0") VND</h4>
         }
-        <p><strong>Thời gian chuẩn bị:</strong> @Model.Prep_Time phút</p>
-        <p><strong>Số lần đã nấu:</strong> @Model.Cook_Count</p>
+        <p><strong>Thời gian chuẩn bị:</strong> @Model.PrepTime phút</p>
+        <p><strong>Số lần đã nấu:</strong> @Model.CookCount</p>
         <form asp-controller="Cart" asp-action="AddToCart" method="post">
-            <input type="hidden" name="foodId" value="@Model.Id_Food" />
+            <input type="hidden" name="foodId" value="@Model.IdFood" />
             <div class="mb-3">
                 <label for="quantity" class="form-label">Số lượng:</label>
                 <input type="number" name="quantity" id="quantity" class="form-control" value="1" min="1" />

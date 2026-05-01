@@ -1,11 +1,7 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace _225DAPM32.Models
+namespace Backend.Models
 {
     public class Food
     {
-        [Key]
         public int IdFood { get; set; }
         public int IdCategory { get; set; }
         public int IdRestaurant { get; set; }
@@ -18,9 +14,12 @@ namespace _225DAPM32.Models
         public int? CookCount { get; set; }
         public int? PrepTime { get; set; }
 
-        [ForeignKey("IdCategory")]
+        // Navigation properties
         public Category Category { get; set; }
-        [ForeignKey("IdRestaurant")]
         public Restaurant Restaurant { get; set; }
+        public ICollection<FoodImage> FoodImages { get; set; }
+        public ICollection<CartFood> CartFoods { get; set; }
+        public ICollection<OrderFood> OrderFoods { get; set; }
+        public ICollection<ReviewFood> ReviewFoods { get; set; }
     }
 }

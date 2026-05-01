@@ -11,20 +11,20 @@ namespace _225DAPM32.Areas.Admin
     {
         private static readonly List<RestaurantEntity> SampleRestaurants = new()
         {
-            new RestaurantEntity { Id_Restaurant = 1, Name_Restaurant = "Nhà hàng Phở 24h", Description = "Phở gà, phở bò đặc biệt", Image = "/images/restaurant1.jpg", Address = "123 Đường ABC, Q.1", OpenTime = new TimeSpan(6,0,0), CloseTime = new TimeSpan(22,0,0), Lat = 10.762622m, Lng = 106.660172m },
-            new RestaurantEntity { Id_Restaurant = 2, Name_Restaurant = "Gà rán Crispy", Description = "Gà rán giòn tan", Image = "/images/restaurant2.jpg", Address = "456 Đường XYZ, Q.3", OpenTime = new TimeSpan(10,0,0), CloseTime = new TimeSpan(23,0,0), Lat = 10.762700m, Lng = 106.682000m }
+            new RestaurantEntity { IdRestaurant = 1, NameRestaurant = "Nhà hàng Phở 24h", Description = "Phở gà, phở bò đặc biệt", Image = "/images/restaurant1.jpg", Address = "123 Đường ABC, Q.1", OpenTime = new TimeSpan(6,0,0), CloseTime = new TimeSpan(22,0,0), Lat = 10.762622m, Lng = 106.660172m },
+            new RestaurantEntity { IdRestaurant = 2, NameRestaurant = "Gà rán Crispy", Description = "Gà rán giòn tan", Image = "/images/restaurant2.jpg", Address = "456 Đường XYZ, Q.3", OpenTime = new TimeSpan(10,0,0), CloseTime = new TimeSpan(23,0,0), Lat = 10.762700m, Lng = 106.682000m }
         };
 
         private static readonly List<User> SampleUsers = new()
         {
-            new User { Id_User = 1, Username = "nguyenvana", Email = "nguyenvana@example.com", Phone = "0912345678", Status = "Active", Created_At = DateTime.Now.AddMonths(-5), LastOnline = DateTime.Now.AddMinutes(-12), Avatar = "/images/user1.jpg" },
-            new User { Id_User = 2, Username = "tranthib", Email = "tranthib@example.com", Phone = "0987654321", Status = "Active", Created_At = DateTime.Now.AddMonths(-2), LastOnline = DateTime.Now.AddHours(-1), Avatar = "/images/user2.jpg" }
+            new User { IdUser = 1, Username = "nguyenvana", Email = "nguyenvana@example.com", Phone = "0912345678", Status = "active", CreatedAt = DateTime.Now.AddMonths(-5), LastOnline = DateTime.Now.AddMinutes(-12), Avatar = "/images/user1.jpg", IdRole = 1 },
+            new User { IdUser = 2, Username = "tranthib", Email = "tranthib@example.com", Phone = "0987654321", Status = "active", CreatedAt = DateTime.Now.AddMonths(-2), LastOnline = DateTime.Now.AddHours(-1), Avatar = "/images/user2.jpg", IdRole = 1 }
         };
 
         private static readonly List<Order> SampleOrders = new()
         {
-            new Order { Id_Order = 1001, Id_User = 1, Total = 185000m, ShippingFee = 15000m, Discount = 0m, FinalTotal = 200000m, Status = "Delivering", Created_At = DateTime.Now.AddMinutes(-40), DriverName = "Trần Văn C", DriverPhone = "0911222333", EstimatedDelivery = DateTime.Now.AddMinutes(20) },
-            new Order { Id_Order = 1002, Id_User = 2, Total = 255000m, ShippingFee = 15000m, Discount = 0m, FinalTotal = 270000m, Status = "Completed", Created_At = DateTime.Now.AddHours(-2), DriverName = "Lê Thị D", DriverPhone = "0909988776", EstimatedDelivery = DateTime.Now.AddHours(-1) }
+            new Order { IdOrder = 1001, IdUser = 1, Total = 185000m, ShippingFee = 15000m, Discount = 0m, FinalTotal = 200000m, Status = "delivering", CreatedAt = DateTime.Now.AddMinutes(-40), DriverName = "Trần Văn C", DriverPhone = "0911222333", EstimatedDelivery = DateTime.Now.AddMinutes(20) },
+            new Order { IdOrder = 1002, IdUser = 2, Total = 255000m, ShippingFee = 15000m, Discount = 0m, FinalTotal = 270000m, Status = "completed", CreatedAt = DateTime.Now.AddHours(-2), DriverName = "Lê Thị D", DriverPhone = "0909988776", EstimatedDelivery = DateTime.Now.AddHours(-1) }
         };
 
         private static readonly List<SecurityPolicyViewModel> SamplePolicies = new()

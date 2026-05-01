@@ -19,10 +19,10 @@
             @foreach (var order in Model)
             {
                 <tr>
-                    <td>#@order.Id_Order</td>
+                    <td>#@order.IdOrder</td>
                     <td><span class="badge bg-success">@order.Status</span></td>
                     <td>@order.FinalTotal.ToString("N0") VND</td>
-                    <td>@order.Delivered_At?.ToString("HH:mm dd/MM")</td>
+                    <td>@order.DeliveredAt?.ToString("HH:mm dd/MM")</td>
                     <td>@order.DriverName</td>
                 </tr>
             }

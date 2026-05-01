@@ -10,14 +10,14 @@ namespace _225DAPM32.Areas.Shipper
     {
         private static readonly List<Order> CurrentOrders = new()
         {
-            new Order { Id_Order = 3001, Id_User = 1, Total = 185000m, ShippingFee = 15000m, FinalTotal = 200000m, Status = "Delivering", Address = null, DriverName = "Hoàng Văn E", DriverPhone = "0911222333", EstimatedDelivery = DateTime.Now.AddMinutes(30) },
-            new Order { Id_Order = 3002, Id_User = 2, Total = 98000m, ShippingFee = 15000m, FinalTotal = 113000m, Status = "Delivering", DriverName = "Hoàng Văn E", DriverPhone = "0911222333", EstimatedDelivery = DateTime.Now.AddMinutes(45) }
+            new Order { IdOrder = 3001, IdUser = 1, Total = 185000m, ShippingFee = 15000m, FinalTotal = 200000m, Status = "delivering", DriverName = "Hoàng Văn E", DriverPhone = "0911222333", EstimatedDelivery = DateTime.Now.AddMinutes(30) },
+            new Order { IdOrder = 3002, IdUser = 2, Total = 98000m, ShippingFee = 15000m, FinalTotal = 113000m, Status = "delivering", DriverName = "Hoàng Văn E", DriverPhone = "0911222333", EstimatedDelivery = DateTime.Now.AddMinutes(45) }
         };
 
         private static readonly List<Order> HistoryOrders = new()
         {
-            new Order { Id_Order = 3000, Id_User = 3, Total = 130000m, ShippingFee = 15000m, FinalTotal = 145000m, Status = "Completed", Created_At = DateTime.Now.AddHours(-6), Delivered_At = DateTime.Now.AddHours(-5) },
-            new Order { Id_Order = 2999, Id_User = 4, Total = 210000m, ShippingFee = 15000m, FinalTotal = 225000m, Status = "Completed", Created_At = DateTime.Now.AddHours(-8), Delivered_At = DateTime.Now.AddHours(-7) }
+            new Order { IdOrder = 3000, IdUser = 3, Total = 130000m, ShippingFee = 15000m, FinalTotal = 145000m, Status = "completed", CreatedAt = DateTime.Now.AddHours(-6), DeliveredAt = DateTime.Now.AddHours(-5) },
+            new Order { IdOrder = 2999, IdUser = 4, Total = 210000m, ShippingFee = 15000m, FinalTotal = 225000m, Status = "completed", CreatedAt = DateTime.Now.AddHours(-8), DeliveredAt = DateTime.Now.AddHours(-7) }
         };
 
         public IActionResult Index()

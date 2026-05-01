@@ -60,8 +60,8 @@
                                     <div class="card-body">
                                         <div class="row align-items-center">
                                             <div class="col-md-2">
-                                                <h5 class="mb-0">#@order.Id_Order</h5>
-                                                <small class="text-muted">@order.Created_At.ToString("dd/MM/yyyy")</small>
+                                                <h5 class="mb-0">#@order.IdOrder</h5>
+                                                <small class="text-muted">@order.CreatedAt.ToString("dd/MM/yyyy")</small>
                                             </div>
                                             <div class="col-md-3">
                                                 <div class="order-items">
@@ -70,8 +70,8 @@
                                                 </div>
                                             </div>
                                             <div class="col-md-2">
-                                                <span class="badge fs-6 bg-@(order.Status == "completed" ? "success" : order.Status == "delivering" ? "warning" : "secondary")">
-                                                    @order.Status
+                                                <span class="badge fs-6 bg-@(order.StatusColor)">
+                                                    @order.StatusText
                                                 </span>
                                             </div>
                                             <div class="col-md-2">
@@ -82,7 +82,7 @@
                                             </div>
                                             <div class="col-md-3">
                                                 <div class="btn-group" role="group">
-                                                    <button class="btn btn-outline-primary btn-sm" onclick="viewOrderDetails(@order.Id_Order)">
+                                                    <button class="btn btn-outline-primary btn-sm" onclick="viewOrderDetails(@order.IdOrder)">
                                                         <i class="fas fa-eye me-1"></i>Chi tiết
                                                     </button>
                                                     @if (order.Status == "completed")

@@ -46,9 +46,9 @@
                         @foreach (var address in addresses)
                         {
                             <div class="col-md-6 mb-4">
-                                <div class="card address-card @(address.Is_Default ? "border-primary" : "")">
+                                <div class="card address-card @(address.IsDefault ? "border-primary" : "")">
                                     <div class="card-body">
-                                        @if (address.Is_Default)
+                                        @if (address.IsDefault)
                                         {
                                             <div class="default-badge">
                                                 <span class="badge bg-primary">Mặc định</span>
@@ -68,16 +68,16 @@
                                             </p>
                                         }
                                         <div class="card-actions mt-3">
-                                            <button class="btn btn-outline-primary btn-sm me-2" onclick="editAddress(@address.Id_Address)">
+                                            <button class="btn btn-outline-primary btn-sm me-2" onclick="editAddress(@address.IdAddress)">
                                                 <i class="fas fa-edit me-1"></i>Sửa
                                             </button>
-                                            @if (!address.Is_Default)
+                                            @if (!address.IsDefault)
                                             {
-                                                <button class="btn btn-outline-success btn-sm me-2" onclick="setDefault(@address.Id_Address)">
+                                                <button class="btn btn-outline-success btn-sm me-2" onclick="setDefault(@address.IdAddress)">
                                                     <i class="fas fa-star me-1"></i>Đặt mặc định
                                                 </button>
                                             }
-                                            <button class="btn btn-outline-danger btn-sm" onclick="deleteAddress(@address.Id_Address)">
+                                            <button class="btn btn-outline-danger btn-sm" onclick="deleteAddress(@address.IdAddress)">
                                                 <i class="fas fa-trash me-1"></i>Xóa
                                             </button>
                                         </div>

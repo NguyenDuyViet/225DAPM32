@@ -13,7 +13,7 @@
             </div>
             <div class="col-md-9">
                 <h1 class="display-4 fw-bold mb-2">@user.Username</h1>
-                <p class="lead mb-3">@user.Update_Bio</p>
+                <p class="lead mb-3">@user.UpdateBio</p>
                 <div class="row">
                     <div class="col-md-3">
                         <div class="text-center">
@@ -29,7 +29,7 @@
                     </div>
                     <div class="col-md-3">
                         <div class="text-center">
-                            <h3 class="text-white">@(user.Cancel_Rate * 100)%</h3>
+                            <h3 class="text-white">@(user.CancelRate * 100)%</h3>
                             <small>Tỷ lệ hủy</small>
                         </div>
                     </div>
@@ -87,13 +87,13 @@
                                 <div class="card">
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between align-items-start mb-2">
-                                            <h6 class="card-title mb-0">#@order.Id_Order</h6>
+                                            <h6 class="card-title mb-0">#@order.IdOrder</h6>
                                             <span class="badge bg-@(order.Status == "completed" ? "success" : order.Status == "delivering" ? "warning" : "secondary")">
                                                 @order.Status
                                             </span>
                                         </div>
                                         <p class="card-text small text-muted mb-2">
-                                            @order.Created_At.ToString("dd/MM/yyyy HH:mm")
+                                            @order.CreatedAt.ToString("dd/MM/yyyy HH:mm")
                                         </p>
                                         <p class="card-text fw-bold text-primary mb-0">
                                             @order.Total.ToString("N0") VND
@@ -121,7 +121,7 @@
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between align-items-start mb-2">
                                             <h6 class="card-title mb-0">@address.Name</h6>
-                                            @if (address.Is_Default)
+                                            @if (address.IsDefault)
                                             {
                                                 <span class="badge bg-primary">Mặc định</span>
                                             }
@@ -145,7 +145,7 @@
                             <div class="card-body">
                                 <i class="fas fa-calendar-alt fa-2x text-primary mb-2"></i>
                                 <h5>Thành viên từ</h5>
-                                <p class="text-muted">@user.Created_At.ToString("MM/yyyy")</p>
+                                <p class="text-muted">@user.CreatedAt.ToString("MM/yyyy")</p>
                             </div>
                         </div>
                     </div>
@@ -154,7 +154,7 @@
                             <div class="card-body">
                                 <i class="fas fa-clock fa-2x text-success mb-2"></i>
                                 <h5>Lần cuối online</h5>
-                                <p class="text-muted">@user.LastOnline.ToString("dd/MM/yyyy")</p>
+                                <p class="text-muted">@user.LastOnline?.ToString("dd/MM/yyyy")</p>
                             </div>
                         </div>
                     </div>

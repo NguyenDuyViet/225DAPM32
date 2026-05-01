@@ -59,13 +59,13 @@
             <div class="col-lg-6 col-xl-4 restaurant-item">
                 <div class="card restaurant-card h-100 border-0 shadow-sm">
                     <div class="card-img-container">
-                        <img src="@restaurant.Image" class="card-img-top" alt="@restaurant.Name_Restaurant">
+                        <img src="@restaurant.Image" class="card-img-top" alt="@restaurant.NameRestaurant">
                         <div class="card-overlay">
                             <div class="overlay-content">
                                 <button class="btn btn-light btn-sm mb-2">
                                     <i class="fas fa-heart me-1"></i>Yêu thích
                                 </button>
-                                <button class="btn btn-primary btn-sm" onclick="window.location.href='@Url.Action("Menu", "Restaurants", new { id = restaurant.Id_Restaurant })'">
+                                <button class="btn btn-primary btn-sm" onclick="window.location.href='@Url.Action("Menu", "Restaurants", new { id = restaurant.IdRestaurant })'">
                                     <i class="fas fa-eye me-1"></i>Xem menu
                                 </button>
                             </div>
@@ -75,7 +75,7 @@
                         </div>
                     </div>
                     <div class="card-body d-flex flex-column">
-                        <h5 class="card-title fw-bold mb-2">@restaurant.Name_Restaurant</h5>
+                        <h5 class="card-title fw-bold mb-2">@restaurant.NameRestaurant</h5>
                         <p class="card-text text-muted flex-grow-1 mb-3">@restaurant.Description</p>
 
                         <div class="restaurant-info mb-3">
@@ -117,10 +117,10 @@
                         </div>
 
                         <div class="card-actions">
-                            <a href="@Url.Action("Details", "Restaurants", new { id = restaurant.Id_Restaurant })" class="btn btn-primary flex-fill me-2">
+                            <a href="@Url.Action("Details", "Restaurants", new { id = restaurant.IdRestaurant })" class="btn btn-primary flex-fill me-2">
                                 <i class="fas fa-info-circle me-1"></i>Chi tiết
                             </a>
-                            <button class="btn btn-success flex-fill" onclick="window.location.href='@Url.Action("Menu", "Restaurants", new { id = restaurant.Id_Restaurant })'">
+                            <button class="btn btn-success flex-fill" onclick="window.location.href='@Url.Action("Menu", "Restaurants", new { id = restaurant.IdRestaurant })'">
                                 <i class="fas fa-utensils me-1"></i>Xem menu
                             </button>
                         </div>

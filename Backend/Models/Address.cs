@@ -1,11 +1,7 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace _225DAPM32.Models
+namespace Backend.Models
 {
     public class Address
     {
-        [Key]
         public int IdAddress { get; set; }
         public int IdUser { get; set; }
         public string Name { get; set; }
@@ -16,7 +12,8 @@ namespace _225DAPM32.Models
         public string Note { get; set; }
         public bool IsDefault { get; set; }
 
-        [ForeignKey("IdUser")]
-        public User? User { get; set; }
+        // Navigation properties
+        public User User { get; set; }
+        public ICollection<Order> Orders { get; set; }
     }
 }
