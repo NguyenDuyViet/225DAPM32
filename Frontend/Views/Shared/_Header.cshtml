@@ -1,0 +1,44 @@
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString()?.ToLower();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString()?.ToLower();
+}
+
+<header>
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 h-[80px] flex items-center justify-between gap-8">
+            <!-- Logo -->
+            <a class="flex items-center flex-shrink-0" asp-area="" asp-controller="Home" asp-action="Index">
+                <img src="/LoGo_MNTN.png" alt="Logo" class="h-12" />
+            </a>
+            
+            <!-- Search Bar -->
+            <div class="flex-grow max-w-xl">
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+                    <input 
+                        type="text" 
+                        placeholder="Tìm kiếm món ăn, nhà hàng..." 
+                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                    />
+                </div>
+            </div>
+            
+            <!-- Navigation -->
+            <div class="flex items-center gap-6 flex-shrink-0">
+                <a class="text-gray-700 font-medium hover:text-orange-600 transition-colors @(currentController == "home" ? "text-orange-600" : "")" asp-area="" asp-controller="Home" asp-action="Index">
+                    Trang chủ
+                </a>
+                <a class="text-gray-700 font-medium hover:text-orange-600 transition-colors @(currentController == "restaurants" ? "text-orange-600" : "")" asp-area="" asp-controller="Restaurants" asp-action="Index">
+                    Nhà hàng
+                </a>
+                <a class="text-gray-700 font-medium hover:text-orange-600 transition-colors relative @(currentController == "cart" ? "text-orange-600" : "")" asp-area="" asp-controller="Cart" asp-action="Index">
+                    <span class="material-symbols-outlined">shopping_cart</span>
+                    <span class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center font-bold" id="cartBadge" style="line-height: 1;">0</span>
+                </a>
+                <button id="accountButton" class="px-5 py-2 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors" onclick="handleAccountClick(event)">
+                    Đăng nhập
+                </button>
+            </div>
+        </div>
+    </nav>
+</header>
