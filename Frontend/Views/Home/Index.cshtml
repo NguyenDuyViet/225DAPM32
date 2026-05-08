@@ -2,117 +2,201 @@
     ViewData["Title"] = "Món Ngon Tại Nhà";
 }
 
-<script>
-    fetch('https://jsonplaceholder.typicode.com/posts')
-        .then(response => response.json())
-        .then(data => {
-            console.log('Posts:', data);
-        })
-        .catch(error => {
-            console.error('Error fetching posts:', error);
-        });
-</script>
+<style>
+    /* CSS Tùy chỉnh cho Trang Chủ */
+    .hero-section {
+        background: linear-gradient(135deg, #fff5f2 0%, #ffe0d6 100%);
+        border-radius: 0 0 40px 40px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .hero-title {
+        color: #d13c3c;
+        font-weight: 800;
+        letter-spacing: -1px;
+    }
 
-<!-- Hero Section -->
-<div class="hero-section py-5 mb-5">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
-                <h1 class="display-4 fw-bold text-dark mb-4">Món Ngon Tại Nhà</h1>
-                <p class="lead text-dark mb-4">
-                    Khám phá hương vị tuyệt vời từ các nhà hàng đối tác.
-                    Đặt món ăn yêu thích chỉ với vài cú click!
+    .hero-badge {
+        background-color: rgba(209, 60, 60, 0.1);
+        color: #d13c3c;
+        font-weight: 600;
+        padding: 8px 16px;
+        border-radius: 30px;
+        display: inline-block;
+    }
+
+    .feature-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-radius: 20px;
+        border: 1px solid #f0f0f0;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.08) !important;
+        border-color: #ffe0d6;
+    }
+
+    .icon-wrapper {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+    }
+
+    .btn-brand {
+        background-color: #ff6b6b;
+        color: white;
+        border: none;
+        font-weight: 600;
+        border-radius: 12px;
+        transition: all 0.3s;
+    }
+
+    .btn-brand:hover {
+        background-color: #ee5252;
+        color: white;
+        transform: scale(1.05);
+    }
+
+    .btn-outline-brand {
+        color: #ff6b6b;
+        border: 2px solid #ff6b6b;
+        font-weight: 600;
+        border-radius: 12px;
+        background: transparent;
+        transition: all 0.3s;
+    }
+    
+    .btn-outline-brand:hover {
+        background-color: #ff6b6b;
+        color: white;
+    }
+</style>
+
+<div class="hero-section pt-5 pb-6 mb-5">
+    <div class="container py-5">
+        <div class="row align-items-center justify-content-between g-5">
+            
+            <div class="col-lg-5 z-index-1">
+                <span class="hero-badge mb-3"><i class="fas fa-fire me-2"></i>Dịch vụ số 1 Đà Nẵng</span>
+                <h1 class="display-4 hero-title mb-4">Dịch Vụ Nhà Hàng <span style="color: #333;"><br>Tại Nhà</span></h1>
+                <p class="lead text-secondary mb-5" style="line-height: 1.8;">
+                    Hệ thống quản lý đặt món và cung cấp nguyên liệu (Meal Kit) thông minh. 
+                    Kết nối thực khách với các nhà hàng uy tín, mang trải nghiệm ẩm thực cao cấp về căn bếp của bạn.
                 </p>
                 <div class="d-flex flex-wrap gap-3">
-                    <a href="@Url.Action("Index", "Foods")" class="btn btn-dark btn-lg">
-                        <i class="fas fa-utensils me-2"></i>Đặt Món Ngay
+                    <a href="@Url.Action("Index", "Foods")" class="btn btn-brand btn-lg px-4 py-3 shadow-sm">
+                        <i class="fas fa-utensils me-2"></i>Chọn Món Ngay
                     </a>
-                    <a href="@Url.Action("Index", "Restaurants")" class="btn btn-outline-dark btn-lg">
-                        <i class="fas fa-store me-2"></i>Xem Nhà Hàng
+                    <a href="@Url.Action("Index", "Restaurants")" class="btn btn-outline-brand btn-lg px-4 py-3">
+                        <i class="fas fa-store me-2"></i>Hệ Thống Nhà Hàng
                     </a>
                 </div>
             </div>
-            <div class="col-lg-6">
-                <div class="hero-image">
-                    <div class="food-icons">
-                        <div class="food-icon food-icon-1">🍜</div>
-                        <div class="food-icon food-icon-2">🍕</div>
-                        <div class="food-icon food-icon-3">🍔</div>
-                        <div class="food-icon food-icon-4">🥗</div>
-                        <div class="food-icon food-icon-5">🍣</div>
+            
+            <div class="col-lg-6 position-relative text-center text-lg-end">
+                <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                     alt="Food Delivery System" 
+                     class="img-fluid rounded-circle shadow-lg border border-5 border-white d-block ms-auto"
+                     style="width: 480px; height: 480px; object-fit: cover;">
+                
+                <div class="position-absolute bg-white p-3 rounded-4 shadow-sm border" style="bottom: 40px; left: 10%; z-index: 2;">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="bg-success rounded-circle p-2 text-white"><i class="fas fa-check"></i></div>
+                        <div class="text-start">
+                            <h6 class="mb-0 fw-bold">100+ Nhà hàng</h6>
+                            <small class="text-muted">Đã đăng ký dịch vụ</small>
+                        </div>
                     </div>
                 </div>
             </div>
+            
         </div>
     </div>
 </div>
 
-<!-- Features Section -->
 <div class="features-section py-5">
     <div class="container">
-        <div class="row text-center mb-5">
-            <div class="col-12">
-                <h2 class="fw-bold text-dark">Tại Sao Chọn Chúng Tôi?</h2>
-                <p class="text-muted">Trải nghiệm dịch vụ giao hàng thức ăn tốt nhất</p>
+        <div class="row text-center mb-5 justify-content-center">
+            <div class="col-lg-7">
+                <h6 class="text-danger fw-bold text-uppercase tracking-wide">Quy trình dịch vụ</h6>
+                <h2 class="display-6 fw-bold text-dark mb-3">Tối Ưu Trải Nghiệm Khách Hàng</h2>
+                <p class="text-muted">Chúng tôi quản lý toàn bộ quy trình từ khâu chuẩn bị nguyên liệu đến lúc giao hàng, đảm bảo chất lượng đồng nhất.</p>
             </div>
         </div>
         <div class="row g-4">
             <div class="col-md-4">
-                <div class="feature-card text-center p-4">
-                    <div class="feature-icon mb-3">
-                        <i class="fas fa-shipping-fast fa-3x text-primary"></i>
+                <div class="feature-card bg-white p-5 text-center h-100 shadow-sm">
+                    <div class="icon-wrapper bg-danger bg-opacity-10 text-danger mb-4 mx-auto">
+                        <i class="fas fa-box-open fa-2x"></i>
                     </div>
-                    <h5 class="fw-bold">Giao Hàng Nhanh</h5>
-                    <p class="text-muted">Giao hàng trong vòng 30 phút</p>
+                    <h4 class="fw-bold mb-3">Meal Kit Chuẩn Vị</h4>
+                    <p class="text-muted mb-0">Cung cấp nguyên liệu sơ chế định lượng sẵn theo công thức chuẩn của nhà hàng.</p>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="feature-card text-center p-4">
-                    <div class="feature-icon mb-3">
-                        <i class="fas fa-utensils fa-3x text-success"></i>
+                <div class="feature-card bg-white p-5 text-center h-100 shadow-sm">
+                    <div class="icon-wrapper bg-warning bg-opacity-10 text-warning mb-4 mx-auto">
+                        <i class="fas fa-motorcycle fa-2x"></i>
                     </div>
-                    <h5 class="fw-bold">Đa Dạng Món Ăn</h5>
-                    <p class="text-muted">Hàng trăm món ăn từ các nhà hàng uy tín</p>
+                    <h4 class="fw-bold mb-3">Vận Hành Kịp Thời</h4>
+                    <p class="text-muted mb-0">Hệ thống điều phối shipper thông minh, giao nguyên liệu tươi sống đúng khung giờ.</p>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="feature-card text-center p-4">
-                    <div class="feature-icon mb-3">
-                        <i class="fas fa-star fa-3x text-warning"></i>
+                <div class="feature-card bg-white p-5 text-center h-100 shadow-sm">
+                    <div class="icon-wrapper bg-success bg-opacity-10 text-success mb-4 mx-auto">
+                        <i class="fas fa-shield-alt fa-2x"></i>
                     </div>
-                    <h5 class="fw-bold">Chất Lượng Đảm Bảo</h5>
-                    <p class="text-muted">Món ăn tươi ngon, vệ sinh an toàn</p>
+                    <h4 class="fw-bold mb-3">Kiểm Soát Chất Lượng</h4>
+                    <p class="text-muted mb-0">Mọi đối tác nhà hàng đều được kiểm duyệt chặt chẽ về an toàn vệ sinh thực phẩm.</p>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Quick Access Section -->
-<div class="quick-access-section py-5 bg-light">
+<div class="quick-access-section py-5 my-4">
     <div class="container">
-        <div class="row">
+        <div class="row g-4">
             <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center p-5">
-                        <i class="fas fa-utensils fa-4x text-primary mb-3"></i>
-                        <h3 class="card-title fw-bold">Khám Phá Món Ăn</h3>
-                        <p class="card-text text-muted mb-4">Tìm kiếm và đặt món ăn yêu thích từ menu đa dạng</p>
-                        <a href="@Url.Action("Index", "Foods")" class="btn btn-primary btn-lg">
-                            Xem Món Ăn <i class="fas fa-arrow-right ms-2"></i>
-                        </a>
+                <div class="card h-100 border-0 shadow-lg overflow-hidden" style="border-radius: 24px;">
+                    <div class="row g-0 h-100">
+                        <div class="col-sm-5 bg-light d-flex align-items-center justify-content-center p-4">
+                            <img src="https://cdn-icons-png.flaticon.com/512/3014/3014451.png" width="120" alt="Menu">
+                        </div>
+                        <div class="col-sm-7 p-4 p-lg-5 d-flex flex-column justify-content-center">
+                            <h3 class="card-title fw-bold mb-3">Dịch Vụ Món Ăn</h3>
+                            <p class="card-text text-muted mb-4">Quản lý thực đơn và các combo nguyên liệu Meal Kit sẵn sàng chế biến.</p>
+                            <div class="mt-auto">
+                                <a href="@Url.Action("Index", "Foods")" class="btn btn-outline-danger px-4 rounded-pill fw-bold">
+                                    Truy Cập Danh Mục <i class="fas fa-arrow-right ms-2"></i>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center p-5">
-                        <i class="fas fa-store fa-4x text-success mb-3"></i>
-                        <h3 class="card-title fw-bold">Khám Phá Nhà Hàng</h3>
-                        <p class="card-text text-muted mb-4">Tìm hiểu về các nhà hàng đối tác chất lượng</p>
-                        <a href="@Url.Action("Index", "Restaurants")" class="btn btn-success btn-lg">
-                            Xem Nhà Hàng <i class="fas fa-arrow-right ms-2"></i>
-                        </a>
+                <div class="card h-100 border-0 shadow-lg overflow-hidden" style="border-radius: 24px;">
+                    <div class="row g-0 h-100">
+                        <div class="col-sm-5 bg-light d-flex align-items-center justify-content-center p-4">
+                            <img src="https://cdn-icons-png.flaticon.com/512/3170/3170733.png" width="120" alt="Restaurant">
+                        </div>
+                        <div class="col-sm-7 p-4 p-lg-5 d-flex flex-column justify-content-center">
+                            <h3 class="card-title fw-bold mb-3">Đối Tác Cung Cấp</h3>
+                            <p class="card-text text-muted mb-4">Hệ thống quản lý và hỗ trợ các nhà hàng cung cấp dịch vụ trên nền tảng.</p>
+                            <div class="mt-auto">
+                                <a href="@Url.Action("Index", "Restaurants")" class="btn btn-outline-warning text-dark px-4 rounded-pill fw-bold border-2">
+                                    Đến Khu Vực Đối Tác <i class="fas fa-arrow-right ms-2"></i>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
