@@ -1,54 +1,21 @@
 using Backend.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Repositories
 {
-    public interface IUserRepository
+    public class UserRepository : Repository<User>
     {
-        Task<IEnumerable<User>> GetAllAsync();
-        Task<User> GetByIdAsync(int id);
-        Task<User> CreateAsync(User user);
-        Task<User> UpdateAsync(User user);
-        Task<bool> DeleteAsync(int id);
-    }
+        public UserRepository(AppDbContext context) : base(context)
+        { }
 
-    public class UserRepository : IUserRepository
-    {
-        // TODO: Inject DbContext when database is configured
-        // private readonly IDbContext _context;
-
-        public UserRepository()
+        public async Task<User?> GetUserByUsernameAsync(string username)
         {
-            // TODO: Initialize context
+            return await _dbSet.FirstOrDefaultAsync(u => u.Username == username);
         }
 
-        public async Task<IEnumerable<User>> GetAllAsync()
+        internal async Task<User?> GetUserByEmailAsync(string email)
         {
-            // TODO: Implement get all users from database
-            return await Task.FromResult(new List<User>());
-        }
-
-        public async Task<User> GetByIdAsync(int id)
-        {
-            // TODO: Implement get user by id from database
-            return await Task.FromResult(new User());
-        }
-
-        public async Task<User> CreateAsync(User user)
-        {
-            // TODO: Implement create user in database
-            return await Task.FromResult(user);
-        }
-
-        public async Task<User> UpdateAsync(User user)
-        {
-            // TODO: Implement update user in database
-            return await Task.FromResult(user);
-        }
-
-        public async Task<bool> DeleteAsync(int id)
-        {
-            // TODO: Implement delete user from database
-            return await Task.FromResult(true);
+            return await _dbSet.FirstOrDefaultAsync(u => u.Email == email);
         }
     }
 }

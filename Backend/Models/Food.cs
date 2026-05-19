@@ -8,16 +8,13 @@ namespace Backend.Models
         public string Name { get; set; }
         public string Description { get; set; }
         public string Image { get; set; }
-        public string Video { get; set; }
         public decimal Price { get; set; }
         public decimal? Discount { get; set; }
         public int? CookCount { get; set; }
         public int? PrepTime { get; set; }
 
-        // Navigation properties
         public Category Category { get; set; }
         public Restaurant Restaurant { get; set; }
-        public ICollection<FoodImage> FoodImages { get; set; }
         public ICollection<CartFood> CartFoods { get; set; }
         public ICollection<OrderFood> OrderFoods { get; set; }
         public ICollection<ReviewFood> ReviewFoods { get; set; }
