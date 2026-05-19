@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http.HttpResults;
+using Backend.DTOs.Request;
+using Backend.DTOs.Response;
+using Backend.Models;
 
 namespace Backend.Mapper
 {
@@ -7,8 +9,14 @@ namespace Backend.Mapper
     {
         public FoodMapper()
         {
-            CreateMap<DTOs.Request.FoodRequest, Models.Food>();
-            CreateMap<Models.Food, DTOs.Request.FoodRequest>();
+            // Request mapping
+            CreateMap<FoodRequest, Food>();
+            CreateMap<Food, FoodRequest>();
+            
+            // Response mapping
+            CreateMap<Food, FoodResponse>()
+                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : null))
+                .ForMember(dest => dest.RestaurantName, opt => opt.MapFrom(src => src.Restaurant != null ? src.Restaurant.NameRestaurant : null));
         }
     }
 }

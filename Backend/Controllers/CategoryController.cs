@@ -22,21 +22,23 @@ namespace Backend.Controllers
 
         // GET: api/Category
         [HttpGet]
-        public async Task<ActionResult<ApiResponse<IEnumerable<Category>>>> GetAllCategories()
+        public async Task<ActionResult<ApiResponse<IEnumerable<CategoryResponse>>>> GetAllCategories()
         {
             try
             {
                 var categories = await _categoryRepository.GetAllAsync();
-                return Ok(new ApiResponse<IEnumerable<Category>>
+                var categoryResponses = _mapper.Map<IEnumerable<CategoryResponse>>(categories);
+                
+                return Ok(new ApiResponse<IEnumerable<CategoryResponse>>
                 {
                     Code = 1000,
                     Message = "Lấy danh sách danh mục thành công",
-                    Results = categories
+                    Results = categoryResponses
                 });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ApiResponse<IEnumerable<Category>>
+                return StatusCode(500, new ApiResponse<IEnumerable<CategoryResponse>>
                 {
                     Code = 9999,
                     Message = $"Lỗi server: {ex.Message}",
@@ -47,7 +49,7 @@ namespace Backend.Controllers
 
         // GET: api/Category/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<ApiResponse<Category>>> GetCategory(int id)
+        public async Task<ActionResult<ApiResponse<CategoryResponse>>> GetCategory(int id)
         {
             try
             {
@@ -63,16 +65,18 @@ namespace Backend.Controllers
                     });
                 }
 
-                return Ok(new ApiResponse<Category>
+                var categoryResponse = _mapper.Map<CategoryResponse>(category);
+                
+                return Ok(new ApiResponse<CategoryResponse>
                 {
                     Code = 1000,
                     Message = "Lấy thông tin danh mục thành công",
-                    Results = category
+                    Results = categoryResponse
                 });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ApiResponse<Category>
+                return StatusCode(500, new ApiResponse<CategoryResponse>
                 {
                     Code = 9999,
                     Message = $"Lỗi server: {ex.Message}",
@@ -83,13 +87,13 @@ namespace Backend.Controllers
 
         // POST: api/Category
         [HttpPost]
-        public async Task<ActionResult<ApiResponse<Category>>> CreateCategory([FromBody] CategoryRequest categoryRequest)
+        public async Task<ActionResult<ApiResponse<CategoryResponse>>> CreateCategory([FromBody] CategoryRequest categoryRequest)
         {
             try
             {
                 if (!ModelState.IsValid)
                 {
-                    return BadRequest(new ApiResponse<Category>
+                    return BadRequest(new ApiResponse<CategoryResponse>
                     {
                         Code = 1003,
                         Message = "Dữ liệu không hợp lệ",
@@ -101,16 +105,18 @@ namespace Backend.Controllers
                 await _categoryRepository.AddAsync(category);
                 await _categoryRepository.SaveChangesAsync();
 
-                return CreatedAtAction(nameof(GetCategory), new { id = category.IdCategory }, new ApiResponse<Category>
+                var categoryResponse = _mapper.Map<CategoryResponse>(category);
+                
+                return CreatedAtAction(nameof(GetCategory), new { id = category.IdCategory }, new ApiResponse<CategoryResponse>
                 {
                     Code = 1000,
                     Message = "Tạo danh mục thành công",
-                    Results = category
+                    Results = categoryResponse
                 });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ApiResponse<Category>
+                return StatusCode(500, new ApiResponse<CategoryResponse>
                 {
                     Code = 9999,
                     Message = $"Lỗi server: {ex.Message}",
@@ -121,13 +127,16 @@ namespace Backend.Controllers
 
         // PUT: api/Category/5
         [HttpPut("{id}")]
-        public async Task<ActionResult<ApiResponse<Category>>> UpdateCategory(int id, [FromBody] CategoryRequest categoryRequest)
+
+        public async Task<ActionResult<ApiResponse<CategoryResponse>>> UpdateCategory(int id, [FromBody] CategoryRequest categoryRequest)
         {
             try
             {
                 if (!ModelState.IsValid)
                 {
-                    return BadRequest(new ApiResponse<Category>
+
+                    return BadRequest(new ApiResponse<CategoryResponse>
+
                     {
                         Code = 1003,
                         Message = "Dữ liệu không hợp lệ",
@@ -138,7 +147,7 @@ namespace Backend.Controllers
                 var existingCategory = await _categoryRepository.GetByIdAsync(id);
                 if (existingCategory == null)
                 {
-                    return NotFound(new ApiResponse<Category>
+                    return NotFound(new ApiResponse<CategoryResponse>
                     {
                         Code = 1002,
                         Message = "Không tìm thấy danh mục",
@@ -150,16 +159,18 @@ namespace Backend.Controllers
                 _categoryRepository.Update(existingCategory);
                 await _categoryRepository.SaveChangesAsync();
 
-                return Ok(new ApiResponse<Category>
+
+                var categoryResponse = _mapper.Map<CategoryResponse>(existingCategory);                
+                return Ok(new ApiResponse<CategoryResponse>
                 {
                     Code = 1000,
                     Message = "Cập nhật danh mục thành công",
-                    Results = existingCategory
+                    Results = categoryResponse
                 });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ApiResponse<Category>
+                return StatusCode(500, new ApiResponse<CategoryResponse>
                 {
                     Code = 9999,
                     Message = $"Lỗi server: {ex.Message}",
@@ -208,14 +219,14 @@ namespace Backend.Controllers
 
         // GET: api/Category/5/foods
         [HttpGet("{id}/foods")]
-        public async Task<ActionResult<ApiResponse<IEnumerable<Food>>>> GetCategoryWithFoods(int id)
+        public async Task<ActionResult<ApiResponse<IEnumerable<FoodResponse>>>> GetCategoryWithFoods(int id)
         {
             try
             {
                 var category = await _categoryRepository.GetByIdAsync(id);
                 if (category == null)
                 {
-                    return NotFound(new ApiResponse<IEnumerable<Food>>
+                    return NotFound(new ApiResponse<IEnumerable<FoodResponse>>
                     {
                         Code = 1002,
                         Message = "Không tìm thấy danh mục",
@@ -223,18 +234,18 @@ namespace Backend.Controllers
                     });
                 }
 
-                var foods = await _categoryRepository.FindAsync(c => c.IdCategory == id);
+                var foodResponses = _mapper.Map<IEnumerable<FoodResponse>>(category.Foods);
                 
-                return Ok(new ApiResponse<IEnumerable<Food>>
+                return Ok(new ApiResponse<IEnumerable<FoodResponse>>
                 {
                     Code = 1000,
                     Message = "Lấy danh sách món ăn theo danh mục thành công",
-                    Results = category.Foods
+                    Results = foodResponses
                 });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ApiResponse<IEnumerable<Food>>
+                return StatusCode(500, new ApiResponse<IEnumerable<FoodResponse>>
                 {
                     Code = 9999,
                     Message = $"Lỗi server: {ex.Message}",
