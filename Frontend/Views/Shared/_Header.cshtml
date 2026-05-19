@@ -6,12 +6,10 @@
 <header>
     <nav class="bg-white shadow-sm border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4 h-[80px] flex items-center justify-between gap-8">
-            <!-- Logo -->
             <a class="flex items-center flex-shrink-0" asp-area="" asp-controller="Home" asp-action="Index">
                 <img src="/LoGo_MNTN.png" alt="Logo" class="h-12" />
             </a>
             
-            <!-- Search Bar -->
             <div class="flex-grow max-w-xl">
                 <div class="relative">
                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
@@ -23,7 +21,6 @@
                 </div>
             </div>
             
-            <!-- Navigation -->
             <div class="flex items-center gap-6 flex-shrink-0">
                 <a class="text-gray-700 font-medium hover:text-orange-600 transition-colors @(currentController == "home" ? "text-orange-600" : "")" asp-area="" asp-controller="Home" asp-action="Index">
                     Trang chủ
@@ -35,10 +32,101 @@
                     <span class="material-symbols-outlined">shopping_cart</span>
                     <span class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center font-bold" id="cartBadge" style="line-height: 1;">0</span>
                 </a>
-                <button id="accountButton" class="px-5 py-2 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors" onclick="handleAccountClick(event)">
+                
+                <button 
+                    type="button" 
+                    class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                    data-bs-toggle="modal" 
+                    data-bs-target="#authModal">
                     Đăng nhập
                 </button>
             </div>
         </div>
     </nav>
 </header>
+
+<div class="modal fade" id="authModal" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-md">
+        <div class="modal-content">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title" id="authModalLabel">Đăng nhập hoặc đăng ký</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-tabs mb-4" id="authTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="loginTab" data-bs-toggle="tab" data-bs-target="#loginPane" type="button" role="tab" aria-controls="loginPane" aria-selected="true">Đăng nhập</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="registerTab" data-bs-toggle="tab" data-bs-target="#registerPane" type="button" role="tab" aria-controls="registerPane" aria-selected="false">Đăng ký</button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="loginPane" role="tabpanel" aria-labelledby="loginTab">
+                        <form id="loginForm">
+                            <div class="mb-3">
+                                <label for="loginEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="loginEmail" placeholder="Email của bạn" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="loginPassword" class="form-label">Mật khẩu</label>
+                                <input type="password" class="form-control" id="loginPassword" placeholder="Mật khẩu" required>
+                            </div>
+                            <button type="button" class="btn btn-primary w-100" onclick="submitAuth('login')">Đăng nhập</button>
+                        </form>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="registerPane" role="tabpanel" aria-labelledby="registerTab">
+                        <form id="registerForm">
+                            <div class="mb-3">
+                                <label for="registerFullName" class="form-label">Họ và tên</label>
+                                <input type="text" class="form-control" id="registerFullName" placeholder="Nhập họ tên đầy đủ (không bắt buộc)">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="registerUsername" class="form-label">Tên đăng nhập </label>
+                                <input type="text" class="form-control" id="registerUsername" placeholder="Nhập tên đăng nhập" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="registerPassword" class="form-label">Mật khẩu </label>
+                                <input type="password" class="form-control" id="registerPassword" placeholder="Nhập mật khẩu" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="registerEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="registerEmail" placeholder="Nhập địa chỉ Email" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="registerPhone" class="form-label">Số điện thoại</label>
+                                <input type="text" class="form-control" id="registerPhone" placeholder="Nhập số điện thoại" required>
+                            </div>
+
+                            
+
+                            
+
+                            <button type="button" class="btn btn-success w-100" onclick="submitAuth('register')">Đăng ký</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function submitAuth(type) {
+        if (type === 'login') {
+            // Chuyển hướng thẳng sang trang Profile luôn, bỏ qua bước đóng Modal
+            window.location.href = '/Profile/Index'; 
+            
+            // (Nếu gõ /Profile/Index bị lỗi 404, bạn thử đổi thành: window.location.href = '/Profile'; nhé)
+        } 
+        else if (type === 'register') {
+            alert("Nút đăng ký đã được bấm! (Chưa có chuyển trang)");
+        }
+    }
+</script>
