@@ -59,23 +59,20 @@ namespace Backend.Data
 
             var foods = new Food[]
             {
-                new Food { IdFood = 1, IdCategory = 1, IdRestaurant = 1, Name = "Bánh xèo", Description = "Bánh xèo vàng giòn ăn kèm rau sống và nước mắm chua ngọt", Image = "images/foods/Bánh xèo.jpg", Video = "", Price = 45000m, Discount = 5000m, CookCount = 86, PrepTime = 15 },
-                new Food { IdFood = 2, IdCategory = 8, IdRestaurant = 1, Name = "Cá kho tộ", Description = "Cá kho tộ đậm vị, dùng với cơm trắng nóng", Image = "images/foods/Cá kho tộ.jpg", Video = "", Price = 55000m, Discount = 5000m, CookCount = 120, PrepTime = 18 },
-                new Food { IdFood = 3, IdCategory = 8, IdRestaurant = 1, Name = "Bò xào ớt chuông", Description = "Thịt bò mềm xào ớt chuông, hành tây và sốt đậm đà", Image = "images/foods/Bò xào ớt chuông.jpg", Video = "", Price = 65000m, Discount = 7000m, CookCount = 72, PrepTime = 12 },
-                new Food { IdFood = 4, IdCategory = 1, IdRestaurant = 2, Name = "Cánh gà chiên nước mắm", Description = "Cánh gà chiên giòn phủ sốt nước mắm tỏi", Image = "images/foods/Cánh gà chiên nước mắm.jpg", Video = "", Price = 59000m, Discount = 6000m, CookCount = 140, PrepTime = 15 },
-                new Food { IdFood = 5, IdCategory = 1, IdRestaurant = 2, Name = "Gà rang muối", Description = "Gà rang muối giòn thơm, ăn kèm rau răm", Image = "images/foods/Gà rang muối.jpg", Video = "", Price = 72000m, Discount = 8000m, CookCount = 96, PrepTime = 18 },
-                new Food { IdFood = 6, IdCategory = 1, IdRestaurant = 2, Name = "Gà nướng muối ớt", Description = "Gà nướng cay nhẹ, da vàng giòn", Image = "images/foods/Gà nướng muối ớt.jpg", Video = "", Price = 89000m, Discount = 10000m, CookCount = 110, PrepTime = 25 },
-                new Food { IdFood = 7, IdCategory = 8, IdRestaurant = 2, Name = "Gà kho nấm", Description = "Gà kho nấm mềm thơm, hợp dùng với cơm hộp", Image = "images/foods/Gà kho nấm.jpg", Video = "", Price = 62000m, Discount = 5000m, CookCount = 75, PrepTime = 18 },
-                new Food { IdFood = 8, IdCategory = 6, IdRestaurant = 3, Name = "Lẩu gà thuốc bắc", Description = "Lẩu gà thuốc bắc bổ dưỡng với nước dùng ngọt thanh", Image = "images/foods/Lẩu gà thuốc bắc.jpg", Video = "", Price = 189000m, Discount = 15000m, CookCount = 52, PrepTime = 25 },
-                new Food { IdFood = 9, IdCategory = 6, IdRestaurant = 3, Name = "Lẩu gà tiềm ớt hiểm", Description = "Lẩu gà tiềm ớt hiểm cay ấm, thơm đậm", Image = "images/foods/Lẩu gà tiềm ớt hiểm.jpg", Video = "", Price = 199000m, Discount = 20000m, CookCount = 60, PrepTime = 25 },
-                new Food { IdFood = 10, IdCategory = 7, IdRestaurant = 4, Name = "Mực chiên nước mắm", Description = "Mực chiên nước mắm tỏi, giòn dai vừa miệng", Image = "images/foods/Mực chiên nước mắm.jpg", Video = "", Price = 89000m, Discount = 8000m, CookCount = 58, PrepTime = 16 },
-                new Food { IdFood = 11, IdCategory = 7, IdRestaurant = 4, Name = "Tôm khìa nước dừa", Description = "Tôm khìa nước dừa béo thơm, vị ngọt tự nhiên", Image = "images/foods/Tôm khìa nước dừa.jpg", Video = "", Price = 95000m, Discount = 9000m, CookCount = 64, PrepTime = 18 },
-                new Food { IdFood = 12, IdCategory = 7, IdRestaurant = 4, Name = "Tôm xào chua ngọt", Description = "Tôm xào chua ngọt cùng rau củ bắt vị", Image = "images/foods/tôm xào chua ngọt.jpg", Video = "", Price = 92000m, Discount = 7000m, CookCount = 61, PrepTime = 16 }
+                new Food { IdFood = 1, IdCategory = 1, IdRestaurant = 1, Name = "Bánh xèo", Description = "Bánh xèo vàng giòn ăn kèm rau sống và nước mắm chua ngọt", Image = "images/foods/Bánh xèo.jpg", Price = 45000m, Discount = 5000m, CookCount = 86, PrepTime = 15 },
+                new Food { IdFood = 2, IdCategory = 8, IdRestaurant = 1, Name = "Cá kho tộ", Description = "Cá kho tộ đậm vị, dùng với cơm trắng nóng", Image = "images/foods/Cá kho tộ.jpg", Price = 55000m, Discount = 5000m, CookCount = 120, PrepTime = 18 },
+                new Food { IdFood = 3, IdCategory = 8, IdRestaurant = 1, Name = "Bò xào ớt chuông", Description = "Thịt bò mềm xào ớt chuông, hành tây và sốt đậm đà", Image = "images/foods/Bò xào ớt chuông.jpg", Price = 65000m, Discount = 7000m, CookCount = 72, PrepTime = 12 },
+                new Food { IdFood = 4, IdCategory = 1, IdRestaurant = 2, Name = "Cánh gà chiên nước mắm", Description = "Cánh gà chiên giòn phủ sốt nước mắm tỏi", Image = "images/foods/Cánh gà chiên nước mắm.jpg", Price = 59000m, Discount = 6000m, CookCount = 140, PrepTime = 15 },
+                new Food { IdFood = 5, IdCategory = 1, IdRestaurant = 2, Name = "Gà rang muối", Description = "Gà rang muối giòn thơm, ăn kèm rau răm", Image = "images/foods/Gà rang muối.jpg", Price = 72000m, Discount = 8000m, CookCount = 96, PrepTime = 18 },
+                new Food { IdFood = 6, IdCategory = 1, IdRestaurant = 2, Name = "Gà nướng muối ớt", Description = "Gà nướng cay nhẹ, da vàng giòn", Image = "images/foods/Gà nướng muối ớt.jpg", Price = 89000m, Discount = 10000m, CookCount = 110, PrepTime = 25 },
+                new Food { IdFood = 7, IdCategory = 8, IdRestaurant = 2, Name = "Gà kho nấm", Description = "Gà kho nấm mềm thơm, hợp dùng với cơm hộp", Image = "images/foods/Gà kho nấm.jpg", Price = 62000m, Discount = 5000m, CookCount = 75, PrepTime = 18 },
+                new Food { IdFood = 8, IdCategory = 6, IdRestaurant = 3, Name = "Lẩu gà thuốc bắc", Description = "Lẩu gà thuốc bắc bổ dưỡng với nước dùng ngọt thanh", Image = "images/foods/Lẩu gà thuốc bắc.jpg", Price = 189000m, Discount = 15000m, CookCount = 52, PrepTime = 25 },
+                new Food { IdFood = 9, IdCategory = 6, IdRestaurant = 3, Name = "Lẩu gà tiềm ớt hiểm", Description = "Lẩu gà tiềm ớt hiểm cay ấm, thơm đậm", Image = "images/foods/Lẩu gà tiềm ớt hiểm.jpg", Price = 199000m, Discount = 20000m, CookCount = 60, PrepTime = 25 },
+                new Food { IdFood = 10, IdCategory = 7, IdRestaurant = 4, Name = "Mực chiên nước mắm", Description = "Mực chiên nước mắm tỏi, giòn dai vừa miệng", Image = "images/foods/Mực chiên nước mắm.jpg", Price = 89000m, Discount = 8000m, CookCount = 58, PrepTime = 16 },
+                new Food { IdFood = 11, IdCategory = 7, IdRestaurant = 4, Name = "Tôm khìa nước dừa", Description = "Tôm khìa nước dừa béo thơm, vị ngọt tự nhiên", Image = "images/foods/Tôm khìa nước dừa.jpg", Price = 95000m, Discount = 9000m, CookCount = 64, PrepTime = 18 },
+                new Food { IdFood = 12, IdCategory = 7, IdRestaurant = 4, Name = "Tôm xào chua ngọt", Description = "Tôm xào chua ngọt cùng rau củ bắt vị", Image = "images/foods/tôm xào chua ngọt.jpg", Price = 92000m, Discount = 7000m, CookCount = 61, PrepTime = 16 }
             };
             context.Foods.AddRange(foods);
-            context.SaveChanges();
-
-            context.FoodImages.AddRange(foods.Select(food => new FoodImage { IdFoodimage = food.IdFood, IdFood = food.IdFood, Image = food.Image }));
             context.SaveChanges();
 
             var vouchers = new Voucher[]
@@ -98,10 +95,10 @@ namespace Backend.Data
 
             var cartFoods = new CartFood[]
             {
-                new CartFood { IdCartFood = 1, IdCart = 1, IdFood = 4, Quantity = 1, Note = "Ít cay" },
-                new CartFood { IdCartFood = 2, IdCart = 1, IdFood = 2, Quantity = 1, Note = "Thêm cơm" },
-                new CartFood { IdCartFood = 3, IdCart = 2, IdFood = 8, Quantity = 1, Note = "Nhiều rau" },
-                new CartFood { IdCartFood = 4, IdCart = 3, IdFood = 10, Quantity = 2, Note = "Để riêng nước chấm" }
+                new CartFood { IdCartFood = 1, IdCart = 1, IdFood = 4, Quantity = 1, Price = 59000m, Total = 59000m, Note = "Ít cay" },
+                new CartFood { IdCartFood = 2, IdCart = 1, IdFood = 2, Quantity = 1, Price = 55000m, Total = 55000m, Note = "Thêm cơm" },
+                new CartFood { IdCartFood = 3, IdCart = 2, IdFood = 8, Quantity = 1, Price = 189000m, Total = 189000m, Note = "Nhiều rau" },
+                new CartFood { IdCartFood = 4, IdCart = 3, IdFood = 10, Quantity = 2, Price = 89000m, Total = 178000m, Note = "Để riêng nước chấm" }
             };
             context.CartFoods.AddRange(cartFoods);
             context.SaveChanges();

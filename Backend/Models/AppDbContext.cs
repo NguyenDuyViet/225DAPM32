@@ -13,7 +13,6 @@ namespace Backend.Models
         public DbSet<Restaurant> Restaurants { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Food> Foods { get; set; }
-        public DbSet<FoodImage> FoodImages { get; set; }
         public DbSet<Cart> Carts { get; set; }
         public DbSet<CartFood> CartFoods { get; set; }
         public DbSet<Promotion> Promotions { get; set; }
@@ -122,23 +121,12 @@ namespace Backend.Models
                 entity.Property(f => f.Name).HasColumnName("name");
                 entity.Property(f => f.Description).HasColumnName("description");
                 entity.Property(f => f.Image).HasColumnName("image");
-                entity.Property(f => f.Video).HasColumnName("video");
                 entity.Property(f => f.Price).HasColumnName("price").HasPrecision(10, 2);
                 entity.Property(f => f.Discount).HasColumnName("discount").HasPrecision(10, 2);
                 entity.Property(f => f.CookCount).HasColumnName("cook_Count");
                 entity.Property(f => f.PrepTime).HasColumnName("prep_Time");
                 entity.HasOne(f => f.Category).WithMany(c => c.Foods).HasForeignKey(f => f.IdCategory);
                 entity.HasOne(f => f.Restaurant).WithMany(r => r.Foods).HasForeignKey(f => f.IdRestaurant);
-            });
-
-            modelBuilder.Entity<FoodImage>(entity =>
-            {
-                entity.ToTable("Food_Image");
-                entity.HasKey(fi => fi.IdFoodimage);
-                entity.Property(fi => fi.IdFoodimage).HasColumnName("id_Foodimage").ValueGeneratedNever();
-                entity.Property(fi => fi.IdFood).HasColumnName("id_Food");
-                entity.Property(fi => fi.Image).HasColumnName("image");
-                entity.HasOne(fi => fi.Food).WithMany(f => f.FoodImages).HasForeignKey(fi => fi.IdFood);
             });
 
             modelBuilder.Entity<Cart>(entity =>
@@ -161,6 +149,8 @@ namespace Backend.Models
                 entity.Property(cf => cf.IdCart).HasColumnName("id_Cart");
                 entity.Property(cf => cf.IdFood).HasColumnName("id_Food");
                 entity.Property(cf => cf.Quantity).HasColumnName("quantity");
+                entity.Property(cf => cf.Price).HasColumnName("price").HasPrecision(10, 2);
+                entity.Property(cf => cf.Total).HasColumnName("total").HasPrecision(10, 2);
                 entity.Property(cf => cf.Note).HasColumnName("note");
                 entity.HasOne(cf => cf.Cart).WithMany(c => c.CartFoods).HasForeignKey(cf => cf.IdCart);
                 entity.HasOne(cf => cf.Food).WithMany(f => f.CartFoods).HasForeignKey(cf => cf.IdFood);

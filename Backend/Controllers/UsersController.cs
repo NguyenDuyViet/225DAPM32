@@ -77,7 +77,16 @@ namespace Backend.Controllers
                         Message = "Username or Email already exists!",
                         Results = false
                     });
-                return CreatedAtAction(nameof(GetUserById), new { id = createdUser.IdUser }, createdUser);
+                return CreatedAtAction(
+                    nameof(GetUserById),
+                    new { id = createdUser.IdUser },
+                    new ApiResponse<UserResponse>
+                    {
+                        Code = 201,
+                        Message = "Create user successfully",
+                        Results = createdUser
+                    }
+                );
             }
             catch (Exception ex)
             {
