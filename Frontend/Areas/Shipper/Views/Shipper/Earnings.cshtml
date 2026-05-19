@@ -3,31 +3,131 @@
     ViewData["Title"] = "Thu nhập";
 }
 
-<h2 class="mb-4">Thu nhập</h2>
-<div class="row g-4 mb-4">
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm p-4">
-            <h5>Thu nhập tuần</h5>
-            <p class="display-6 fw-bold">@Model.WeekTotal.ToString("N0") VND</p>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm p-4">
-            <h5>Thu nhập hôm nay</h5>
-            <p class="display-6 fw-bold">@Model.TodayTotal.ToString("N0") VND</p>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm p-4">
-            <h5>Đơn hoàn thành</h5>
-            <p class="display-6 fw-bold">@Model.CompletedOrders</p>
+<div class="admin-header bg-dark text-white py-4 mb-4">
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h1 class="h2 mb-0">
+                    <i class="fas fa-motorcycle me-3"></i>Dashboard Shipper
+                </h1>
+                <p class="mb-0 opacity-75">Quản lý đơn hàng giao hàng</p>
+            </div>
+            <div class="col-md-6 text-end">
+                <div class="d-flex align-items-center justify-content-end">
+                    <div class="me-3 text-end">
+                        <small class="opacity-75">Hôm nay</small>
+                        <div class="fw-bold">@DateTime.Now.ToString("dd/MM/yyyy")</div>
+                    </div>
+                    <div class="status-indicator me-3">
+                        <i class="fas fa-circle text-success me-1"></i>
+                        <span>Online</span>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user me-2"></i>Shipper
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="@Url.Action("Profile", "Shipper")"><i class="fas fa-user me-2"></i>Thông tin cá nhân</a></li>
+                            <li><a class="dropdown-item" href="@Url.Action("Earnings", "Shipper")"><i class="fas fa-wallet me-2"></i>Thu nhập</a></li>
+                            <li><a class="dropdown-item" href="@Url.Action("Settings", "Shipper")"><i class="fas fa-cog me-2"></i>Cài đặt</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="card border-0 shadow-sm">
-    <div class="card-body">
-        <h5 class="card-title">Tổng quan</h5>
-        <p class="card-text">Bạn đang có @Model.PendingOrders đơn đang thực hiện. Giữ trạng thái giao hàng ổn định để tăng thu nhập.</p>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2">
+            <div class="shipper-sidebar">
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="@Url.Action("Index", "Shipper", new { area = "Shipper" })">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                    <a class="nav-link" href="@Url.Action("Orders", "Shipper", new { area = "Shipper" })">
+                        <i class="fas fa-clipboard-list me-2"></i>Đơn hàng
+                    </a>
+                    <a class="nav-link" href="@Url.Action("History", "Shipper", new { area = "Shipper" })">
+                        <i class="fas fa-history me-2"></i>Lịch sử
+                    </a>
+                    <a class="nav-link active" href="@Url.Action("Earnings", "Shipper", new { area = "Shipper" })">
+                        <i class="fas fa-wallet me-2"></i>Thu nhập
+                    </a>
+                    <a class="nav-link" href="@Url.Action("Profile", "Shipper", new { area = "Shipper" })">
+                        <i class="fas fa-user me-2"></i>Profile
+                    </a>
+                    <a class="nav-link" href="@Url.Action("Settings", "Shipper", new { area = "Shipper" })">
+                        <i class="fas fa-cog me-2"></i>Cài đặt
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <div class="col-md-10">
+            <h2 class="mb-4">Thu nhập</h2>
+            
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm p-4 h-100">
+                        <h5 class="text-muted">Thu nhập tuần</h5>
+                        <p class="display-6 fw-bold text-primary mb-0">@Model.WeekTotal.ToString("N0") VND</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm p-4 h-100">
+                        <h5 class="text-muted">Thu nhập hôm nay</h5>
+                        <p class="display-6 fw-bold text-success mb-0">@Model.TodayTotal.ToString("N0") VND</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm p-4 h-100">
+                        <h5 class="text-muted">Đơn hoàn thành</h5>
+                        <p class="display-6 fw-bold text-info mb-0">@Model.CompletedOrders</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Tổng quan</h5>
+                    <p class="card-text mb-0">Bạn đang có <strong class="text-warning">@Model.PendingOrders</strong> đơn đang thực hiện. Giữ trạng thái giao hàng ổn định để tăng thu nhập nhé.</p>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<style>
+.shipper-header {
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+}
+
+.shipper-sidebar {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px 0;
+    min-height: calc(100vh - 200px);
+}
+
+.shipper-sidebar .nav-link {
+    color: #495057;
+    padding: 12px 20px;
+    margin: 5px 15px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.shipper-sidebar .nav-link:hover {
+    background: #e9ecef;
+    color: #212529;
+}
+
+.shipper-sidebar .nav-link.active {
+    background: #ffc107;
+    color: #212529;
+}
+</style>

@@ -1,4 +1,4 @@
--- Xóa database nếu tồn tại
+-- XÃ³a database náº¿u tá»“n táº¡i
 USE master;
 GO
 
@@ -15,45 +15,41 @@ GO
 USE MonNgonTaiNha;
 GO
 
+--Role
+INSERT INTO Roles (id_Role, role_Name)
+VALUES
+(1, 'admin'),
+(2, 'customer'),
+(3, 'restaurant'),
+(4, 'shipper');
+
+-- USER
 -- USER
 CREATE TABLE Users (
     id_User INT PRIMARY KEY,
-    username VARCHAR(50),
-    password VARCHAR(15),
+    id_Role INT NOT NULL,
+
+    username VARCHAR(50) UNIQUE,
+    password VARCHAR(255) NOT NULL,
+
+    fullName NVARCHAR(100),
     phone VARCHAR(15),
-    email VARCHAR(50),
+    email VARCHAR(100) UNIQUE,
+    address NVARCHAR(255),
     avatar VARCHAR(255),
-    status VARCHAR(10) CHECK (status IN ('active','inactive')),
-    created_At DATETIME,
+
+    status VARCHAR(10) DEFAULT 'active'
+        CHECK (status IN ('active','inactive')),
+
+    created_At DATETIME DEFAULT GETDATE(),
     lastOnline DATETIME,
-    update_bio VARCHAR(255),
-    update_avatar VARCHAR(255),
-    update_bg VARCHAR(255),
+
     current_Lat DECIMAL(10,7),
     current_Lng DECIMAL(10,7),
-    cancel_Rate FLOAT
-);
 
--- ADDRESS
-CREATE TABLE Address (
-    id_Address INT PRIMARY KEY,
-    id_User INT,
-    name VARCHAR(45),
-    phone VARCHAR(15),
-    address VARCHAR(255),
-    lat DECIMAL(10,7),
-    lng DECIMAL(10,7),
-    note VARCHAR(255),
-    is_Default BIT,
-    FOREIGN KEY (id_User) REFERENCES Users(id_User)
-);
+    cancel_Rate FLOAT DEFAULT 0,
 
-CREATE TABLE User_Address (
-    id_Address INT,
-    id_User INT,
-    PRIMARY KEY (id_Address, id_User),
-    FOREIGN KEY (id_Address) REFERENCES Address(id_Address),
-    FOREIGN KEY (id_User) REFERENCES Users(id_User)
+    FOREIGN KEY (id_Role) REFERENCES Roles(id_Role)
 );
 
 -- NOTIFICATION
@@ -184,40 +180,70 @@ CREATE TABLE Order_Promotion (
 -- ORDER
 CREATE TABLE Orders (
     id_Order INT PRIMARY KEY,
-    id_User INT,
-    id_Address INT,
-    id_Driver INT,
-    paymentMethod VARCHAR(50),
-    total DECIMAL(10,2),
-    shippingFee DECIMAL(10,2),
-    discount DECIMAL(10,2),
-    finalTotal DECIMAL(10,2),
-    status VARCHAR(20) CHECK (status IN ('pending','confirmed','delivering','completed','canceled')),
-    note VARCHAR(255),
-    created_At DATETIME,
-    confirmed_At DATETIME,
-    delivering_At DATETIME,
-    delivered_At DATETIME,
-    canceled_At DATETIME,
-    FOREIGN KEY (id_User) REFERENCES Users(id_User),
-    FOREIGN KEY (id_Address) REFERENCES Address(id_Address)
-);
 
-CREATE TABLE Order_Restaurant (
-    id_Order INT PRIMARY KEY,
-    id_Restaurant INT,
-    shipFee DECIMAL(10,2),
-    status VARCHAR(20) CHECK (status IN ('pending','accepted','completed')),
-    FOREIGN KEY (id_Restaurant) REFERENCES Restaurant(id_Restaurant)
+    id_User INT NOT NULL,
+    id_Restaurant INT NOT NULL,
+    id_Driver INT NULL,
+    id_Voucher INT NULL,
+
+    order_Code VARCHAR(20) UNIQUE,
+
+    delivery_Address NVARCHAR(255),
+    delivery_Lat DECIMAL(10,7),
+    delivery_Lng DECIMAL(10,7),
+
+    paymentMethod VARCHAR(50)
+        CHECK (paymentMethod IN ('cash', 'banking', 'momo', 'vnpay')),
+
+    food_Amount DECIMAL(10,2) DEFAULT 0,
+    shippingFee DECIMAL(10,2) DEFAULT 0,
+    discount DECIMAL(10,2) DEFAULT 0,
+    finalTotal DECIMAL(10,2) DEFAULT 0,
+
+    paymentStatus VARCHAR(20) DEFAULT 'unpaid'
+        CHECK (paymentStatus IN ('unpaid', 'paid', 'failed')),
+
+    status VARCHAR(30) DEFAULT 'pending'
+        CHECK (
+            status IN (
+                'pending',
+                'restaurant_accepted',
+                'shipper_accepted',
+                'preparing',
+                'cooked',
+                'picked_up',
+                'delivering',
+                'completed',
+                'canceled'
+            )
+        ),
+
+    note NVARCHAR(255),
+
+    cancel_Reason NVARCHAR(255),
+
+    created_At DATETIME DEFAULT GETDATE(),
+    updated_At DATETIME,
+
+    FOREIGN KEY (id_User) REFERENCES Users(id_User),
+    FOREIGN KEY (id_Restaurant) REFERENCES Restaurant(id_Restaurant),
+    FOREIGN KEY (id_Driver) REFERENCES Driver(id_Driver),
+    FOREIGN KEY (id_Voucher) REFERENCES Voucher(id_Voucher)
 );
 
 CREATE TABLE Order_Food (
     id_OrderFood INT PRIMARY KEY,
-    id_Order INT,
-    id_Food INT,
-    quantity INT,
-    unit_Price DECIMAL(10,2),
+
+    id_Order INT NOT NULL,
+    id_Food INT NOT NULL,
+
+    quantity INT NOT NULL CHECK (quantity > 0),
+
+    unit_Price DECIMAL(10,2) NOT NULL,
+    total_Price DECIMAL(10,2) NOT NULL,
+
     note NVARCHAR(255),
+
     FOREIGN KEY (id_Order) REFERENCES Orders(id_Order),
     FOREIGN KEY (id_Food) REFERENCES Food(id_Food)
 );

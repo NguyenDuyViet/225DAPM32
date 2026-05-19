@@ -1,55 +1,84 @@
-using Backend.DTOs;
+using AutoMapper;
+using Backend.DTOs.Request;
+using Backend.DTOs.Response;
 using Backend.Models;
+using Backend.Repositories;
 
 namespace Backend.Services
 {
-    public interface IUserService
+    public class UserService
     {
-        Task<IEnumerable<UserResponseDto>> GetAllUsersAsync();
-        Task<UserResponseDto> GetUserByIdAsync(int id);
-        Task<UserResponseDto> CreateUserAsync(CreateUserDto dto);
-        Task<UserResponseDto> UpdateUserAsync(int id, UpdateUserDto dto);
-        Task<bool> DeleteUserAsync(int id);
-    }
+        private readonly UserRepository _userRepository;
+        private readonly IMapper _mapper;
 
-    public class UserService : IUserService
-    {
-        // TODO: Inject repository here when DB is configured
-        // private readonly IUserRepository _userRepository;
-
-        public UserService()
+        public UserService(UserRepository userRepository, IMapper mapper)
         {
-            // TODO: Initialize repository
+            _userRepository = userRepository;
+            _mapper = mapper;
         }
 
-        public async Task<IEnumerable<UserResponseDto>> GetAllUsersAsync()
+        public async Task<UserResponse?> CreateUserAsync(CreateUserDto dto)
         {
-            // TODO: Implement get all users logic
-            return await Task.FromResult(new List<UserResponseDto>());
+            if (await _userRepository.GetUserByUsernameAsync(dto.Username) != null)
+                return null;
+
+            if (await _userRepository.GetUserByEmailAsync(dto.Email) != null)
+                return null;
+
+            var user = _mapper.Map<User>(dto);
+            user.Password = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+            user.CreatedAt = DateTime.UtcNow;
+            user.Status = "active";
+            user.CancelRate = 0;
+
+            await _userRepository.AddAsync(user);
+            await _userRepository.SaveChangesAsync();
+
+            return _mapper.Map<UserResponse>(user);
         }
 
-        public async Task<UserResponseDto> GetUserByIdAsync(int id)
+        public async Task<bool> UpdateUserAsync(int id, UpdateUserDto dto)
         {
-            // TODO: Implement get user by id logic
-            return await Task.FromResult(new UserResponseDto());
-        }
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user == null)
+                return false;
 
-        public async Task<UserResponseDto> CreateUserAsync(CreateUserDto dto)
-        {
-            // TODO: Implement create user logic
-            return await Task.FromResult(new UserResponseDto());
-        }
+            _mapper.Map(dto, user);
 
-        public async Task<UserResponseDto> UpdateUserAsync(int id, UpdateUserDto dto)
-        {
-            // TODO: Implement update user logic
-            return await Task.FromResult(new UserResponseDto());
+            if (!string.IsNullOrWhiteSpace(dto.Password))
+                user.Password = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+
+            _userRepository.Update(user);
+            return await _userRepository.SaveChangesAsync() > 0;
         }
 
         public async Task<bool> DeleteUserAsync(int id)
         {
-            // TODO: Implement delete user logic
-            return await Task.FromResult(true);
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user == null)
+                return false;
+
+            await _userRepository.DeleteAsync(user);
+            return await _userRepository.SaveChangesAsync() > 0;
+        }
+
+        public async Task<List<UserResponse>> GetAllUsersAsync()
+        {
+            var datas = await _userRepository.GetAllAsync();
+            return _mapper.Map<List<UserResponse>>(datas);
+        }
+
+        public async Task<UserResponse?> GetUserByIdAsync(int id)
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            return user == null ? null : _mapper.Map<UserResponse>(user);
+        }
+
+        public async Task<UserResponse?> GetUserByUsernameAsync(string username)
+        {
+            var user = await _userRepository.GetUserByUsernameAsync(username);
+            return user == null ? null : _mapper.Map<UserResponse>(user);
         }
     }
 }
+

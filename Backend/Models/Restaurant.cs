@@ -12,10 +12,9 @@ namespace Backend.Models
         public decimal Lat { get; set; }
         public decimal Lng { get; set; }
 
-        // Navigation properties
         public ICollection<Food> Foods { get; set; }
         public ICollection<Promotion> Promotions { get; set; }
-        public ICollection<OrderRestaurant> OrderRestaurants { get; set; }
+        public ICollection<Order> Orders { get; set; }
         public ICollection<Review> Reviews { get; set; }
     }
 }
