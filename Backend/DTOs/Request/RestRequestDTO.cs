@@ -1,8 +1,7 @@
-namespace Backend.Models
+namespace Backend.DTOs.Request
 {
-    public class Restaurant
+    public class RestRequestDTO
     {
-        public int IdRestaurant { get; set; }
         public string NameRestaurant { get; set; }
         public string Description { get; set; }
         public string Image { get; set; }
@@ -11,10 +10,5 @@ namespace Backend.Models
         public TimeSpan CloseTime { get; set; }
         public decimal Lat { get; set; }
         public decimal Lng { get; set; }
-
-        public ICollection<Food> Foods { get; set; }
-        public ICollection<Promotion> Promotions { get; set; }
-        public ICollection<Order> Orders { get; set; }
-        public ICollection<Review> Reviews { get; set; }
     }
 }

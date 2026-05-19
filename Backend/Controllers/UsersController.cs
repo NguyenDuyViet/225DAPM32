@@ -1,5 +1,7 @@
-using Backend.DTOs;
+using Backend.DTOs.Request;
+using Backend.DTOs.Response;
 using Backend.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Controllers
@@ -8,26 +10,29 @@ namespace Backend.Controllers
     [Route("api/[controller]")]
     public class UsersController : ControllerBase
     {
-        private readonly IUserService _userService;
+        private readonly UserService _userService;
         private readonly ILogger<UsersController> _logger;
 
-        public UsersController(IUserService userService, ILogger<UsersController> logger)
+        public UsersController(UserService userService, ILogger<UsersController> logger)
         {
             _userService = userService;
             _logger = logger;
         }
 
-        /// <summary>
-        /// Get all users
-        /// </summary>
-        /// <returns>List of users</returns>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserResponseDto>>> GetAllUsers()
+        [Authorize(Roles = "admin")]
+        public async Task<ActionResult<ApiResponse<List<UserResponse>>>> GetAllUsers()
         {
             try
             {
                 var users = await _userService.GetAllUsersAsync();
-                return Ok(users);
+
+                return Ok( new ApiResponse<List<UserResponse>>
+                {
+                    Code = 200,
+                    Message = "Successfully",
+                    Results = users
+                });
             }
             catch (Exception ex)
             {
@@ -36,13 +41,9 @@ namespace Backend.Controllers
             }
         }
 
-        /// <summary>
-        /// Get user by ID
-        /// </summary>
-        /// <param name="id">User ID</param>
-        /// <returns>User details</returns>
         [HttpGet("{id}")]
-        public async Task<ActionResult<UserResponseDto>> GetUserById(int id)
+        [Authorize]
+        public async Task<ActionResult<ApiResponse<UserResponse>>> GetUserById(int id)
         {
             try
             {
@@ -59,13 +60,8 @@ namespace Backend.Controllers
             }
         }
 
-        /// <summary>
-        /// Create new user
-        /// </summary>
-        /// <param name="dto">User data</param>
-        /// <returns>Created user</returns>
         [HttpPost]
-        public async Task<ActionResult<UserResponseDto>> CreateUser([FromBody] CreateUserDto dto)
+        public async Task<ActionResult<ApiResponse<UserResponse>>> CreateUser([FromBody] CreateUserDto dto)
         {
             try
             {
@@ -73,7 +69,24 @@ namespace Backend.Controllers
                     return BadRequest(ModelState);
 
                 var createdUser = await _userService.CreateUserAsync(dto);
-                return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Id }, createdUser);
+
+                if(createdUser == null)
+                    return BadRequest(new ApiResponse<bool>
+                    {
+                        Code = 400,
+                        Message = "Username or Email already exists!",
+                        Results = false
+                    });
+                return CreatedAtAction(
+                    nameof(GetUserById),
+                    new { id = createdUser.IdUser },
+                    new ApiResponse<UserResponse>
+                    {
+                        Code = 201,
+                        Message = "Create user successfully",
+                        Results = createdUser
+                    }
+                );
             }
             catch (Exception ex)
             {
@@ -82,14 +95,9 @@ namespace Backend.Controllers
             }
         }
 
-        /// <summary>
-        /// Update user
-        /// </summary>
-        /// <param name="id">User ID</param>
-        /// <param name="dto">Updated user data</param>
-        /// <returns>Updated user</returns>
         [HttpPut("{id}")]
-        public async Task<ActionResult<UserResponseDto>> UpdateUser(int id, [FromBody] UpdateUserDto dto)
+        [Authorize(Roles = "admin, customer")]
+        public async Task<ActionResult<ApiResponse<UserResponse>>> UpdateUser(int id, [FromBody] UpdateUserDto dto)
         {
             try
             {
@@ -109,12 +117,8 @@ namespace Backend.Controllers
             }
         }
 
-        /// <summary>
-        /// Delete user
-        /// </summary>
-        /// <param name="id">User ID</param>
-        /// <returns>Success/Failure message</returns>
         [HttpDelete("{id}")]
+        [Authorize(Roles = "admin")]
         public async Task<ActionResult> DeleteUser(int id)
         {
             try
