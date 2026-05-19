@@ -52,12 +52,6 @@ namespace _225DAPM32.Areas.Restaurant
             return View(model);
         }
 
-        public IActionResult Menu()
-        {
-            ViewData["Title"] = "Quản lý Menu";
-            return View(SampleMenu);
-        }
-
         public IActionResult Orders()
         {
             ViewData["Title"] = "Đơn hàng";

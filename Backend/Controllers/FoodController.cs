@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Backend.DTOs.Request;
 using Backend.DTOs.Response;
 using Backend.Models;
@@ -23,11 +23,13 @@ namespace Backend.Controllers
 
         // GET: api/Food
         [HttpGet]
+
         public async Task<ActionResult<ApiResponse<IEnumerable<FoodResponse>>>> GetAllFoods()
         {
             try
             {
                 var foods = await _foodRepository.GetAllAsync();
+
                 var foodResponses = _mapper.Map<IEnumerable<FoodResponse>>(foods);
                 
                 return Ok(new ApiResponse<IEnumerable<FoodResponse>>
@@ -39,6 +41,7 @@ namespace Backend.Controllers
             }
             catch (Exception ex)
             {
+
                 return StatusCode(500, new ApiResponse<IEnumerable<FoodResponse>>
                 {
                     Code = 9999,
@@ -50,6 +53,7 @@ namespace Backend.Controllers
 
         // GET: api/Food/5
         [HttpGet("{id}")]
+
         public async Task<ActionResult<ApiResponse<FoodResponse>>> GetFood(int id)
         {
             try
@@ -58,6 +62,7 @@ namespace Backend.Controllers
 
                 if (food == null)
                 {
+
                     return NotFound(new ApiResponse<FoodResponse>
                     {
                         Code = 1002,
@@ -65,6 +70,7 @@ namespace Backend.Controllers
                         Results = null
                     });
                 }
+
 
                 var foodResponse = _mapper.Map<FoodResponse>(food);
                 
@@ -77,6 +83,7 @@ namespace Backend.Controllers
             }
             catch (Exception ex)
             {
+
                 return StatusCode(500, new ApiResponse<FoodResponse>
                 {
                     Code = 9999,
@@ -88,12 +95,14 @@ namespace Backend.Controllers
 
         // POST: api/Food
         [HttpPost]
+
         public async Task<ActionResult<ApiResponse<FoodResponse>>> CreateFood([FromBody] FoodRequest foodRequest)
         {
             try
             {
                 if (!ModelState.IsValid)
                 {
+
                     return BadRequest(new ApiResponse<FoodResponse>
                     {
                         Code = 1003,
@@ -117,6 +126,7 @@ namespace Backend.Controllers
             }
             catch (Exception ex)
             {
+
                 return StatusCode(500, new ApiResponse<FoodResponse>
                 {
                     Code = 9999,
@@ -128,12 +138,14 @@ namespace Backend.Controllers
 
         // PUT: api/Food/5
         [HttpPut("{id}")]
+
         public async Task<ActionResult<ApiResponse<FoodResponse>>> UpdateFood(int id, [FromBody] FoodRequest foodRequest)
         {
             try
             {
                 if (!ModelState.IsValid)
                 {
+
                     return BadRequest(new ApiResponse<FoodResponse>
                     {
                         Code = 1003,
@@ -145,6 +157,7 @@ namespace Backend.Controllers
                 var existingFood = await _foodRepository.GetByIdAsync(id);
                 if (existingFood == null)
                 {
+
                     return NotFound(new ApiResponse<FoodResponse>
                     {
                         Code = 1002,
@@ -157,6 +170,7 @@ namespace Backend.Controllers
                 _foodRepository.Update(existingFood);
                 await _foodRepository.SaveChangesAsync();
 
+
                 var foodResponse = _mapper.Map<FoodResponse>(existingFood);
                 
                 return Ok(new ApiResponse<FoodResponse>
@@ -168,6 +182,7 @@ namespace Backend.Controllers
             }
             catch (Exception ex)
             {
+
                 return StatusCode(500, new ApiResponse<FoodResponse>
                 {
                     Code = 9999,
@@ -217,11 +232,13 @@ namespace Backend.Controllers
 
         // GET: api/Food/restaurant/5
         [HttpGet("restaurant/{restaurantId}")]
+
         public async Task<ActionResult<ApiResponse<IEnumerable<FoodResponse>>>> GetFoodsByRestaurant(int restaurantId)
         {
             try
             {
                 var foods = await _foodRepository.FindAsync(f => f.IdRestaurant == restaurantId);
+
                 var foodResponses = _mapper.Map<IEnumerable<FoodResponse>>(foods);
                 
                 return Ok(new ApiResponse<IEnumerable<FoodResponse>>
@@ -233,6 +250,7 @@ namespace Backend.Controllers
             }
             catch (Exception ex)
             {
+
                 return StatusCode(500, new ApiResponse<IEnumerable<FoodResponse>>
                 {
                     Code = 9999,
@@ -260,6 +278,7 @@ namespace Backend.Controllers
             }
             catch (Exception ex)
             {
+
                 return StatusCode(500, new ApiResponse<IEnumerable<FoodResponse>>
                 {
                     Code = 9999,

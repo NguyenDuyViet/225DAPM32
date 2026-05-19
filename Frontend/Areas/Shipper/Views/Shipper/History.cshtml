@@ -3,29 +3,137 @@
     ViewData["Title"] = "Lịch sử giao hàng";
 }
 
-<h2 class="mb-4">Lịch sử giao hàng</h2>
-<div class="table-responsive">
-    <table class="table table-hover align-middle">
-        <thead class="table-light">
-            <tr>
-                <th>Mã đơn</th>
-                <th>Trạng thái</th>
-                <th>Tổng tiền</th>
-                <th>Thời gian giao</th>
-                <th>Shipper</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var order in Model)
-            {
-                <tr>
-                    <td>#@order.IdOrder</td>
-                    <td><span class="badge bg-success">@order.Status</span></td>
-                    <td>@order.FinalTotal.ToString("N0") VND</td>
-                    <td>@order.DeliveredAt?.ToString("HH:mm dd/MM")</td>
-                    <td>@order.DriverName</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+<!-- Header -->
+<div class="admin-header bg-dark text-white py-4 mb-4">
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h1 class="h2 mb-0">
+                    <i class="fas fa-history me-3"></i>Lịch sử giao hàng
+                </h1>
+                <p class="mb-0 opacity-75">Xem lại các đơn đã hoàn thành</p>
+            </div>
+            <div class="col-md-6 text-end">
+                <div class="fw-bold">@DateTime.Now.ToString("dd/MM/yyyy")</div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<div class="container-fluid">
+    <div class="row">
+
+        <!-- Sidebar -->
+        <div class="col-md-2">
+            <div class="shipper-sidebar">
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="@Url.Action("Index", "Shipper", new { area = "Shipper" })">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                    <a class="nav-link" href="@Url.Action("Orders", "Shipper", new { area = "Shipper" })">
+                        <i class="fas fa-clipboard-list me-2"></i>Đơn hàng
+                    </a>
+                    <a class="nav-link active" href="@Url.Action("History", "Shipper", new { area = "Shipper" })">
+                        <i class="fas fa-history me-2"></i>Lịch sử
+                    </a>
+                    <a class="nav-link" href="@Url.Action("Earnings", "Shipper", new { area = "Shipper" })">
+                        <i class="fas fa-wallet me-2"></i>Thu nhập
+                    </a>
+                    <a class="nav-link" href="@Url.Action("Profile", "Shipper", new { area = "Shipper" })">
+                        <i class="fas fa-user me-2"></i>Profile
+                    </a>
+                    <a class="nav-link" href="@Url.Action("Settings", "Shipper", new { area = "Shipper" })">
+                        <i class="fas fa-cog me-2"></i>Cài đặt
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <div class="col-md-10">
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+
+                    <!-- Table -->
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Mã đơn</th>
+                                    <th>Trạng thái</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Thời gian giao</th>
+                                    <th>Shipper</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var order in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>#@order.IdOrder</strong>
+                                        </td>
+
+                                        <td>
+                                            <span class="badge bg-success">
+                                                @order.Status
+                                            </span>
+                                        </td>
+
+                                        <td class="fw-bold text-primary">
+                                            @order.FinalTotal.ToString("N0") VND
+                                        </td>
+
+                                        <td>
+                                            @order.DeliveredAt?.ToString("HH:mm dd/MM")
+                                        </td>
+
+                                        <td>
+                                            <i class="fas fa-user me-1"></i>
+                                            @order.DriverName
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+.shipper-sidebar {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px 0;
+    min-height: calc(100vh - 200px);
+}
+
+.shipper-sidebar .nav-link {
+    color: #495057;
+    padding: 12px 20px;
+    margin: 5px 15px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.shipper-sidebar .nav-link:hover {
+    background: #e9ecef;
+}
+
+.shipper-sidebar .nav-link.active {
+    background: #ffc107;
+    color: #212529;
+}
+
+/* Table đẹp hơn */
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+    transition: 0.2s;
+}
+</style>

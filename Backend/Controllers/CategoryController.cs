@@ -57,7 +57,7 @@ namespace Backend.Controllers
 
                 if (category == null)
                 {
-                    return NotFound(new ApiResponse<CategoryResponse>
+                    return NotFound(new ApiResponse<Category>
                     {
                         Code = 1002,
                         Message = "Không tìm thấy danh mục",
@@ -127,13 +127,16 @@ namespace Backend.Controllers
 
         // PUT: api/Category/5
         [HttpPut("{id}")]
+
         public async Task<ActionResult<ApiResponse<CategoryResponse>>> UpdateCategory(int id, [FromBody] CategoryRequest categoryRequest)
         {
             try
             {
                 if (!ModelState.IsValid)
                 {
+
                     return BadRequest(new ApiResponse<CategoryResponse>
+
                     {
                         Code = 1003,
                         Message = "Dữ liệu không hợp lệ",
@@ -156,8 +159,8 @@ namespace Backend.Controllers
                 _categoryRepository.Update(existingCategory);
                 await _categoryRepository.SaveChangesAsync();
 
-                var categoryResponse = _mapper.Map<CategoryResponse>(existingCategory);
-                
+
+                var categoryResponse = _mapper.Map<CategoryResponse>(existingCategory);                
                 return Ok(new ApiResponse<CategoryResponse>
                 {
                     Code = 1000,

@@ -1,6 +1,5 @@
 using AutoMapper;
 using Backend.DTOs.Request;
-using Backend.DTOs.Response;
 using Backend.Models;
 
 namespace Backend.Mapper
@@ -9,6 +8,7 @@ namespace Backend.Mapper
     {
         public CategoryMapper()
         {
+
             // Request mapping
             CreateMap<CategoryRequest, Category>();
             CreateMap<Category, CategoryRequest>();
