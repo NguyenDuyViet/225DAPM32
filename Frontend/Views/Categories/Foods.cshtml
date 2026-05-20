@@ -1,0 +1,87 @@
+@model IEnumerable<_225DAPM32.Models.Food>
+
+@{
+    var category = ViewBag.Category as _225DAPM32.Models.Category;
+    ViewData["Title"] = category != null ? $"Món ăn - {category.Name}" : "Món ăn theo danh mục";
+}
+
+<div class="bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 py-6">
+        <!-- Header -->
+        <div class="mb-6 flex items-center gap-3">
+            <a href="@Url.Action("Index", "Categories")" class="w-9 h-9 rounded-md border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors">
+                <span class="material-symbols-outlined text-gray-600">arrow_back</span>
+            </a>
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">
+                    @if (category != null)
+                    {
+                        @category.Name
+                    }
+                    else
+                    {
+                        <span>Món ăn</span>
+                    }
+                </h1>
+                <p class="text-gray-500 text-sm mt-1">@Model.Count() món ăn</p>
+            </div>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="text-center py-20">
+                <span class="material-symbols-outlined text-6xl text-gray-300 mb-4">restaurant</span>
+                <p class="text-gray-500 text-lg">Chưa có món ăn nào trong danh mục này</p>
+                <p class="text-gray-400 text-sm mt-2">Vui lòng quay lại sau</p>
+            </div>
+        }
+        else
+        {
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                @foreach (var food in Model)
+                {
+                    <div class="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                        <div class="relative">
+                            <img src="@food.Image" alt="@food.Name" class="w-full h-48 object-cover" />
+                            @if (food.Discount.HasValue && food.Discount > 0)
+                            {
+                                <div class="absolute top-2 left-2 bg-red-600 text-white px-2 py-1 rounded-md font-bold text-xs">
+                                    -@food.Discount.Value.ToString("N0")đ
+                                </div>
+                            }
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-semibold text-gray-900 mb-1 truncate">@food.Name</h3>
+                            <p class="text-sm text-gray-500 mb-3 line-clamp-2">@food.Description</p>
+                            <div class="flex items-center justify-between pt-3 border-t border-gray-100">
+                                <div class="flex flex-col">
+                                    <span class="font-bold text-orange-600 text-base">@food.Price.ToString("N0")đ</span>
+                                    @if (food.Discount.HasValue && food.Discount > 0)
+                                    {
+                                        <span class="text-gray-400 line-through text-xs">@((food.Price + food.Discount.Value).ToString("N0"))đ</span>
+                                    }
+                                </div>
+                                @if (food.PrepTime.HasValue)
+                                {
+                                    <div class="flex items-center gap-1 text-sm text-gray-500">
+                                        <span class="material-symbols-outlined text-base">schedule</span>
+                                        <span>@food.PrepTime phút</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+</style>

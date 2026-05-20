@@ -1,0 +1,48 @@
+@model IEnumerable<_225DAPM32.Models.Category>
+
+@{
+    ViewData["Title"] = "Danh mục";
+}
+
+<div class="bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 py-6">
+        <!-- Header -->
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">Danh mục món ăn</h1>
+            <p class="text-gray-500 text-sm mt-1">Chọn danh mục bạn muốn khám phá</p>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="text-center py-20">
+                <span class="material-symbols-outlined text-6xl text-gray-300 mb-4">category</span>
+                <p class="text-gray-500 text-lg">Chưa có danh mục nào</p>
+                <p class="text-gray-400 text-sm mt-2">Vui lòng quay lại sau</p>
+            </div>
+        }
+        else
+        {
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                @foreach (var category in Model)
+                {
+                    <a href="@Url.Action("Foods", "Categories", new { id = category.IdCategory })"
+                       class="bg-white rounded-xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col items-center gap-3 group">
+                        <div class="w-16 h-16 rounded-full bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors">
+                            @if (!string.IsNullOrEmpty(category.Icon))
+                            {
+                                <img src="@category.Icon" alt="@category.Name" class="w-10 h-10 object-contain" />
+                            }
+                            else
+                            {
+                                <span class="material-symbols-outlined text-orange-600 text-3xl">restaurant_menu</span>
+                            }
+                        </div>
+                        <span class="text-sm font-medium text-gray-700 text-center group-hover:text-orange-600 transition-colors">
+                            @category.Name
+                        </span>
+                    </a>
+                }
+            </div>
+        }
+    </div>
+</div>
