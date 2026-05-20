@@ -12,30 +12,35 @@ namespace Backend.Controllers
     public class RestaurantsController : ControllerBase
     {
         private readonly ILogger<RestaurantsController> _logger;
-        private RestService _restaurantService;
+        private readonly RestService _restaurantService;
 
         public RestaurantsController(ILogger<RestaurantsController> logger, RestService restaurantService)
         {
             _logger = logger;
             _restaurantService = restaurantService;
         }
+
         [HttpGet]
-        [Authorize(Roles = "admin")]
-        public async Task<ActionResult<ApiResponse<Restaurant>>> GetAllRestaurants()
+        public async Task<ActionResult<ApiResponse<PagedResult<Restaurant>>>> GetAllRestaurants(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 6,
+            [FromQuery] int? categoryId = null)
         {
-            var restaurants = await _restaurantService.GetAllRestaurantsAsync();
-            if (restaurants == null || !restaurants.Any())
-                return NotFound(new { message = "Internal server error" });
-            return Ok(new ApiResponse<List<Restaurant>>
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 6;
+            if (pageSize > 50) pageSize = 50;
+
+            var pagedResult = await _restaurantService.GetPagedRestaurantsAsync(page, pageSize, categoryId);
+
+            return Ok(new ApiResponse<PagedResult<Restaurant>>
             {
                 Code = 200,
                 Message = "Success",
-                Results = restaurants
+                Results = pagedResult
             });
         }
 
         [HttpGet("{id}")]
-        [Authorize]
         public async Task<ActionResult<ApiResponse<Restaurant>>> GetRestaurantById(int id)
         {
             var restaurant = await _restaurantService.GetRestaurantByIdAsync(id);
@@ -78,18 +83,5 @@ namespace Backend.Controllers
                 Results = result
             });
         }
-
-        [NonAction]
-        public async Task<ActionResult<ApiResponse<string>>> ConfirmOrder(int idOrder)
-        {
-            return null;
-        }
-
-        [NonAction]
-        public async Task<ActionResult<ApiResponse<string>>> CancelOrder(int idOrder)
-        {
-            return null;
-        }
     }
 }
-

@@ -1,8 +1,6 @@
-using AutoMapper;
 using Backend.DTOs.Request;
 using Backend.DTOs.Response;
-using Backend.Models;
-using Backend.Repositories;
+using Backend.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Controllers
@@ -11,13 +9,11 @@ namespace Backend.Controllers
     [Route("api/[controller]")]
     public class CategoryController : ControllerBase
     {
-        private readonly CategoryRepository _categoryRepository;
-        private readonly IMapper _mapper;
+        private readonly CategoryService _categoryService;
 
-        public CategoryController(CategoryRepository categoryRepository, IMapper mapper)
+        public CategoryController(CategoryService categoryService)
         {
-            _categoryRepository = categoryRepository;
-            _mapper = mapper;
+            _categoryService = categoryService;
         }
 
         // GET: api/Category
@@ -26,9 +22,8 @@ namespace Backend.Controllers
         {
             try
             {
-                var categories = await _categoryRepository.GetAllAsync();
-                var categoryResponses = _mapper.Map<IEnumerable<CategoryResponse>>(categories);
-                
+                var categoryResponses = await _categoryService.GetAllCategoriesAsync();
+
                 return Ok(new ApiResponse<IEnumerable<CategoryResponse>>
                 {
                     Code = 1000,
@@ -53,11 +48,11 @@ namespace Backend.Controllers
         {
             try
             {
-                var category = await _categoryRepository.GetByIdAsync(id);
+                var categoryResponse = await _categoryService.GetCategoryByIdAsync(id);
 
-                if (category == null)
+                if (categoryResponse == null)
                 {
-                    return NotFound(new ApiResponse<Category>
+                    return NotFound(new ApiResponse<CategoryResponse>
                     {
                         Code = 1002,
                         Message = "Không tìm thấy danh mục",
@@ -65,8 +60,6 @@ namespace Backend.Controllers
                     });
                 }
 
-                var categoryResponse = _mapper.Map<CategoryResponse>(category);
-                
                 return Ok(new ApiResponse<CategoryResponse>
                 {
                     Code = 1000,
@@ -101,13 +94,9 @@ namespace Backend.Controllers
                     });
                 }
 
-                var category = _mapper.Map<Category>(categoryRequest);
-                await _categoryRepository.AddAsync(category);
-                await _categoryRepository.SaveChangesAsync();
+                var categoryResponse = await _categoryService.CreateCategoryAsync(categoryRequest);
 
-                var categoryResponse = _mapper.Map<CategoryResponse>(category);
-                
-                return CreatedAtAction(nameof(GetCategory), new { id = category.IdCategory }, new ApiResponse<CategoryResponse>
+                return CreatedAtAction(nameof(GetCategory), new { id = categoryResponse.IdCategory }, new ApiResponse<CategoryResponse>
                 {
                     Code = 1000,
                     Message = "Tạo danh mục thành công",
@@ -127,16 +116,13 @@ namespace Backend.Controllers
 
         // PUT: api/Category/5
         [HttpPut("{id}")]
-
         public async Task<ActionResult<ApiResponse<CategoryResponse>>> UpdateCategory(int id, [FromBody] CategoryRequest categoryRequest)
         {
             try
             {
                 if (!ModelState.IsValid)
                 {
-
                     return BadRequest(new ApiResponse<CategoryResponse>
-
                     {
                         Code = 1003,
                         Message = "Dữ liệu không hợp lệ",
@@ -144,8 +130,9 @@ namespace Backend.Controllers
                     });
                 }
 
-                var existingCategory = await _categoryRepository.GetByIdAsync(id);
-                if (existingCategory == null)
+                var categoryResponse = await _categoryService.UpdateCategoryAsync(id, categoryRequest);
+
+                if (categoryResponse == null)
                 {
                     return NotFound(new ApiResponse<CategoryResponse>
                     {
@@ -155,12 +142,6 @@ namespace Backend.Controllers
                     });
                 }
 
-                _mapper.Map(categoryRequest, existingCategory);
-                _categoryRepository.Update(existingCategory);
-                await _categoryRepository.SaveChangesAsync();
-
-
-                var categoryResponse = _mapper.Map<CategoryResponse>(existingCategory);                
                 return Ok(new ApiResponse<CategoryResponse>
                 {
                     Code = 1000,
@@ -185,8 +166,9 @@ namespace Backend.Controllers
         {
             try
             {
-                var category = await _categoryRepository.GetByIdAsync(id);
-                if (category == null)
+                var result = await _categoryService.DeleteCategoryAsync(id);
+
+                if (!result)
                 {
                     return NotFound(new ApiResponse<object>
                     {
@@ -195,9 +177,6 @@ namespace Backend.Controllers
                         Results = null
                     });
                 }
-
-                await _categoryRepository.DeleteAsync(category);
-                await _categoryRepository.SaveChangesAsync();
 
                 return Ok(new ApiResponse<object>
                 {
@@ -223,8 +202,9 @@ namespace Backend.Controllers
         {
             try
             {
-                var category = await _categoryRepository.GetByIdAsync(id);
-                if (category == null)
+                var foodResponses = await _categoryService.GetFoodsByCategoryAsync(id);
+
+                if (foodResponses == null)
                 {
                     return NotFound(new ApiResponse<IEnumerable<FoodResponse>>
                     {
@@ -234,8 +214,6 @@ namespace Backend.Controllers
                     });
                 }
 
-                var foodResponses = _mapper.Map<IEnumerable<FoodResponse>>(category.Foods);
-                
                 return Ok(new ApiResponse<IEnumerable<FoodResponse>>
                 {
                     Code = 1000,

@@ -1,45 +1,33 @@
 @model _225DAPM32.Models.Restaurant
 
 @{
-    ViewData["Title"] = "Chi tiết nhà hàng";
-    
-    // Dữ liệu giả cho demo
-    var mockFoods = new[] {
-        new { Name = "Phở Bò Tái Lăn Đặc Biệt", Image = "https://lh3.googleusercontent.com/aida-public/AB6AXuB3XPt-DcOefUNCYW2nDamFixba_7ZPBHy68IfsQYBuYgpiVIzyJ3x3oUGdqbg4H8SoTp0YonjxtNjCL16HE85naLt4VdfTNJx_fNc-2gQhqYvrbCi1LgYftRadRIE2yqSpLoSUt7PT6HIA2q_6ffRJQHnioTIk_pN0XYR1j_6cpJNLpLyQ_73zgAJ0azYNTdOTMJU-5lUdMJ1vPAiXKe3eNuYWd2Yp4EiolX5gogIZlpOgpd3995Lxhz3skij0R_nG3WJKK91Cx24", Description = "Bánh phở tươi, bò nạm, gầu, gân, nước dùng gia truyền thơm nức.", Price = "65,000đ", OldPrice = "75,000đ", Badge = "-15%", Category = "main" },
-        new { Name = "Cơm Tấm Sườn Bì Chả", Image = "https://lh3.googleusercontent.com/aida-public/AB6AXuA70Y6v6fOW9BLdJ-zpc4rEGWLECdggvddIXfY1hsDSHRuhhiGg9bKVAkBYonsiB5uupv8O1KmHy6q1dnhZFXM4Ylmo-2s_W-togJ34Cge-rOo8cesasIpzSPzSRUW1XqxMEj9ofWYu684fg5AgMYtNwfe9NQPxZ21BGk4nQMPivn7Oa4EiLYoXdMcPBflUcJCKaZmMoa3fUtz4CkjUUfNcqsuVamW5bmxnj212qVtGrPdAeofUr-twOH0yvahmvfBsV1bI4-h5rb4", Description = "Sườn nướng mật ong, bì thính, chả trứng hấp truyền thống.", Price = "55,000đ", OldPrice = "", Badge = "", Category = "main" },
-        new { Name = "Bánh Mì Thập Cẩm Giòn Rụm", Image = "https://lh3.googleusercontent.com/aida-public/AB6AXuASgFg7vdT3E_n6dKcasNmZxSM8evlIA46wX5IO0mHNmctKMVRYRdbV6qgTL70j9q-KujtJcbPEOKso--bEyERrsOSu5GINxVHCCZWMObmOlWemlgDuDVocfjEhv8Uk3nzSl7AKR8QrqKLFDgK-85h2iga1oO8NQqJXee5OjEaynPRqga0FxDpmqMiMtbB5ALypfiGQ12b2ypGbJhI_fnJK0jFbgaJ35YRTDEW6zO6R4nBT8WzUp8c6iWI4VibBcvSxKa8QZwcy-hQ", Description = "Pate gan nhà làm, thịt nguội, chả lụa và dưa chua giòn ngọt.", Price = "35,000đ", OldPrice = "", Badge = "", Category = "main" },
-        new { Name = "Bún Chả Hà Nội", Image = "https://lh3.googleusercontent.com/aida-public/AB6AXuCW_mBDENneVoF2SRxzYfSHq2kf-QXXMZ07pKksoFmziIBaMsMMwDTbE3IXqcoEL7RT-Qaw2mY3xmXhFrb9lx1FDGzV4H5wmJz8goUucsfP9U7kQhSQVGjCzCK49RbzFb-U0McXxK5m5jWgbcRSmk_YiQOHylDaADlZu6hrwxT2QiLlehfIwUzClbnWkE14cwGg3r_lBw3FrKwh8Fgwr3McYuO69oVOpWfb-ikD8zhsVo5z_BgJGLMTAbSPmWMp3xpahMj14j0JYew", Description = "Thịt nướng than hoa thơm lừng, ăn kèm nước mắm chua ngọt.", Price = "60,000đ", OldPrice = "", Badge = "", Category = "main" },
-        new { Name = "Cà Phê Sữa Đá Sài Gòn", Image = "https://lh3.googleusercontent.com/aida-public/AB6AXuDfkjsBAramIqAF3ks1SLCvVRp1YBmd1c8IvoRujBuGR2l2oqJX8TcJ8zUpw2hKz3QkWO8cxLZ7qEeA7KXBKZF24l6YhI-A-wTS7BYlXJTnkO2rYaI0_sw6_AmHzVEtL-3mS7otdL2WUuraI7VBtHFn2bBKYaYGT7s4xNuBSBKwknjn_NxSPeUXWyqOpfBl89T3ea6aKFFOyqu8enydHGroWGGxOZPcbOv_fkaKOWHsEBWtf9tNGM8u-D-pFAdghOW8APYa2NG4j7A", Description = "Hạt cà phê Robusta rang đậm, hòa quyện sữa đặc thơm béo.", Price = "29,000đ", OldPrice = "", Badge = "", Category = "drink" },
-        new { Name = "Trà Đào Cam Sả", Image = "https://lh3.googleusercontent.com/aida-public/AB6AXuATBlFdIXRG7LKnAGY4U77C3t43JgMz8iw9IVMa0yfPJpVCkaNdvJDCSMlJ1uwjw1mwln3oYkmYAbtcFsEk_ncsKYSF4uauvyIZ6yuk7W8PTbd9Xt_zoJ6okpA0VPF_Y5Bxy77FivdZalE5M-yeFBoHxlnkH53N6vClmuFhpYTUcyfmWc-EL2RhmikjfgPZtFax1k_MDnaA6vFj4ryFUfhsxSowgYLULDP0CqzuqwTLly4Hnpgk7wKd2iyDrXPrtwTUTgy2W_wtky4", Description = "Trà đen hảo hạng, cam vàng mọng nước và hương sả thơm nhẹ.", Price = "45,000đ", OldPrice = "", Badge = "", Category = "drink" }
-    };
+    ViewData["Title"] = Model.NameRestaurant;
+    var foods = ViewBag.Foods as List<_225DAPM32.Models.Food> ?? new List<_225DAPM32.Models.Food>();
 }
 
 <main class="max-w-7xl mx-auto px-4 py-2">
     <!-- Restaurant Header Section -->
     <section class="bg-white rounded-xl overflow-hidden shadow-sm mb-5">
         <div class="relative h-[300px] w-full">
-            <img alt="Restaurant Cover" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVuZTCkpkJj2a3ZhCGQMFAAtXqlMXXue80K_R4qQ2I78hY6y-K3qxybUWmlW1GFzPs-0cZGm2Ru_j5cwXmJ_mFLLghH6f4EVugDpWUEkYqqXsmxAeJyn4fQYEULaFOv3xMsb_mIImStCVCazpNSBntteLVVygWLP-nzSCJbtLLLufe-n7d5xkoSuZjucGzFaj2bIR-H2ZdJ6Q8XaMlX0R8q5qvXMvpZPydqIF-3kc38f10Dz1dsmCEHqzkHEMUN5gVbulPbs6U6Xc"/>
+            <img alt="@Model.NameRestaurant" class="w-full h-full object-cover" src="@Model.Image" />
             <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
             <div class="absolute bottom-0 left-0 p-8 text-white">
                 <div class="flex items-center gap-2 mb-2">
                     <span class="bg-orange-600 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Đối tác Món ngon tại nhà</span>
-                    <div class="flex items-center bg-yellow-400 text-black px-2 py-0.5 rounded text-[10px] font-bold">
-                        <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>4.8 (500+)
-                    </div>
                 </div>
-                <h1 class="text-white text-3xl md:text-4xl font-bold mb-2">Bếp Việt Heritage - Phan Xích Long</h1>
+                <h1 class="text-white text-3xl md:text-4xl font-bold mb-2">@Model.NameRestaurant</h1>
                 <div class="flex flex-wrap items-center gap-4 text-white/90 text-sm">
                     <div class="flex items-center gap-1">
                         <span class="material-symbols-outlined text-[18px]">location_on</span>
-                        125 Phan Xích Long, P. 2, Q. Phú Nhuận, TP. HCM
-                    </div>
-                    <div class="flex items-center gap-1">
-                        <span class="material-symbols-outlined text-[18px]">payments</span>
-                        35,000đ - 150,000đ
+                        @Model.Address
                     </div>
                     <div class="flex items-center gap-1">
                         <span class="material-symbols-outlined text-[18px]">schedule</span>
-                        Mở cửa: 07:00 - 22:00
+                        Mở cửa: @Model.OpenTime.ToString(@"hh\:mm") - @Model.CloseTime.ToString(@"hh\:mm")
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[18px]">restaurant_menu</span>
+                        @foods.Count món
                     </div>
                 </div>
             </div>
@@ -51,193 +39,105 @@
         <div class="flex-1 w-full">
             <!-- Category Tabs -->
             <div class="bg-white mb-5 rounded-xl shadow-sm border border-gray-100 flex overflow-x-auto p-1">
-                <button onclick="switchTab('main')" id="tab-main" class="px-6 py-3 text-sm font-semibold text-orange-600 border-b-2 border-orange-600 transition-colors whitespace-nowrap">Món chính</button>
-                <button onclick="switchTab('drink')" id="tab-drink" class="px-6 py-3 text-sm font-semibold text-gray-500 hover:text-orange-600 transition-colors whitespace-nowrap">Đồ uống</button>
-                <button onclick="switchTab('dessert')" id="tab-dessert" class="px-6 py-3 text-sm font-semibold text-gray-500 hover:text-orange-600 transition-colors whitespace-nowrap">Tráng miệng</button>
-                <button onclick="switchTab('combo')" id="tab-combo" class="px-6 py-3 text-sm font-semibold text-gray-500 hover:text-orange-600 transition-colors whitespace-nowrap">Combo ưu đãi</button>
+                <button onclick="switchTab('food')" id="tab-food"
+                        class="px-6 py-3 text-sm font-semibold text-orange-600 border-b-2 border-orange-600 transition-colors whitespace-nowrap">
+                    Đồ ăn
+                </button>
+                <button onclick="switchTab('drink')" id="tab-drink"
+                        class="px-6 py-3 text-sm font-semibold text-gray-500 hover:text-orange-600 transition-colors whitespace-nowrap">
+                    Thức uống
+                </button>
+                <button onclick="switchTab('combo')" id="tab-combo"
+                        class="px-6 py-3 text-sm font-semibold text-gray-500 hover:text-orange-600 transition-colors whitespace-nowrap">
+                    Combo món ăn
+                </button>
             </div>
 
-            <!-- Menu Items Group: Món chính -->
-            <div id="content-main" class="tab-content space-y-5">
-                <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-4 px-2 border-l-4 border-orange-600">Món chính</h2>
-                <div class="space-y-3">
-                    @foreach (var food in mockFoods.Where(f => f.Category == "main"))
-                    {
-                        <!-- Food Card -->
-                        <div class="bg-white p-3 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-50 flex gap-4 group">
-                            <div class="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden relative">
-                                <img alt="@food.Name" class="w-full h-full object-cover" src="@food.Image"/>
-                                @if (!string.IsNullOrEmpty(food.Badge))
-                                {
-                                    <div class="absolute top-1 left-1 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">@food.Badge</div>
-                                }
-                            </div>
-                            <div class="flex flex-col justify-between flex-1">
-                                <div>
-                                    <h3 class="text-base md:text-lg font-semibold text-gray-800 line-clamp-1">@food.Name</h3>
-                                    <p class="text-sm text-gray-500 line-clamp-2 mt-1">@food.Description</p>
-                                </div>
-                                <div class="flex items-center justify-between mt-2">
-                                    <div class="flex flex-col">
-                                        <span class="font-bold text-orange-600 text-base">@food.Price</span>
-                                        @if (!string.IsNullOrEmpty(food.OldPrice))
-                                        {
-                                            <span class="text-gray-400 line-through text-[12px]">@food.OldPrice</span>
-                                        }
-                                    </div>
-                                    <button class="w-8 h-8 rounded-full bg-orange-600 text-white flex items-center justify-center active:scale-90 transition-transform shadow-sm">
-                                        <span class="material-symbols-outlined text-[20px]">add</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-            </div>
-
-            <!-- Menu Items Group: Đồ uống -->
-            <div id="content-drink" class="tab-content hidden space-y-5">
-                <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-4 px-2 border-l-4 border-orange-600">Đồ uống</h2>
-                <div class="space-y-3">
-                    @foreach (var food in mockFoods.Where(f => f.Category == "drink"))
-                    {
-                        <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-50 flex gap-4 group">
-                            <div class="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden relative">
-                                <img alt="@food.Name" class="w-full h-full object-cover" src="@food.Image"/>
-                            </div>
-                            <div class="flex flex-col justify-between flex-1">
-                                <div>
-                                    <h3 class="text-base font-semibold text-gray-800">@food.Name</h3>
-                                    <p class="text-sm text-gray-500 line-clamp-2 mt-1">@food.Description</p>
-                                </div>
-                                <div class="flex items-center justify-between mt-2">
-                                    <span class="font-bold text-orange-600 text-base">@food.Price</span>
-                                    <button class="w-8 h-8 rounded-full bg-orange-600 text-white flex items-center justify-center active:scale-90 transition-transform shadow-sm">
-                                        <span class="material-symbols-outlined text-[20px]">add</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-            </div>
-
-            <!-- Menu Items Group: Tráng miệng -->
-            <div id="content-dessert" class="tab-content hidden space-y-5">
-                <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-4 px-2 border-l-4 border-orange-600">Tráng miệng</h2>
-                <div class="space-y-3">
+            <!-- Tab: Đồ ăn -->
+            <div id="content-food" class="tab-content space-y-3">
+                @if (!foods.Any())
+                {
                     <div class="text-center py-10 text-gray-400">
                         <span class="material-symbols-outlined text-5xl mb-2">restaurant</span>
-                        <p>Chưa có món tráng miệng</p>
+                        <p>Chưa có món ăn nào</p>
                     </div>
+                }
+                else
+                {
+                    @foreach (var food in foods)
+                    {
+                        @await Html.PartialAsync("_FoodCard", food)
+                    }
+                }
+            </div>
+
+            <!-- Tab: Thức uống -->
+            <div id="content-drink" class="tab-content hidden space-y-3">
+                <div class="text-center py-10 text-gray-400">
+                    <span class="material-symbols-outlined text-5xl mb-2">local_cafe</span>
+                    <p>Chưa có thức uống nào</p>
                 </div>
             </div>
 
-            <!-- Menu Items Group: Combo ưu đãi -->
-            <div id="content-combo" class="tab-content hidden space-y-5">
-                <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-4 px-2 border-l-4 border-orange-600">Combo ưu đãi</h2>
-                <div class="space-y-3">
-                    <div class="text-center py-10 text-gray-400">
-                        <span class="material-symbols-outlined text-5xl mb-2">local_offer</span>
-                        <p>Chưa có combo ưu đãi</p>
-                    </div>
+            <!-- Tab: Combo món ăn -->
+            <div id="content-combo" class="tab-content hidden space-y-3">
+                <div class="text-center py-10 text-gray-400">
+                    <span class="material-symbols-outlined text-5xl mb-2">local_offer</span>
+                    <p>Chưa có combo nào</p>
                 </div>
+            </div>
+
+            <!-- Nút quay lại -->
+            <div class="mt-6">
+                <a href="@Url.Action("Index", "Restaurants", new { area = "" })" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm">
+                    <span class="material-symbols-outlined text-base">arrow_back</span>
+                    Quay lại danh sách
+                </a>
             </div>
         </div>
 
-        <!-- Cart Sidebar -->
+        <!-- Sidebar -->
         <aside class="w-full lg:w-[320px] sticky top-16 z-30">
             <div class="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
-                <div class="bg-orange-600 p-4 flex items-center justify-between text-white">
-                    <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined">shopping_bag</span>
-                        <span class="text-sm font-semibold">Giỏ hàng của bạn</span>
-                    </div>
-                    <span class="bg-white/20 px-2 py-0.5 rounded text-[12px] font-bold">2 món</span>
+                <div class="bg-orange-600 p-4 flex items-center gap-2 text-white">
+                    <span class="material-symbols-outlined">store</span>
+                    <span class="text-sm font-semibold">Thông tin nhà hàng</span>
                 </div>
                 <div class="p-4 space-y-4">
-                    <!-- Cart Item 1 -->
-                    <div class="flex items-start gap-3 border-b border-gray-100 pb-3">
-                        <div class="flex-1">
-                            <h4 class="text-sm font-semibold text-gray-800 line-clamp-1">Phở Bò Tái Lăn Đặc Biệt</h4>
-                            <p class="text-[12px] text-gray-500">Thêm quẩy (x2)</p>
-                            <div class="flex items-center gap-4 mt-2">
-                                <div class="flex items-center border border-gray-200 rounded-lg h-7">
-                                    <button class="px-2 text-gray-400 hover:text-orange-600">-</button>
-                                    <span class="px-2 text-[13px] font-bold">1</span>
-                                    <button class="px-2 text-gray-400 hover:text-orange-600">+</button>
-                                </div>
-                                <span class="font-bold text-gray-700 text-sm">65,000đ</span>
-                            </div>
-                        </div>
-                        <button class="text-gray-300 hover:text-red-500">
-                            <span class="material-symbols-outlined text-[18px]">close</span>
-                        </button>
-                    </div>
-                    <!-- Cart Item 2 -->
-                    <div class="flex items-start gap-3 border-b border-gray-100 pb-3">
-                        <div class="flex-1">
-                            <h4 class="text-sm font-semibold text-gray-800 line-clamp-1">Cà Phê Sữa Đá Sài Gòn</h4>
-                            <p class="text-[12px] text-gray-500">Ít ngọt</p>
-                            <div class="flex items-center gap-4 mt-2">
-                                <div class="flex items-center border border-gray-200 rounded-lg h-7">
-                                    <button class="px-2 text-gray-400 hover:text-orange-600">-</button>
-                                    <span class="px-2 text-[13px] font-bold">1</span>
-                                    <button class="px-2 text-gray-400 hover:text-orange-600">+</button>
-                                </div>
-                                <span class="font-bold text-gray-700 text-sm">29,000đ</span>
-                            </div>
-                        </div>
-                        <button class="text-gray-300 hover:text-red-500">
-                            <span class="material-symbols-outlined text-[18px]">close</span>
-                        </button>
-                    </div>
-                    <!-- Bill Summary -->
-                    <div class="space-y-2 pt-2 text-sm text-gray-600">
-                        <div class="flex justify-between">
-                            <span>Tạm tính</span>
-                            <span>94,000đ</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>Phí dịch vụ</span>
-                            <span>5,000đ</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>Phí giao hàng (2.5km)</span>
-                            <span class="text-orange-600 font-bold">Miễn phí</span>
-                        </div>
-                        <div class="flex justify-between text-base font-bold text-gray-800 pt-2 border-t border-dashed border-gray-200">
-                            <span>Tổng cộng</span>
-                            <span class="text-orange-600 text-lg">99,000đ</span>
+                    <div class="flex items-center gap-3">
+                        <img src="@Model.Image" alt="@Model.NameRestaurant" class="w-16 h-16 rounded-lg object-cover" />
+                        <div>
+                            <h3 class="font-semibold text-gray-800">@Model.NameRestaurant</h3>
+                            <p class="text-xs text-gray-500 mt-1">@Model.Address</p>
                         </div>
                     </div>
-                    <button class="w-full bg-orange-600 text-white py-3 rounded-xl text-sm font-semibold active:scale-[0.98] transition-transform shadow-lg shadow-orange-200">
-                        Thanh toán ngay
-                    </button>
-                    <p class="text-center text-[11px] text-gray-400">
-                        Bằng cách đặt hàng, bạn đồng ý với <a class="underline" href="#">Điều khoản dịch vụ</a>
-                    </p>
+                    <div class="border-t border-gray-100 pt-3 space-y-2">
+                        <div class="flex items-center gap-2 text-sm text-gray-600">
+                            <span class="material-symbols-outlined text-orange-600 text-base">schedule</span>
+                            <span>@Model.OpenTime.ToString(@"hh\:mm") - @Model.CloseTime.ToString(@"hh\:mm")</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-gray-600">
+                            <span class="material-symbols-outlined text-orange-600 text-base">location_on</span>
+                            <span>@Model.Address</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-gray-600">
+                            <span class="material-symbols-outlined text-orange-600 text-base">restaurant_menu</span>
+                            <span>@foods.Count món ăn</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <!-- Promotional Banner in Sidebar -->
-            <div class="mt-4 bg-orange-50 border border-orange-100 rounded-xl p-4 flex items-center gap-3">
-                <span class="material-symbols-outlined text-orange-600">confirmation_number</span>
-                <div>
-                    <p class="text-[12px] font-bold text-orange-800 uppercase tracking-wide">Nhập mã: FOODLOVER</p>
-                    <p class="text-[11px] text-orange-700">Giảm ngay 25k cho đơn hàng từ 150k</p>
-                </div>
+
+            <!-- Mô tả nhà hàng -->
+            <div class="mt-4 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                <h3 class="font-semibold text-gray-800 mb-2">Giới thiệu</h3>
+                <p class="text-sm text-gray-600 leading-relaxed">@Model.Description</p>
             </div>
         </aside>
     </div>
 </main>
 
 <style>
-.line-clamp-1 {
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
 .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -250,23 +150,21 @@
 function switchTab(tabName) {
     // Ẩn tất cả tab content
     const allContents = document.querySelectorAll('.tab-content');
-    allContents.forEach(content => {
-        content.classList.add('hidden');
-    });
-    
+    allContents.forEach(content => content.classList.add('hidden'));
+
     // Xóa active state của tất cả tab buttons
     const allTabs = document.querySelectorAll('[id^="tab-"]');
     allTabs.forEach(tab => {
         tab.classList.remove('text-orange-600', 'border-b-2', 'border-orange-600');
         tab.classList.add('text-gray-500');
     });
-    
+
     // Hiển thị tab content được chọn
     const selectedContent = document.getElementById('content-' + tabName);
     if (selectedContent) {
         selectedContent.classList.remove('hidden');
     }
-    
+
     // Active tab button được chọn
     const selectedTab = document.getElementById('tab-' + tabName);
     if (selectedTab) {

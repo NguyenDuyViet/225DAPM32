@@ -2,19 +2,11 @@
 
 @{
     ViewData["Title"] = "Nhà hàng";
-    
-    // Dữ liệu giả cho demo
-    var mockRestaurants = new[] {
-        new { Name = "Poke Saigon - Healthy Bowl", Image = "https://lh3.googleusercontent.com/aida-public/AB6AXuDBODKFmgsjs7P4RfGfHdIFZZRDmAZBk1N6MB6KTRJYDeSroBPbpam2krikxHhu7DlklRKsORt3dqZts-2-vwQGS9undEgjWuywSYG-nEG2NvUS93RGg0mw2zmyxGNitCgpJtDYRNRIADd_O03059EbGU9ntFPIpSmWL0oqXPNdYD8o0ejHHdtk7Nwm81JE_CbbX0u-bGz95gYbEElqHTk57DhzIU9Mu0PBJvLZFvrJFKD1KVVb8uPPHaAut7F3CZ4ZbfrjUlkyaDE", Rating = "4.8", Reviews = "500+", Distance = "2.4 km", Price = "45.000đ", Badge = "-25%" },
-        new { Name = "Pizza 4P's - Hai Bà Trưng", Image = "https://lh3.googleusercontent.com/aida-public/AB6AXuBuk_c-YeN5P_McvmV3VEKcO8qNNLyvwB5uH7zIA1tLBhViOMWGpo7bsKkHHxHQV4-itOMkNEWKnuTEC1c-mNv-DpTNTpjbwDFP1EVWTwRqnFksjRyPjhIBKP3fvEg5W59IALpKcG53wu0NmX6ep-mIi5X7JR7aM3HStRAMxkjK6vbV-4XwimoKdBfJX2u3IdZi8ZkWmWOkFxP_nP9Wrurdg4F5syvZXhKRaEhiwMqQ1N9zzrh8PeN8vKJqmm6mWuINBEcyA1IAxYU", Rating = "4.9", Reviews = "1k+", Distance = "0.8 km", Price = "150.000đ", Badge = "" },
-        new { Name = "Cơm Tấm Phúc Lộc Thọ", Image = "https://lh3.googleusercontent.com/aida-public/AB6AXuBUCGknbjYJ6OkCHcnpeQLRYa_UJctYP_9OZp_YyMS6RoHVOj9fkvSJuzQoKVkd6hxkCUf892iE644xhR1yd1yj1evFPytBwHCCAhYL2bm51lkkjbazT6Chhlwz47m9ArALfFAzAdDSZIHFZh3mEdoOpsQv2b8-4PD1ukhjGmdyIH9pP79pPLzg2UFJdNsfwwapCN2hgfYvM_X8TI6-rELwMdvmEqLPvAx8IVZGPKXhn_XGXf2c3pm9oibpXky-4SVSz0dt3R7t6MM", Rating = "4.7", Reviews = "3k+", Distance = "1.5 km", Price = "39.000đ", Badge = "" },
-        new { Name = "Sushi Hokkaido Sachi", Image = "https://lh3.googleusercontent.com/aida-public/AB6AXuDohJ5zrkhgFTvkjk_obz4LFXHKKyjzYMRyOPGREopYp57a7VOnJ2N6ht0iCjxtS71Gvf_CmC4JpQEHLDaMX17bqhs7OQLv2bZllUfR7Z0lhHw6OvFmZxTNXSIv0As59bj6_dMVVVTGRLEPLJQ1YfWI3l0EsOv7Vyqa1-b5eELxxgvk6HwQaggcftz0A0RSVAWYhOK6ZbwsV5WdlMRNlu2dLn03MWM1a-bSXr_79sZLaYkq_uWAB0hqSDEcqJZsxXXC0Mbmm4CWlBA", Rating = "4.9", Reviews = "800+", Distance = "3.2 km", Price = "120.000đ", Badge = "Freeship" },
-        new { Name = "The Coffee House", Image = "https://lh3.googleusercontent.com/aida-public/AB6AXuBQdpNlwrHSUFvpnGF7Fu1wVOeYLggeCp8yFYSupEZLdwL09XVgnygeeWPzRE8gFi2mQ9gcHpXooOv0Gf1Sv4tld8j0o-g_o924LD8gWUAZ8cHdxr9_a_KNqXnjA8wpOIgKrcNn8MA1YoPkxoosdvg3ZrHYsibKMtbWAdgxt3ywT6RqbYCePVYFeiIoXWgsJwx86pwCUVlLWUbtABEjXMhrah3UUOSx0PCJwgZvN2QrW8iWfYD3G3iavRhZxJlWeb8AdMKYuK2qsmY", Rating = "4.6", Reviews = "2.5k+", Distance = "0.5 km", Price = "32.000đ", Badge = "" },
-        new { Name = "Gourmet Burger Kitchen", Image = "https://lh3.googleusercontent.com/aida-public/AB6AXuBd-5tq7ZGAyT6c6bY8hkxWLhyZSrVVsd7P-RYlf30-D-RRbtP6M280e1aANBwBHuBoLHqDklSs9jNOl0DT4Wpyvc5FFkxuxyo0Yv8lrtslx9eUnqjGmZ5Y5DcvY4hdzqW49y-8UN7JEozLaFl9IDoHNvwveggqT_EeNEQKZ05dty5ycagQIFvX6fIrn2loDc_JHGU8v7UHlRl_VCpTScDeafnuv43XwW7SLzmz1GCVBbzysUdEBPUSqiqMqvQ8QC9Nm7d7cpgbN34", Rating = "4.8", Reviews = "150+", Distance = "4.1 km", Price = "89.000đ", Badge = "-15.000đ" },
-        new { Name = "Phở Hòa Pasteur", Image = "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=400", Rating = "4.7", Reviews = "2k+", Distance = "1.2 km", Price = "35.000đ", Badge = "" },
-        new { Name = "Bún Bò Huế Đông Ba", Image = "https://images.unsplash.com/photo-1555126634-323283e090fa?w=400", Rating = "4.6", Reviews = "1.5k+", Distance = "2.1 km", Price = "40.000đ", Badge = "" },
-        new { Name = "Bánh Mì Huỳnh Hoa", Image = "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400", Rating = "4.9", Reviews = "5k+", Distance = "0.3 km", Price = "25.000đ", Badge = "-10%" },
-    };
+    int currentPage = ViewBag.CurrentPage;
+    int totalPages = ViewBag.TotalPages;
+    int totalItems = ViewBag.TotalItems;
+    var categories = ViewBag.Categories as List<_225DAPM32.Models.Category> ?? new List<_225DAPM32.Models.Category>();
+    int? selectedCategoryId = ViewBag.SelectedCategoryId;
 }
 
 <div class="bg-gray-50 min-h-screen">
@@ -54,25 +46,20 @@
                         <span class="material-symbols-outlined text-orange-600">restaurant</span>
                         Phân loại
                     </h3>
-                    <div class="space-y-1">
-                        <button class="w-full text-left px-3 py-2 rounded-md bg-orange-600 text-white font-medium text-sm">
+                    <div id="category-list" class="space-y-1">
+                        <a href="javascript:void(0)" onclick="filterByCategory(null)"
+                           class="category-item block w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors @(selectedCategoryId == null ? "bg-orange-600 text-white" : "hover:bg-gray-100 text-gray-700")"
+                           data-category-id="">
                             Tất cả
-                        </button>
-                        <button class="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 text-gray-700 text-sm transition-colors">
-                            Cơm trưa
-                        </button>
-                        <button class="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 text-gray-700 text-sm transition-colors">
-                            Trà sữa & Cà phê
-                        </button>
-                        <button class="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 text-gray-700 text-sm transition-colors">
-                            Bún/Phở/Mì
-                        </button>
-                        <button class="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 text-gray-700 text-sm transition-colors">
-                            Ăn vặt
-                        </button>
-                        <button class="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 text-gray-700 text-sm transition-colors">
-                            Pizza/Fastfood
-                        </button>
+                        </a>
+                        @foreach (var cat in categories)
+                        {
+                            <a href="javascript:void(0)" onclick="filterByCategory(@cat.IdCategory)"
+                               class="category-item block w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors @(selectedCategoryId == cat.IdCategory ? "bg-orange-600 text-white" : "hover:bg-gray-100 text-gray-700")"
+                               data-category-id="@cat.IdCategory">
+                                @cat.Name
+                            </a>
+                        }
                     </div>
                 </div>
 
@@ -96,85 +83,67 @@
 
             <!-- Main Content -->
             <main class="flex-1">
-                <!-- Sort Bar -->
-                <div class="bg-white rounded-lg p-4 mb-6 shadow-sm flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <span class="text-gray-600 text-sm">Sắp xếp theo:</span>
-                        <button class="px-4 py-2 bg-orange-600 text-white rounded-full text-sm font-medium shadow-md">
-                            Liên quan
-                        </button>
-                        <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-200 transition-colors">
-                            Gần đây
-                        </button>
-                        <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-200 transition-colors">
-                            Bán chạy
-                        </button>
-                        <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-200 transition-colors">
-                            Giá thấp
-                        </button>
-                    </div>
-                    <div class="text-sm text-gray-600">
-                        <span class="font-bold text-gray-900">@mockRestaurants.Length</span> kết quả
-                    </div>
-                </div>
-
-                <!-- Restaurant Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                    @{ var restaurantId = 1; }
-                    @foreach (var restaurant in mockRestaurants)
-                    {
-                        var currentId = restaurantId++;
-                        <div class="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1">
-                            <div class="relative">
-                                <img src="@restaurant.Image" alt="@restaurant.Name" class="w-full h-48 object-cover" />
-                                @if (!string.IsNullOrEmpty(restaurant.Badge))
-                                {
-                                    <div class="absolute top-2 left-2 bg-red-600 text-white px-2 py-1 rounded-md font-bold text-xs">
-                                        @restaurant.Badge
-                                    </div>
-                                }
-                                <div class="absolute bottom-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md flex items-center gap-1">
-                                    <span class="material-symbols-outlined text-gray-700 text-sm">schedule</span>
-                                    <span class="text-xs font-semibold text-gray-700">25-35'</span>
-                                </div>
-                            </div>
-                            <div class="p-4">
-                                <h3 class="font-semibold text-gray-900 mb-2 truncate">@restaurant.Name</h3>
-                                <div class="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                                    <div class="flex items-center gap-1">
-                                        <span class="material-symbols-outlined text-yellow-500 text-base" style="font-variation-settings: 'FILL' 1;">star</span>
-                                        <span class="font-semibold text-gray-900">@restaurant.Rating</span>
-                                        <span>(@restaurant.Reviews)</span>
-                                    </div>
-                                    <span>•</span>
-                                    <span>@restaurant.Distance</span>
-                                </div>
-                                <div class="flex items-center justify-between pt-3 border-t border-gray-100">
-                                    <span class="text-orange-600 font-bold text-base">Từ @restaurant.Price</span>
-                                    <a href="@Url.Action("Details", "Restaurants", new { id = currentId })" class="px-4 py-2 rounded-md bg-orange-600 text-white text-sm font-medium hover:bg-orange-700 transition-colors">
-                                        Mua ngay
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-
-                <!-- Pagination -->
-                <div class="mt-8 flex justify-center items-center gap-2">
-                    <button class="w-9 h-9 rounded-md border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors">
-                        <span class="material-symbols-outlined text-gray-600">chevron_left</span>
-                    </button>
-                    <button class="w-9 h-9 rounded-md bg-orange-600 text-white font-semibold flex items-center justify-center">1</button>
-                    <button class="w-9 h-9 rounded-md border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors text-gray-700">2</button>
-                    <button class="w-9 h-9 rounded-md border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors text-gray-700">3</button>
-                    <span class="text-gray-500">...</span>
-                    <button class="w-9 h-9 rounded-md border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors text-gray-700">12</button>
-                    <button class="w-9 h-9 rounded-md border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors">
-                        <span class="material-symbols-outlined text-gray-600">chevron_right</span>
-                    </button>
+                <div id="restaurant-grid">
+                    @await Html.PartialAsync("_RestaurantGrid", Model)
                 </div>
             </main>
         </div>
     </div>
 </div>
+
+<style>
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+</style>
+
+<script>
+    let currentCategoryId = @(selectedCategoryId.HasValue ? selectedCategoryId.Value.ToString() : "null");
+
+    function filterByCategory(categoryId) {
+        currentCategoryId = categoryId;
+        loadRestaurants(1, categoryId);
+        updateCategoryUI(categoryId);
+    }
+
+    function loadRestaurants(page, categoryId) {
+        let url = '/Restaurants/Filter?page=' + page;
+        if (categoryId !== null && categoryId !== undefined) {
+            url += '&categoryId=' + categoryId;
+        }
+
+        // Show loading
+        const grid = document.getElementById('restaurant-grid');
+        grid.style.opacity = '0.5';
+
+        fetch(url)
+            .then(response => response.text())
+            .then(html => {
+                grid.innerHTML = html;
+                grid.style.opacity = '1';
+            })
+            .catch(() => {
+                grid.style.opacity = '1';
+            });
+    }
+
+    function updateCategoryUI(categoryId) {
+        const items = document.querySelectorAll('.category-item');
+        items.forEach(item => {
+            const itemCatId = item.getAttribute('data-category-id');
+            const isSelected = (categoryId === null && itemCatId === '') ||
+                               (categoryId !== null && itemCatId === String(categoryId));
+
+            item.classList.remove('bg-orange-600', 'text-white', 'hover:bg-gray-100', 'text-gray-700');
+
+            if (isSelected) {
+                item.classList.add('bg-orange-600', 'text-white');
+            } else {
+                item.classList.add('hover:bg-gray-100', 'text-gray-700');
+            }
+        });
+    }
+</script>

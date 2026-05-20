@@ -35,42 +35,42 @@ namespace Backend.Data
 
             var categories = new Category[]
             {
-                new Category { IdCategory = 1, Name = "Đồ ăn", Icon = "icons/do-an.png" },
-                new Category { IdCategory = 2, Name = "Đồ uống", Icon = "icons/do-uong.png" },
-                new Category { IdCategory = 3, Name = "Đồ chay", Icon = "icons/do-chay.png" },
-                new Category { IdCategory = 4, Name = "Bánh kem", Icon = "icons/banh-kem.png" },
-                new Category { IdCategory = 5, Name = "Tráng miệng", Icon = "icons/trang-mieng.png" },
-                new Category { IdCategory = 6, Name = "Món lẩu", Icon = "icons/mon-lau.png" },
-                new Category { IdCategory = 7, Name = "Hải sản", Icon = "icons/hai-san.png" },
-                new Category { IdCategory = 8, Name = "Cơm hộp", Icon = "icons/com-hop.png" }
+                new Category { IdCategory = 1, Name = "Đồ ăn", Icon = "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271413/DAPM_32/categories/category-1.jpg" },
+                new Category { IdCategory = 2, Name = "Đồ uống", Icon = "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271414/DAPM_32/categories/category-2.jpg" },
+                new Category { IdCategory = 3, Name = "Đồ chay", Icon = "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271415/DAPM_32/categories/category-3.jpg" },
+                new Category { IdCategory = 4, Name = "Bánh kem", Icon = "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271416/DAPM_32/categories/category-4.jpg" },
+                new Category { IdCategory = 5, Name = "Tráng miệng", Icon = "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271418/DAPM_32/categories/category-5.jpg" },
+                new Category { IdCategory = 6, Name = "Món lẩu", Icon = "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271419/DAPM_32/categories/category-6.jpg" },
+                new Category { IdCategory = 7, Name = "Hải sản", Icon = "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271419/DAPM_32/categories/category-7.jpg" },
+                new Category { IdCategory = 8, Name = "Cơm hộp", Icon = "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271420/DAPM_32/categories/category-8.jpg" }
             };
             context.Categories.AddRange(categories);
             context.SaveChanges();
 
             var restaurants = new Restaurant[]
             {
-                new Restaurant { IdRestaurant = 1, NameRestaurant = "Bếp Nhà Việt", Description = "Món cơm nhà và món mặn Việt Nam", Image = "images/restaurants/bep-nha-viet.jpg", Address = "20 Nguyễn Thị Minh Khai, Quận 1", OpenTime = new TimeSpan(7, 0, 0), CloseTime = new TimeSpan(21, 30, 0), Lat = 10.782500m, Lng = 106.700000m },
-                new Restaurant { IdRestaurant = 2, NameRestaurant = "Gà Ngon 3 Miền", Description = "Các món gà kho, nướng, rang muối", Image = "images/restaurants/ga-ngon-3-mien.jpg", Address = "88 Cách Mạng Tháng 8, Quận 3", OpenTime = new TimeSpan(9, 0, 0), CloseTime = new TimeSpan(22, 0, 0), Lat = 10.777300m, Lng = 106.686600m },
-                new Restaurant { IdRestaurant = 3, NameRestaurant = "Lẩu Gà Sài Gòn", Description = "Lẩu gà thuốc bắc và lẩu gà ớt hiểm", Image = "images/restaurants/lau-ga-sai-gon.jpg", Address = "15 Phan Xích Long, Phú Nhuận", OpenTime = new TimeSpan(10, 0, 0), CloseTime = new TimeSpan(23, 0, 0), Lat = 10.801000m, Lng = 106.710000m },
-                new Restaurant { IdRestaurant = 4, NameRestaurant = "Quán Hải Sản Nhà Làm", Description = "Mực, tôm và hải sản chế biến nóng", Image = "images/restaurants/hai-san-nha-lam.jpg", Address = "51 Trần Não, TP Thủ Đức", OpenTime = new TimeSpan(10, 0, 0), CloseTime = new TimeSpan(22, 30, 0), Lat = 10.787000m, Lng = 106.749000m }
+                new Restaurant { IdRestaurant = 1, NameRestaurant = "Bếp Nhà Việt", Description = "Món cơm nhà và món mặn Việt Nam", Image = "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271401/DAPM_32/restaurants/restaurant-1.jpg", Address = "20 Nguyễn Thị Minh Khai, Quận 1", OpenTime = new TimeSpan(7, 0, 0), CloseTime = new TimeSpan(21, 30, 0), Lat = 10.782500m, Lng = 106.700000m },
+                new Restaurant { IdRestaurant = 2, NameRestaurant = "Gà Ngon 3 Miền", Description = "Các món gà kho, nướng, rang muối", Image = "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271402/DAPM_32/restaurants/restaurant-2.jpg", Address = "88 Cách Mạng Tháng 8, Quận 3", OpenTime = new TimeSpan(9, 0, 0), CloseTime = new TimeSpan(22, 0, 0), Lat = 10.777300m, Lng = 106.686600m },
+                new Restaurant { IdRestaurant = 3, NameRestaurant = "Lẩu Gà Sài Gòn", Description = "Lẩu gà thuốc bắc và lẩu gà ớt hiểm", Image = "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271403/DAPM_32/restaurants/restaurant-3.jpg", Address = "15 Phan Xích Long, Phú Nhuận", OpenTime = new TimeSpan(10, 0, 0), CloseTime = new TimeSpan(23, 0, 0), Lat = 10.801000m, Lng = 106.710000m },
+                new Restaurant { IdRestaurant = 4, NameRestaurant = "Quán Hải Sản Nhà Làm", Description = "Mực, tôm và hải sản chế biến nóng", Image = "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271404/DAPM_32/restaurants/restaurant-4.jpg", Address = "51 Trần Não, TP Thủ Đức", OpenTime = new TimeSpan(10, 0, 0), CloseTime = new TimeSpan(22, 30, 0), Lat = 10.787000m, Lng = 106.749000m }
             };
             context.Restaurants.AddRange(restaurants);
             context.SaveChanges();
 
             var foods = new Food[]
             {
-                new Food { IdFood = 1, IdCategory = 1, IdRestaurant = 1, Name = "Bánh xèo", Description = "Bánh xèo vàng giòn ăn kèm rau sống và nước mắm chua ngọt", Image = "images/foods/Bánh xèo.jpg", Price = 45000m, Discount = 5000m, CookCount = 86, PrepTime = 15 },
-                new Food { IdFood = 2, IdCategory = 8, IdRestaurant = 1, Name = "Cá kho tộ", Description = "Cá kho tộ đậm vị, dùng với cơm trắng nóng", Image = "images/foods/Cá kho tộ.jpg", Price = 55000m, Discount = 5000m, CookCount = 120, PrepTime = 18 },
-                new Food { IdFood = 3, IdCategory = 8, IdRestaurant = 1, Name = "Bò xào ớt chuông", Description = "Thịt bò mềm xào ớt chuông, hành tây và sốt đậm đà", Image = "images/foods/Bò xào ớt chuông.jpg", Price = 65000m, Discount = 7000m, CookCount = 72, PrepTime = 12 },
-                new Food { IdFood = 4, IdCategory = 1, IdRestaurant = 2, Name = "Cánh gà chiên nước mắm", Description = "Cánh gà chiên giòn phủ sốt nước mắm tỏi", Image = "images/foods/Cánh gà chiên nước mắm.jpg", Price = 59000m, Discount = 6000m, CookCount = 140, PrepTime = 15 },
-                new Food { IdFood = 5, IdCategory = 1, IdRestaurant = 2, Name = "Gà rang muối", Description = "Gà rang muối giòn thơm, ăn kèm rau răm", Image = "images/foods/Gà rang muối.jpg", Price = 72000m, Discount = 8000m, CookCount = 96, PrepTime = 18 },
-                new Food { IdFood = 6, IdCategory = 1, IdRestaurant = 2, Name = "Gà nướng muối ớt", Description = "Gà nướng cay nhẹ, da vàng giòn", Image = "images/foods/Gà nướng muối ớt.jpg", Price = 89000m, Discount = 10000m, CookCount = 110, PrepTime = 25 },
-                new Food { IdFood = 7, IdCategory = 8, IdRestaurant = 2, Name = "Gà kho nấm", Description = "Gà kho nấm mềm thơm, hợp dùng với cơm hộp", Image = "images/foods/Gà kho nấm.jpg", Price = 62000m, Discount = 5000m, CookCount = 75, PrepTime = 18 },
-                new Food { IdFood = 8, IdCategory = 6, IdRestaurant = 3, Name = "Lẩu gà thuốc bắc", Description = "Lẩu gà thuốc bắc bổ dưỡng với nước dùng ngọt thanh", Image = "images/foods/Lẩu gà thuốc bắc.jpg", Price = 189000m, Discount = 15000m, CookCount = 52, PrepTime = 25 },
-                new Food { IdFood = 9, IdCategory = 6, IdRestaurant = 3, Name = "Lẩu gà tiềm ớt hiểm", Description = "Lẩu gà tiềm ớt hiểm cay ấm, thơm đậm", Image = "images/foods/Lẩu gà tiềm ớt hiểm.jpg", Price = 199000m, Discount = 20000m, CookCount = 60, PrepTime = 25 },
-                new Food { IdFood = 10, IdCategory = 7, IdRestaurant = 4, Name = "Mực chiên nước mắm", Description = "Mực chiên nước mắm tỏi, giòn dai vừa miệng", Image = "images/foods/Mực chiên nước mắm.jpg", Price = 89000m, Discount = 8000m, CookCount = 58, PrepTime = 16 },
-                new Food { IdFood = 11, IdCategory = 7, IdRestaurant = 4, Name = "Tôm khìa nước dừa", Description = "Tôm khìa nước dừa béo thơm, vị ngọt tự nhiên", Image = "images/foods/Tôm khìa nước dừa.jpg", Price = 95000m, Discount = 9000m, CookCount = 64, PrepTime = 18 },
-                new Food { IdFood = 12, IdCategory = 7, IdRestaurant = 4, Name = "Tôm xào chua ngọt", Description = "Tôm xào chua ngọt cùng rau củ bắt vị", Image = "images/foods/tôm xào chua ngọt.jpg", Price = 92000m, Discount = 7000m, CookCount = 61, PrepTime = 16 }
+                new Food { IdFood = 1, IdCategory = 1, IdRestaurant = 1, Name = "Bánh xèo", Description = "Bánh xèo vàng giòn ăn kèm rau sống và nước mắm chua ngọt", Image = "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271405/DAPM_32/foods/food-1.jpg", Price = 45000m, Discount = 5000m, CookCount = 86, PrepTime = 15 },
+                new Food { IdFood = 2, IdCategory = 8, IdRestaurant = 1, Name = "Cá kho tộ", Description = "Cá kho tộ đậm vị, dùng với cơm trắng nóng", Image = "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271405/DAPM_32/foods/food-2.jpg", Price = 55000m, Discount = 5000m, CookCount = 120, PrepTime = 18 },
+                new Food { IdFood = 3, IdCategory = 8, IdRestaurant = 1, Name = "Bò xào ớt chuông", Description = "Thịt bò mềm xào ớt chuông, hành tây và sốt đậm đà", Image = "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271406/DAPM_32/foods/food-3.jpg", Price = 65000m, Discount = 7000m, CookCount = 72, PrepTime = 12 },
+                new Food { IdFood = 4, IdCategory = 1, IdRestaurant = 2, Name = "Cánh gà chiên nước mắm", Description = "Cánh gà chiên giòn phủ sốt nước mắm tỏi", Image = "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271405/DAPM_32/foods/food-4.jpg", Price = 59000m, Discount = 6000m, CookCount = 140, PrepTime = 15 },
+                new Food { IdFood = 5, IdCategory = 1, IdRestaurant = 2, Name = "Gà rang muối", Description = "Gà rang muối giòn thơm, ăn kèm rau răm", Image = "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271408/DAPM_32/foods/food-5.jpg", Price = 72000m, Discount = 8000m, CookCount = 96, PrepTime = 18 },
+                new Food { IdFood = 6, IdCategory = 1, IdRestaurant = 2, Name = "Gà nướng muối ớt", Description = "Gà nướng cay nhẹ, da vàng giòn", Image = "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271408/DAPM_32/foods/food-6.jpg", Price = 89000m, Discount = 10000m, CookCount = 110, PrepTime = 25 },
+                new Food { IdFood = 7, IdCategory = 8, IdRestaurant = 2, Name = "Gà kho nấm", Description = "Gà kho nấm mềm thơm, hợp dùng với cơm hộp", Image = "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271409/DAPM_32/foods/food-7.jpg", Price = 62000m, Discount = 5000m, CookCount = 75, PrepTime = 18 },
+                new Food { IdFood = 8, IdCategory = 6, IdRestaurant = 3, Name = "Lẩu gà thuốc bắc", Description = "Lẩu gà thuốc bắc bổ dưỡng với nước dùng ngọt thanh", Image = "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271410/DAPM_32/foods/food-8.jpg", Price = 189000m, Discount = 15000m, CookCount = 52, PrepTime = 25 },
+                new Food { IdFood = 9, IdCategory = 6, IdRestaurant = 3, Name = "Lẩu gà tiềm ớt hiểm", Description = "Lẩu gà tiềm ớt hiểm cay ấm, thơm đậm", Image = "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271410/DAPM_32/foods/food-9.jpg", Price = 199000m, Discount = 20000m, CookCount = 60, PrepTime = 25 },
+                new Food { IdFood = 10, IdCategory = 7, IdRestaurant = 4, Name = "Mực chiên nước mắm", Description = "Mực chiên nước mắm tỏi, giòn dai vừa miệng", Image = "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271411/DAPM_32/foods/food-10.jpg", Price = 89000m, Discount = 8000m, CookCount = 58, PrepTime = 16 },
+                new Food { IdFood = 11, IdCategory = 7, IdRestaurant = 4, Name = "Tôm khìa nước dừa", Description = "Tôm khìa nước dừa béo thơm, vị ngọt tự nhiên", Image = "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271412/DAPM_32/foods/food-11.jpg", Price = 95000m, Discount = 9000m, CookCount = 64, PrepTime = 18 },
+                new Food { IdFood = 12, IdCategory = 7, IdRestaurant = 4, Name = "Tôm xào chua ngọt", Description = "Tôm xào chua ngọt cùng rau củ bắt vị", Image = "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271412/DAPM_32/foods/food-12.jpg", Price = 92000m, Discount = 7000m, CookCount = 61, PrepTime = 16 }
             };
             context.Foods.AddRange(foods);
             context.SaveChanges();
@@ -139,8 +139,8 @@ namespace Backend.Data
 
             var reviewFoods = new ReviewFood[]
             {
-                new ReviewFood { IdReviewFood = 1, IdReview = 1, IdFood = 1, Rating = 4.7f, Comment = "Bánh giòn ngon", Image = "images/foods/Bánh xèo.jpg", Video = "" },
-                new ReviewFood { IdReviewFood = 2, IdReview = 1, IdFood = 2, Rating = 4.8f, Comment = "Cá kho đậm vị", Image = "images/foods/Cá kho tộ.jpg", Video = "" }
+                new ReviewFood { IdReviewFood = 1, IdReview = 1, IdFood = 1, Rating = 4.7f, Comment = "Bánh giòn ngon", Image = "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271405/DAPM_32/foods/food-1.jpg", Video = "" },
+                new ReviewFood { IdReviewFood = 2, IdReview = 1, IdFood = 2, Rating = 4.8f, Comment = "Cá kho đậm vị", Image = "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271405/DAPM_32/foods/food-2.jpg", Video = "" }
             };
             context.ReviewFoods.AddRange(reviewFoods);
             context.SaveChanges();

@@ -4,6 +4,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddSession();
 
 // Configure Razor view engine to find views in feature folders
 // builder.Services.Configure<RazorViewEngineOptions>(options =>
@@ -17,7 +18,7 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddHttpClient("API", client =>
 {
-    client.BaseAddress = new Uri("https://jsonplaceholder.typicode.com/");
+    client.BaseAddress = new Uri("http://localhost:8000/api/");
 });
 
 var app = builder.Build();
@@ -33,6 +34,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
+app.UseSession();
 app.UseAuthorization();
 
 app.MapStaticAssets();
