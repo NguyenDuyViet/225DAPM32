@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Backend.DTOs.Request;
 using Backend.DTOs.Response;
 using Backend.Models;
@@ -78,8 +78,8 @@ namespace Backend.Services
 
             _restRepository.Update(existingRestaurant);
 
-            int result = await _restRepository.SaveChangesAsync();
-            return result > 0;
+            await _restRepository.SaveChangesAsync();
+            return true;
         }
     }
 }

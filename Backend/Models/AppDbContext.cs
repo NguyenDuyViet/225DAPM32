@@ -25,6 +25,7 @@ namespace Backend.Models
         public DbSet<PaymentMethod> PaymentMethods { get; set; }
         public DbSet<Complaint> Complaints { get; set; }
         public DbSet<SystemLog> SystemLogs { get; set; }
+        public DbSet<ChatMessage> ChatMessages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -325,6 +326,21 @@ namespace Backend.Models
                 entity.Property(sl => sl.IpAddress).HasColumnName("ip_Address");
                 entity.Property(sl => sl.CreatedAt).HasColumnName("created_At");
                 entity.HasOne(sl => sl.User).WithMany(u => u.SystemLogs).HasForeignKey(sl => sl.IdUser);
+            });
+
+            modelBuilder.Entity<ChatMessage>(entity =>
+            {
+                entity.ToTable("ChatMessages");
+                entity.HasKey(c => c.IdMessage);
+                entity.Property(c => c.IdMessage).HasColumnName("id_Message").ValueGeneratedOnAdd();
+                entity.Property(c => c.RoomId).HasColumnName("room_Id").HasMaxLength(100);
+                entity.Property(c => c.SenderId).HasColumnName("sender_Id");
+                entity.Property(c => c.SenderRole).HasColumnName("sender_Role").HasMaxLength(20);
+                entity.Property(c => c.SenderName).HasColumnName("sender_Name").HasMaxLength(100);
+                entity.Property(c => c.OrderId).HasColumnName("order_Id");
+                entity.Property(c => c.Content).HasColumnName("content");
+                entity.Property(c => c.SentAt).HasColumnName("sent_At");
+                entity.Property(c => c.IsRead).HasColumnName("is_Read");
             });
         }
     }

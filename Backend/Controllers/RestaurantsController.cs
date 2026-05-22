@@ -13,11 +13,13 @@ namespace Backend.Controllers
     {
         private readonly ILogger<RestaurantsController> _logger;
         private readonly RestService _restaurantService;
+        private readonly OrderService _orderService;
 
-        public RestaurantsController(ILogger<RestaurantsController> logger, RestService restaurantService)
+        public RestaurantsController(ILogger<RestaurantsController> logger, RestService restaurantService, OrderService orderService)
         {
             _logger = logger;
             _restaurantService = restaurantService;
+            _orderService = orderService;
         }
 
         [HttpGet]
@@ -54,6 +56,30 @@ namespace Backend.Controllers
             });
         }
 
+        [HttpGet("{id}/dashboard")]
+        public async Task<ActionResult<ApiResponse<object>>> GetDashboardStats(int id)
+        {
+            var stats = await _orderService.GetDashboardStatsAsync(id);
+            return Ok(new ApiResponse<object>
+            {
+                Code = 200,
+                Message = "Success",
+                Results = stats
+            });
+        }
+
+        [HttpGet("{id}/analytics")]
+        public async Task<ActionResult<ApiResponse<object>>> GetAnalyticsStats(int id)
+        {
+            var stats = await _orderService.GetAnalyticsStatsAsync(id);
+            return Ok(new ApiResponse<object>
+            {
+                Code = 200,
+                Message = "Success",
+                Results = stats
+            });
+        }
+
         [HttpDelete("{id}")]
         [Authorize(Roles = "admin")]
         public async Task<ActionResult<ApiResponse<bool>>> DeleteRestaurant(int id)
@@ -70,7 +96,7 @@ namespace Backend.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "admin,restaurants")]
+        // [Authorize(Roles = "admin,restaurants")]
         public async Task<ActionResult<ApiResponse<bool>>> UpdateRestaurant(int id, RestRequestDTO rest)
         {
             var result = await _restaurantService.UpdateRestAsync(id, rest);

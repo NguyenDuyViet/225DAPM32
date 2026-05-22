@@ -1,4 +1,5 @@
 @model IEnumerable<_225DAPM32.Models.Order>
+@using System.Text.Json
 @{
     ViewData["Title"] = "Đơn hàng";
 }
@@ -8,7 +9,7 @@
         <div class="row align-items-center">
             <div class="col-md-6">
                 <h1 class="h2 mb-0">
-                    <i class="fas fa-store me-3"></i>Dashboard Nhà hàng
+                    <i class="fas fa-store me-3 text-success"></i>Dashboard Nhà hàng
                 </h1>
                 <p class="mb-0 opacity-75">Quản lý nhà hàng của bạn</p>
             </div>
@@ -23,8 +24,8 @@
                             <i class="fas fa-user-tie me-2"></i>Quản lý
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="@Url.Action("Profile", "Restaurant")"><i class="fas fa-building me-2"></i>Thông tin nhà hàng</a></li>
-                            <li><a class="dropdown-item" href="@Url.Action("Settings", "Restaurant")"><i class="fas fa-cog me-2"></i>Cài đặt</a></li>
+                            <li><a class="dropdown-item" href="@Url.Action("Profile", "Restaurant", new { area = "Restaurant" })"><i class="fas fa-building me-2"></i>Thông tin nhà hàng</a></li>
+                            <li><a class="dropdown-item" href="@Url.Action("Settings", "Restaurant", new { area = "Restaurant" })"><i class="fas fa-cog me-2"></i>Cài đặt</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
                         </ul>
@@ -36,15 +37,33 @@
 </div>
 
 <div class="container-fluid">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
     <div class="row">
         <div class="col-md-2">
-            <div class="restaurant-sidebar">
+            <div class="restaurant-sidebar shadow-sm">
                 <nav class="nav flex-column">
                     <a class="nav-link" href="@Url.Action("Index", "Restaurant", new { area = "Restaurant" })">
                         <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                     </a>
                     <a class="nav-link active" href="@Url.Action("Orders", "Restaurant", new { area = "Restaurant" })">
                         <i class="fas fa-shopping-cart me-2"></i>Đơn hàng
+                    </a>
+                    <a class="nav-link" href="@Url.Action("Chat", "Restaurant", new { area = "Restaurant" })">
+                        <i class="fas fa-comments me-2"></i>Chat
                     </a>
                     <a class="nav-link" href="@Url.Action("Analytics", "Restaurant", new { area = "Restaurant" })">
                         <i class="fas fa-chart-line me-2"></i>Thống kê
@@ -60,31 +79,168 @@
         </div>
 
         <div class="col-md-10">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <h2 class="mb-4">Đơn hàng</h2>
+            <div class="card border-0 shadow-sm bg-white">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2 class="mb-0 fw-bold text-dark"><i class="fas fa-receipt me-2 text-success"></i>Quản lý Đơn hàng</h2>
+                        <span class="badge bg-secondary px-3 py-2 rounded-pill fw-bold">Tổng cộng: @Model.Count() đơn</span>
+                    </div>
+                    
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle">
+                        <table class="table table-hover align-middle border-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Mã đơn</th>
-                                    <th>Trạng thái</th>
-                                    <th>Tổng tiền</th>
-                                    <th>Shipper</th>
-                                    <th>Giao dự kiến</th>
+                                    <th class="fw-bold">Mã đơn</th>
+                                    <th class="fw-bold">Khách hàng</th>
+                                    <th class="fw-bold">Địa chỉ</th>
+                                    <th class="fw-bold text-end">Tổng tiền</th>
+                                    <th class="fw-bold text-center">Trạng thái</th>
+                                    <th class="fw-bold">Shipper</th>
+                                    <th class="fw-bold">Thời gian đặt</th>
+                                    <th class="fw-bold text-center">Hành động</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var order in Model)
+                                @if (Model != null && Model.Any())
+                                {
+                                    @foreach (var order in Model)
+                                    {
+                                        var foodsJson = JsonSerializer.Serialize(order.OrderFoods ?? new List<_225DAPM32.Models.OrderFoodViewModel>());
+                                        <tr>
+                                            <td class="fw-bold text-primary">#@order.IdOrder</td>
+                                            <td>
+                                                <div class="fw-bold">@order.User?.FullName</div>
+                                                <small class="text-muted">ID: @order.IdUser</small>
+                                            </td>
+                                            <td>
+                                                <div class="text-truncate" style="max-width: 200px;" title="@order.Address?.AddressDetail">
+                                                    @order.Address?.AddressDetail
+                                                </div>
+                                            </td>
+                                            <td class="fw-bold text-success text-end">@order.FinalTotal.ToString("N0") đ</td>
+                                            <td class="text-center">
+                                                @{
+                                                    string badgeClass = order.Status switch
+                                                    {
+                                                        "pending" => "bg-warning text-dark",
+                                                        "restaurant_accepted" => "bg-info text-white",
+                                                        "preparing" => "bg-primary text-white",
+                                                        "ready_for_pickup" => "bg-success text-white",
+                                                        "cooked" => "bg-success text-white",
+                                                        "delivering" => "bg-info text-white",
+                                                        "completed" => "bg-success text-white",
+                                                        "canceled" => "bg-danger text-white",
+                                                        _ => "bg-secondary text-white"
+                                                    };
+                                                    string statusName = order.Status switch
+                                                    {
+                                                        "pending" => "Chờ xác nhận",
+                                                        "restaurant_accepted" => "Đã nhận",
+                                                        "preparing" => "Đang chuẩn bị",
+                                                        "ready_for_pickup" => "Nấu xong/Chờ tài xế",
+                                                        "cooked" => "Đã nấu xong",
+                                                        "delivering" => "Đang giao",
+                                                        "completed" => "Hoàn thành",
+                                                        "canceled" => "Đã hủy",
+                                                        _ => order.Status
+                                                    };
+                                                }
+                                                <span class="badge @badgeClass px-2 py-1 rounded-pill fw-bold">@statusName</span>
+                                            </td>
+                                            <td>
+                                                @if (order.DriverName != "Chưa có" && !string.IsNullOrEmpty(order.DriverName))
+                                                {
+                                                    <div class="fw-semibold">@order.DriverName</div>
+                                                    @if (!string.IsNullOrEmpty(order.DriverPhone))
+                                                    {
+                                                        <small class="text-muted"><i class="fas fa-phone-alt me-1 text-sm"></i>@order.DriverPhone</small>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted italic">Chưa nhận shipper</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="fw-semibold">@order.CreatedAt.ToString("HH:mm")</div>
+                                                <small class="text-muted">@order.CreatedAt.ToString("dd/MM/yyyy")</small>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="d-flex flex-column gap-2 align-items-center">
+                                                    <!-- Hàng 1: Chi tiết, Sửa, Xóa -->
+                                                    <div class="d-flex gap-1">
+                                                        <button type="button" class="btn btn-sm btn-info text-white fw-bold rounded-pill px-2.5 btn-view-details" 
+                                                                data-id="@order.IdOrder" 
+                                                                data-customer="@order.User?.FullName" 
+                                                                data-phone="@order.User?.Phone"
+                                                                data-address="@order.Address?.AddressDetail" 
+                                                                data-note="@order.Note" 
+                                                                data-status="@order.Status" 
+                                                                data-status-text="@statusName"
+                                                                data-status-class="@badgeClass"
+                                                                data-subtotal="@order.Total.ToString("N0")"
+                                                                data-shipping="@order.ShippingFee.ToString("N0")"
+                                                                data-discount="@order.Discount.ToString("N0")"
+                                                                data-total="@order.FinalTotal.ToString("N0")"
+                                                                data-shipper="@order.DriverName"
+                                                                data-shipper-phone="@order.DriverPhone"
+                                                                data-time="@order.CreatedAt.ToString("HH:mm dd/MM/yyyy")"
+                                                                data-foods='@foodsJson'>
+                                                            <i class="fas fa-eye"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-warning text-white fw-bold rounded-pill px-2.5 btn-edit-order" 
+                                                                data-id="@order.IdOrder" 
+                                                                data-address="@order.Address?.AddressDetail" 
+                                                                data-note="@order.Note" 
+                                                                data-status="@order.Status">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+                                                        <form action="@Url.Action("DeleteOrder", "Restaurant", new { area = "Restaurant" })" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa vĩnh viễn đơn hàng #@order.IdOrder này cùng tất cả thông tin liên quan? Hành động này không thể hoàn tác!')">
+                                                            <input type="hidden" name="orderId" value="@order.IdOrder" />
+                                                            <button type="submit" class="btn btn-sm btn-danger fw-bold rounded-pill px-2.5">
+                                                                <i class="fas fa-trash-alt"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                    <!-- Hàng 2: Hành động nhanh -->
+                                                    <div class="d-flex gap-1 mt-1">
+                                                        @if (order.Status == "pending" || order.Status == "restaurant_accepted")
+                                                        {
+                                                            <form action="@Url.Action("UpdateOrderStatus", "Restaurant", new { area = "Restaurant" })" method="post" class="d-inline">
+                                                                <input type="hidden" name="orderId" value="@order.IdOrder" />
+                                                                <input type="hidden" name="status" value="completed" />
+                                                                <button type="submit" class="btn btn-xs btn-primary fw-bold rounded-pill px-2 py-0.5">
+                                                                    <i class="fas fa-utensils me-1"></i>Chuẩn bị
+                                                                </button>
+                                                            </form>
+                                                        }
+                                                        else if (order.Status == "preparing")
+                                                        {
+                                                            <form action="@Url.Action("UpdateOrderStatus", "Restaurant", new { area = "Restaurant" })" method="post" class="d-inline">
+                                                                <input type="hidden" name="orderId" value="@order.IdOrder" />
+                                                                <input type="hidden" name="status" value="ready_for_pickup" />
+                                                                <button type="submit" class="btn btn-xs btn-success fw-bold rounded-pill px-2 py-0.5">
+                                                                    <i class="fas fa-check me-1"></i>Nấu xong
+                                                                </button>
+                                                            </form>
+                                                        }
+                                                        else
+                                                        {
+                                                            <small class="text-muted"><i class="fas fa-check-circle me-1 text-xs"></i>Đã xử lý</small>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
                                 {
                                     <tr>
-                                        <td>#@order.IdOrder</td>
-                                        <td>
-                                            <span class="badge bg-info">@order.Status</span>
+                                        <td colspan="8" class="text-center py-5">
+                                            <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
+                                            <p class="text-muted mb-0 fw-semibold">Không tìm thấy đơn hàng nào của nhà hàng.</p>
                                         </td>
-                                        <td>@order.FinalTotal.ToString("N0") VND</td>
-                                        <td>@order.DriverName</td>
-                                        <td>@order.EstimatedDelivery?.ToString("HH:mm dd/MM")</td>
                                     </tr>
                                 }
                             </tbody>
@@ -96,33 +252,294 @@
     </div>
 </div>
 
+<!-- Modal Xem Chi Tiết Đơn Hàng -->
+<div class="modal fade" id="viewOrderModal" tabindex="-1" aria-labelledby="viewOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px);">
+            <div class="modal-header bg-dark text-white p-4 border-0">
+                <h5 class="modal-title fw-bold" id="viewOrderModalLabel">
+                    <i class="fas fa-receipt me-2 text-success"></i>Hóa Đơn Chi Tiết <span id="modalOrderId" class="text-success"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" style="max-height: 70vh; overflow-y: auto;">
+                <div class="row g-4">
+                    <!-- Column 1: Thông tin chung -->
+                    <div class="col-md-6 border-end">
+                        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-info-circle me-2 text-primary"></i>Thông tin chung</h6>
+                        <table class="table table-borderless table-sm">
+                            <tr>
+                                <td class="text-muted" style="width: 120px;">Trạng thái:</td>
+                                <td class="fw-bold"><span id="modalStatus" class="badge"></span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Thời gian đặt:</td>
+                                <td id="modalTime" class="fw-semibold text-dark"></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Khách hàng:</td>
+                                <td class="fw-bold text-dark">
+                                    <span id="modalCustomer"></span> 
+                                    <span id="modalCustomerPhone" class="text-muted fw-normal ms-2"></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Địa chỉ giao:</td>
+                                <td id="modalAddress" class="fw-semibold text-dark text-wrap"></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Ghi chú:</td>
+                                <td id="modalNote" class="fst-italic text-danger"></td>
+                            </tr>
+                        </table>
+
+                        <h6 class="fw-bold text-dark border-bottom pb-2 mt-4 mb-3"><i class="fas fa-motorcycle me-2 text-info"></i>Người giao hàng</h6>
+                        <div id="modalShipperContainer" class="p-3 bg-light rounded-3 d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="fas fa-user-circle fa-2x text-secondary"></i>
+                            </div>
+                            <div>
+                                <div id="modalShipperName" class="fw-bold text-dark"></div>
+                                <div id="modalShipperPhone" class="text-muted small"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Column 2: Món ăn & Tiền bạc -->
+                    <div class="col-md-6">
+                        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-utensils me-2 text-success"></i>Món ăn đã đặt</h6>
+                        <div id="modalFoodItems" class="mb-3" style="max-height: 250px; overflow-y: auto;">
+                            <!-- Dynamic rows injected here -->
+                        </div>
+
+                        <div class="p-3 bg-light rounded-3 shadow-sm">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Tiền món ăn:</span>
+                                <span id="modalSubtotal" class="fw-semibold text-dark"></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Phí giao hàng:</span>
+                                <span id="modalShipping" class="fw-semibold text-dark"></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Giảm giá:</span>
+                                <span id="modalDiscount" class="text-danger fw-semibold"></span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold text-dark h5 mb-0">Tổng cộng:</span>
+                                <span id="modalTotal" class="fw-bold text-success h4 mb-0"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light p-3 border-0">
+                <button type="button" class="btn btn-dark fw-bold rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Chỉnh Sửa Đơn Hàng -->
+<div class="modal fade" id="editOrderModal" tabindex="-1" aria-labelledby="editOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-header bg-dark text-white p-4 border-0">
+                <h5 class="modal-title fw-bold" id="editOrderModalLabel">
+                    <i class="fas fa-edit me-2 text-warning"></i>Chỉnh Sửa Đơn Hàng <span id="editModalOrderIdTitle" class="text-warning"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="@Url.Action("EditOrder", "Restaurant", new { area = "Restaurant" })" method="post">
+                <div class="modal-body p-4">
+                    <input type="hidden" name="orderId" id="editOrderId" />
+                    
+                    <div class="mb-3">
+                        <label for="editAddress" class="form-label fw-bold text-dark"><i class="fas fa-map-marker-alt text-secondary me-1"></i>Địa chỉ giao hàng (Không thể sửa)</label>
+                        <input type="text" class="form-control bg-light text-muted border-1 fw-semibold" name="address" id="editAddress" readonly style="border-radius: 8px; padding: 10px; border-color: #cbd5e1 !important; cursor: not-allowed;">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editNote" class="form-label fw-bold text-dark"><i class="fas fa-comment-alt text-secondary me-1"></i>Ghi chú của khách (Không thể sửa)</label>
+                        <textarea class="form-control bg-light text-muted border-1 fw-semibold" name="note" id="editNote" readonly rows="3" style="border-radius: 8px; padding: 10px; border-color: #cbd5e1 !important; cursor: not-allowed;"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editStatus" class="form-label fw-bold text-dark">Trạng thái đơn hàng</label>
+                        <select class="form-select" name="status" id="editStatus" style="border-radius: 8px; padding: 10px;">
+                            <option value="pending">Chờ xác nhận</option>
+                            <option value="restaurant_accepted">Đã nhận đơn</option>
+                            <option value="preparing">Đang chuẩn bị</option>
+                            <option value="ready_for_pickup">Nấu xong/Chờ tài xế</option>
+                            <option value="delivering">Đang giao hàng</option>
+                            <option value="completed">Đã hoàn thành</option>
+                            <option value="canceled">Đã hủy đơn</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light p-3 border-0">
+                    <button type="button" class="btn btn-outline-secondary fw-bold rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-warning text-white fw-bold rounded-pill px-4">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // 1. Xem chi tiết đơn hàng
+    const viewButtons = document.querySelectorAll(".btn-view-details");
+    viewButtons.forEach(button => {
+        button.addEventListener("click", function () {
+            const orderId = this.getAttribute("data-id");
+            const customer = this.getAttribute("data-customer");
+            const phone = this.getAttribute("data-phone");
+            const address = this.getAttribute("data-address");
+            const note = this.getAttribute("data-note");
+            const statusText = this.getAttribute("data-status-text");
+            const statusClass = this.getAttribute("data-status-class");
+            const subtotal = this.getAttribute("data-subtotal");
+            const shipping = this.getAttribute("data-shipping");
+            const discount = this.getAttribute("data-discount");
+            const total = this.getAttribute("data-total");
+            const shipper = this.getAttribute("data-shipper");
+            const shipperPhone = this.getAttribute("data-shipper-phone");
+            const time = this.getAttribute("data-time");
+            const foodsData = JSON.parse(this.getAttribute("data-foods") || "[]");
+
+            // Fill elements
+            document.getElementById("modalOrderId").textContent = "#" + orderId;
+            document.getElementById("modalCustomer").textContent = customer;
+            document.getElementById("modalCustomerPhone").textContent = phone ? `(${phone})` : "";
+            document.getElementById("modalAddress").textContent = address;
+            document.getElementById("modalNote").textContent = note ? `"${note}"` : "Không có ghi chú";
+            document.getElementById("modalTime").textContent = time;
+
+            // Fill badge
+            const badge = document.getElementById("modalStatus");
+            badge.className = "badge " + statusClass + " px-2.5 py-1.5 rounded-pill fw-bold text-wrap";
+            badge.textContent = statusText;
+
+            // Pricing
+            document.getElementById("modalSubtotal").textContent = subtotal + " đ";
+            document.getElementById("modalShipping").textContent = shipping + " đ";
+            document.getElementById("modalDiscount").textContent = "-" + discount + " đ";
+            document.getElementById("modalTotal").textContent = total + " đ";
+
+            // Shipper
+            const shipperContainer = document.getElementById("modalShipperContainer");
+            if (shipper && shipper !== "Chưa có") {
+                document.getElementById("modalShipperName").textContent = shipper;
+                document.getElementById("modalShipperPhone").innerHTML = shipperPhone ? `<i class="fas fa-phone-alt me-1 text-sm"></i>${shipperPhone}` : "Không có SĐT";
+                shipperContainer.style.display = "flex";
+            } else {
+                document.getElementById("modalShipperName").textContent = "Chưa nhận shipper";
+                document.getElementById("modalShipperPhone").textContent = "";
+            }
+
+            // Food List
+            const foodContainer = document.getElementById("modalFoodItems");
+            foodContainer.innerHTML = "";
+
+            if (foodsData.length === 0) {
+                foodContainer.innerHTML = '<p class="text-muted text-center py-3">Không có thông tin món ăn</p>';
+            } else {
+                foodsData.forEach(food => {
+                    const row = document.createElement("div");
+                    row.className = "d-flex align-items-center mb-3 p-2 bg-light rounded-3 border-start border-4 border-success";
+                    row.innerHTML = `
+                        <img src="${food.Image}" alt="${food.Name}" class="rounded-3 me-3 shadow-sm" style="width: 50px; height: 50px; object-fit: cover;">
+                        <div class="flex-grow-1">
+                            <div class="fw-bold text-dark">${food.Name}</div>
+                            <small class="text-muted">Đơn giá: ${parseFloat(food.UnitPrice).toLocaleString('vi-VN')} đ</small>
+                            ${food.Note ? `<br><small class="text-danger fst-italic">Lưu ý: ${food.Note}</small>` : ''}
+                        </div>
+                        <div class="text-end ms-2">
+                            <div class="fw-bold text-success text-nowrap">x${food.Quantity}</div>
+                            <div class="fw-semibold text-muted small text-nowrap">${parseFloat(food.TotalPrice).toLocaleString('vi-VN')} đ</div>
+                        </div>
+                    `;
+                    foodContainer.appendChild(row);
+                });
+            }
+
+            // Open Modal
+            const viewModal = new bootstrap.Modal(document.getElementById("viewOrderModal"));
+            viewModal.show();
+        });
+    });
+
+    // 2. Chỉnh sửa đơn hàng
+    const editButtons = document.querySelectorAll(".btn-edit-order");
+    editButtons.forEach(button => {
+        button.addEventListener("click", function () {
+            const orderId = this.getAttribute("data-id");
+            const address = this.getAttribute("data-address");
+            const note = this.getAttribute("data-note");
+            const status = this.getAttribute("data-status");
+
+            document.getElementById("editModalOrderIdTitle").textContent = "#" + orderId;
+            document.getElementById("editOrderId").value = orderId;
+            document.getElementById("editAddress").value = address;
+            document.getElementById("editNote").value = note;
+            document.getElementById("editStatus").value = status;
+
+            // Open Modal
+            const editModal = new bootstrap.Modal(document.getElementById("editOrderModal"));
+            editModal.show();
+        });
+    });
+});
+</script>
+
 <style>
-.restaurant-header {
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+.admin-header {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
 }
 
 .restaurant-sidebar {
     background: #f8f9fa;
-    border-radius: 10px;
+    border-radius: 12px;
     padding: 20px 0;
     min-height: calc(100vh - 200px);
 }
 
 .restaurant-sidebar .nav-link {
-    color: #495057;
+    color: #475569;
     padding: 12px 20px;
     margin: 5px 15px;
     border-radius: 8px;
-    transition: all 0.3s ease;
+    font-weight: 600;
+    transition: all 0.2s ease;
 }
 
 .restaurant-sidebar .nav-link:hover {
-    background: #e9ecef;
-    color: #212529;
+    background: #e2e8f0;
+    color: #0f172a;
 }
 
 .restaurant-sidebar .nav-link.active {
-    background: #28a745;
+    background: #10b981;
     color: white;
+}
+
+.table th {
+    background-color: #f1f5f9 !important;
+    border-bottom: 2px solid #e2e8f0 !important;
+    color: #334155;
+    padding: 12px 16px;
+}
+
+.table td {
+    padding: 16px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.btn-xs {
+    padding: 2px 6px;
+    font-size: 0.75rem;
+    border-radius: 4px;
 }
 </style>

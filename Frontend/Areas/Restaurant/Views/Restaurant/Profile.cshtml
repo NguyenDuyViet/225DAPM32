@@ -1,6 +1,9 @@
 @model _225DAPM32.Models.Restaurant
 @{
-    ViewData["Title"] = "Thông tin Nhà hàng";
+    ViewData["Title"] = "Quản lý Nhà hàng";
+    var foods = ViewBag.Foods as List<_225DAPM32.Models.Food> ?? new List<_225DAPM32.Models.Food>();
+    var categories = ViewBag.Categories as List<_225DAPM32.Models.Category> ?? new List<_225DAPM32.Models.Category>();
+    var promotions = ViewBag.Promotions as List<_225DAPM32.Models.Promotion> ?? new List<_225DAPM32.Models.Promotion>();
 }
 
 <div class="admin-header bg-dark text-white py-4 mb-4">
@@ -8,7 +11,7 @@
         <div class="row align-items-center">
             <div class="col-md-6">
                 <h1 class="h2 mb-0">
-                    <i class="fas fa-store me-3"></i>Dashboard Nhà hàng
+                    <i class="fas fa-store me-3 text-success"></i>Dashboard Nhà hàng
                 </h1>
                 <p class="mb-0 opacity-75">Quản lý nhà hàng của bạn</p>
             </div>
@@ -23,8 +26,8 @@
                             <i class="fas fa-user-tie me-2"></i>Quản lý
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="@Url.Action("Profile", "Restaurant")"><i class="fas fa-building me-2"></i>Thông tin nhà hàng</a></li>
-                            <li><a class="dropdown-item" href="@Url.Action("Settings", "Restaurant")"><i class="fas fa-cog me-2"></i>Cài đặt</a></li>
+                            <li><a class="dropdown-item" href="@Url.Action("Profile", "Restaurant", new { area = "Restaurant" })"><i class="fas fa-building me-2"></i>Thông tin nhà hàng</a></li>
+                            <li><a class="dropdown-item" href="@Url.Action("Settings", "Restaurant", new { area = "Restaurant" })"><i class="fas fa-cog me-2"></i>Cài đặt</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
                         </ul>
@@ -36,15 +39,33 @@
 </div>
 
 <div class="container-fluid">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
     <div class="row">
         <div class="col-md-2">
-            <div class="restaurant-sidebar">
+            <div class="restaurant-sidebar shadow-sm">
                 <nav class="nav flex-column">
                     <a class="nav-link" href="@Url.Action("Index", "Restaurant", new { area = "Restaurant" })">
                         <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                     </a>
                     <a class="nav-link" href="@Url.Action("Orders", "Restaurant", new { area = "Restaurant" })">
                         <i class="fas fa-shopping-cart me-2"></i>Đơn hàng
+                    </a>
+                    <a class="nav-link" href="@Url.Action("Chat", "Restaurant", new { area = "Restaurant" })">
+                        <i class="fas fa-comments me-2"></i>Chat
                     </a>
                     <a class="nav-link" href="@Url.Action("Analytics", "Restaurant", new { area = "Restaurant" })">
                         <i class="fas fa-chart-line me-2"></i>Thống kê
@@ -60,31 +81,663 @@
         </div>
 
         <div class="col-md-10">
-            <h2 class="mb-4">Thông tin Nhà hàng</h2>
-            <div class="card border-0 shadow-sm">
-                <div class="row g-0 align-items-center">
-                    <div class="col-md-4">
-                        <img src="@Model.Image" class="img-fluid rounded-start" alt="@Model.NameRestaurant" />
+            <!-- Restaurant Info Summary Card -->
+            <div class="card border-0 shadow-sm mb-4 bg-white overflow-hidden rounded-3">
+                <div class="row g-0">
+                    <div class="col-md-3">
+                        <img src="@(string.IsNullOrEmpty(Model.Image) ? "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271401/DAPM_32/restaurants/restaurant-1.jpg" : Model.Image)" 
+                             class="w-100 h-100 img-cover" style="min-height: 150px; object-fit: cover;" alt="@Model.NameRestaurant" />
                     </div>
-                    <div class="col-md-8">
-                        <div class="card-body">
-                            <h3 class="card-title">@Model.NameRestaurant</h3>
-                            <p class="text-muted">@Model.Description</p>
-                            <p><strong>Địa chỉ:</strong> @Model.Address</p>
-                            <p><strong>Giờ mở:</strong> @Model.OpenTime.ToString(@"hh\:mm") - @Model.CloseTime.ToString(@"hh\:mm")</p>
-                            <button class="btn btn-primary">Chỉnh sửa thông tin</button>
+                    <div class="col-md-9">
+                        <div class="card-body p-4 d-flex flex-column justify-content-center h-100">
+                            <h3 class="card-title fw-bold text-dark mb-1">@Model.NameRestaurant</h3>
+                            <p class="text-secondary mb-2" style="font-size: 0.95rem;">
+                                <i class="fas fa-info-circle me-2 text-primary"></i>@Model.Description
+                            </p>
+                            <div class="d-flex flex-wrap gap-3 mt-1">
+                                <span class="text-dark small"><i class="fas fa-map-marker-alt me-2 text-danger"></i>@Model.Address</span>
+                                <span class="text-dark small"><i class="fas fa-clock me-2 text-warning"></i>@Model.OpenTime.ToString(@"hh\:mm") - @Model.CloseTime.ToString(@"hh\:mm")</span>
+                            </div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Tab Navigation & Hub -->
+            <div class="card border-0 shadow-sm p-4 bg-white rounded-3">
+                <ul class="nav nav-tabs border-bottom mb-4" id="restaurantHubTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active fw-bold px-4 py-3" id="foods-tab" data-bs-toggle="tab" data-bs-target="#foods-pane" type="button" role="tab" aria-controls="foods-pane" aria-selected="true">
+                            <i class="fas fa-utensils me-2"></i>Quản lý Món ăn (@foods.Count)
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold px-4 py-3" id="promotions-tab" data-bs-toggle="tab" data-bs-target="#promotions-pane" type="button" role="tab" aria-controls="promotions-pane" aria-selected="false">
+                            <i class="fas fa-tags me-2"></i>Chương trình Khuyến mãi (@promotions.Count)
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="restaurantHubTabsContent">
+                    
+                    <!-- TAB 1: FOODS CRUD -->
+                    <div class="tab-pane fade show active" id="foods-pane" role="tabpanel" aria-labelledby="foods-tab" tabindex="0">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4 class="fw-bold text-dark m-0">Danh sách Món ăn</h4>
+                            <button class="btn btn-success rounded-pill px-4 fw-bold" data-bs-toggle="modal" data-bs-target="#createFoodModal">
+                                <i class="fas fa-plus-circle me-2"></i>Thêm Món Mới
+                            </button>
+                        </div>
+
+                        @if (foods.Count == 0)
+                        {
+                            <div class="text-center py-5">
+                                <img src="https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271401/DAPM_32/foods/food-default.jpg" class="opacity-25 mb-3 rounded-circle" style="width: 100px; height: 100px; object-fit: cover;" alt="No Foods" />
+                                <h5 class="text-muted">Chưa có món ăn nào trong thực đơn của nhà hàng</h5>
+                                <p class="text-secondary small">Hãy thêm món ăn đầu tiên để bắt đầu đón nhận đơn hàng.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="row g-4">
+                                @foreach (var food in foods)
+                                {
+                                    var category = categories.FirstOrDefault(c => c.IdCategory == food.IdCategory);
+                                    var actualPrice = food.Price - (food.Discount ?? 0);
+                                    <div class="col-md-6 col-lg-4">
+                                        <div class="card h-100 border-0 shadow-sm food-card overflow-hidden bg-light rounded-3 transition">
+                                            <div class="position-relative" style="height: 180px;">
+                                                <img src="@(string.IsNullOrEmpty(food.Image) ? "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271401/DAPM_32/foods/food-default.jpg" : food.Image)" class="w-100 h-100 img-cover" style="object-fit: cover;" alt="@food.Name" />
+                                                @if (food.Discount.HasValue && food.Discount.Value > 0)
+                                                {
+                                                    <span class="position-absolute top-2 start-2 badge bg-danger rounded-pill px-2 py-1 shadow-sm">
+                                                        <i class="fas fa-percentage me-1"></i>Giảm @food.Discount.Value.ToString("N0")đ
+                                                    </span>
+                                                }
+                                                <span class="position-absolute bottom-2 end-2 badge bg-dark rounded-pill px-2 py-1 opacity-75">
+                                                    @(category?.Name ?? "Khác")
+                                                </span>
+                                            </div>
+                                            <div class="card-body p-3 d-flex flex-column justify-content-between">
+                                                <div>
+                                                    <h5 class="card-title fw-bold text-dark mb-1">@food.Name</h5>
+                                                    <p class="card-text text-secondary small text-truncate-2 mb-3">@food.Description</p>
+                                                </div>
+                                                <div>
+                                                    <div class="d-flex align-items-center mb-3">
+                                                        @if (food.Discount.HasValue && food.Discount.Value > 0)
+                                                        {
+                                                            <span class="fs-5 fw-bold text-success me-2">@actualPrice.ToString("N0")đ</span>
+                                                            <span class="small text-muted line-through">@food.Price.ToString("N0")đ</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="fs-5 fw-bold text-success">@food.Price.ToString("N0")đ</span>
+                                                        }
+                                                    </div>
+                                                    <div class="d-flex gap-2">
+                                                        <button class="btn btn-outline-primary btn-sm flex-fill rounded-pill edit-food-btn" 
+                                                                data-id="@food.IdFood" 
+                                                                data-name="@food.Name" 
+                                                                data-category="@food.IdCategory"
+                                                                data-description="@food.Description" 
+                                                                data-price="@food.Price" 
+                                                                data-discount="@(food.Discount ?? 0)" 
+                                                                data-image="@food.Image" 
+                                                                data-video="@food.Video" 
+                                                                data-preptime="@(food.PrepTime ?? 15)"
+                                                                data-bs-toggle="modal" 
+                                                                data-bs-target="#editFoodModal">
+                                                            <i class="fas fa-edit me-1"></i>Sửa
+                                                        </button>
+                                                        <button class="btn btn-outline-danger btn-sm flex-fill rounded-pill delete-food-btn" 
+                                                                data-id="@food.IdFood"
+                                                                data-name="@food.Name"
+                                                                data-bs-toggle="modal" 
+                                                                data-bs-target="#deleteFoodModal">
+                                                            <i class="fas fa-trash-alt me-1"></i>Xóa
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <!-- TAB 2: PROMOTIONS CRUD -->
+                    <div class="tab-pane fade" id="promotions-pane" role="tabpanel" aria-labelledby="promotions-tab" tabindex="0">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4 class="fw-bold text-dark m-0">Chương trình Khuyến mãi toàn nhà hàng</h4>
+                            <button class="btn btn-success rounded-pill px-4 fw-bold" data-bs-toggle="modal" data-bs-target="#createPromoModal">
+                                <i class="fas fa-plus-circle me-2"></i>Thêm Khuyến Mãi Mới
+                            </button>
+                        </div>
+
+                        @if (promotions.Count == 0)
+                        {
+                            <div class="text-center py-5 bg-light rounded-3">
+                                <i class="fas fa-gift text-secondary opacity-25 mb-3" style="font-size: 4rem;"></i>
+                                <h5 class="text-muted">Chưa có mã khuyến mãi nào</h5>
+                                <p class="text-secondary small">Tạo thêm các voucher giảm giá để thu hút nhiều khách hàng hơn.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle table-borderless">
+                                    <thead class="table-dark rounded-3">
+                                        <tr>
+                                            <th>Kiểu giảm</th>
+                                            <th>Giá trị giảm</th>
+                                            <th>Đơn tối thiểu</th>
+                                            <th>Giảm tối đa</th>
+                                            <th>Giới hạn lượt dùng</th>
+                                            <th>Đã dùng</th>
+                                            <th>Hiệu lực</th>
+                                            <th class="text-end">Hành động</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var promo in promotions)
+                                        {
+                                            var isExpired = promo.EndDate < DateTime.Now;
+                                            var isFull = promo.UsedCount >= promo.UsageLimit;
+                                            var statusClass = isExpired ? "bg-secondary" : (isFull ? "bg-warning" : "bg-success");
+                                            var statusText = isExpired ? "Hết hạn" : (isFull ? "Hết lượt" : "Đang chạy");
+                                            
+                                            <tr>
+                                                <td>
+                                                    <span class="badge bg-primary px-2 py-1 rounded-pill">
+                                                        @(promo.Type == "PERCENTAGE" ? "Phần trăm" : "Cố định")
+                                                    </span>
+                                                </td>
+                                                <td class="fw-bold text-success">
+                                                    @(promo.Type == "PERCENTAGE" ? promo.Value.ToString("F0") + "%" : promo.Value.ToString("N0") + "đ")
+                                                </td>
+                                                <td>@promo.MinOrderValue.ToString("N0")đ</td>
+                                                <td>@promo.MaxDiscount.ToString("N0")đ</td>
+                                                <td>@promo.UsageLimit</td>
+                                                <td>
+                                                    <span class="fw-semibold">@promo.UsedCount</span>
+                                                </td>
+                                                <td class="small">
+                                                    <div><i class="fas fa-calendar-alt text-success me-1"></i>Từ: @promo.StartDate.ToString("dd/MM/yyyy HH:mm")</div>
+                                                    <div><i class="fas fa-calendar-alt text-danger me-1"></i>Đến: @promo.EndDate.ToString("dd/MM/yyyy HH:mm")</div>
+                                                    <span class="badge @statusClass rounded-pill mt-1">@statusText</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="d-flex justify-content-end gap-2">
+                                                        <button class="btn btn-sm btn-outline-primary rounded-pill edit-promo-btn" 
+                                                                data-id="@promo.IdPromo"
+                                                                data-type="@promo.Type"
+                                                                data-value="@promo.Value"
+                                                                data-minval="@promo.MinOrderValue"
+                                                                data-maxdisc="@promo.MaxDiscount"
+                                                                data-limit="@promo.UsageLimit"
+                                                                data-used="@promo.UsedCount"
+                                                                data-start="@promo.StartDate.ToString("yyyy-MM-ddTHH:mm")"
+                                                                data-end="@promo.EndDate.ToString("yyyy-MM-ddTHH:mm")"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#editPromoModal">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-danger rounded-pill delete-promo-btn"
+                                                                data-id="@promo.IdPromo"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#deletePromoModal">
+                                                            <i class="fas fa-trash-alt"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- ========================================== -->
+<!-- MODALS FOR FOOD CRUD -->
+<!-- ========================================== -->
+
+<!-- 1. Create Food Modal -->
+<div class="modal fade" id="createFoodModal" tabindex="-1" aria-labelledby="createFoodModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-3">
+            <form action="@Url.Action("CreateFood", "Restaurant", new { area = "Restaurant" })" method="post">
+                <div class="modal-header bg-dark text-white py-3">
+                    <h5 class="modal-title fw-bold" id="createFoodModalLabel">
+                        <i class="fas fa-plus-circle me-2 text-success"></i>Thêm Món Ăn Mới
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="createFoodName" class="form-label fw-bold">Tên món ăn</label>
+                            <input type="text" class="form-control rounded-3" id="createFoodName" name="name" required placeholder="Ví dụ: Phở Bò Đặc Biệt" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="createFoodCategory" class="form-label fw-bold">Danh mục</label>
+                            <select class="form-select rounded-3" id="createFoodCategory" name="idCategory" required>
+                                @foreach (var cat in categories)
+                                {
+                                    <option value="@cat.IdCategory">@cat.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="createFoodPrice" class="form-label fw-bold">Giá bán gốc (VND)</label>
+                            <input type="number" class="form-control rounded-3" id="createFoodPrice" name="price" required min="0" placeholder="Ví dụ: 45000" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="createFoodDiscount" class="form-label fw-bold">Giảm giá món ăn (VND)</label>
+                            <input type="number" class="form-control rounded-3" id="createFoodDiscount" name="discount" min="0" value="0" placeholder="Số tiền giảm thẳng (ví dụ: 5000)" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="createFoodImage" class="form-label fw-bold">Đường dẫn hình ảnh (URL)</label>
+                            <input type="text" class="form-control rounded-3" id="createFoodImage" name="image" placeholder="https://..." />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="createFoodVideo" class="form-label fw-bold">Đường dẫn Video (URL nếu có)</label>
+                            <input type="text" class="form-control rounded-3" id="createFoodVideo" name="video" placeholder="https://..." />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="createFoodPrepTime" class="form-label fw-bold">Thời gian chuẩn bị (Phút)</label>
+                            <input type="number" class="form-control rounded-3" id="createFoodPrepTime" name="prepTime" min="1" value="15" />
+                        </div>
+                        <div class="col-12">
+                            <label for="createFoodDescription" class="form-label fw-bold">Mô tả ngắn món ăn</label>
+                            <textarea class="form-control rounded-3" id="createFoodDescription" name="description" rows="3" placeholder="Giới thiệu nguyên liệu, hương vị món..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light p-3">
+                    <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold">Thêm Món Ăn</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 2. Edit Food Modal -->
+<div class="modal fade" id="editFoodModal" tabindex="-1" aria-labelledby="editFoodModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-3">
+            <form action="@Url.Action("UpdateFood", "Restaurant", new { area = "Restaurant" })" method="post">
+                <input type="hidden" id="editFoodId" name="idFood" />
+                <div class="modal-header bg-dark text-white py-3">
+                    <h5 class="modal-title fw-bold" id="editFoodModalLabel">
+                        <i class="fas fa-edit me-2 text-success"></i>Chỉnh Sửa Món Ăn
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="editFoodName" class="form-label fw-bold">Tên món ăn</label>
+                            <input type="text" class="form-control rounded-3" id="editFoodName" name="name" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editFoodCategory" class="form-label fw-bold">Danh mục</label>
+                            <select class="form-select rounded-3" id="editFoodCategory" name="idCategory" required>
+                                @foreach (var cat in categories)
+                                {
+                                    <option value="@cat.IdCategory">@cat.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editFoodPrice" class="form-label fw-bold">Giá bán gốc (VND)</label>
+                            <input type="number" class="form-control rounded-3" id="editFoodPrice" name="price" required min="0" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editFoodDiscount" class="form-label fw-bold">Giảm giá món ăn (VND)</label>
+                            <input type="number" class="form-control rounded-3" id="editFoodDiscount" name="discount" min="0" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editFoodImage" class="form-label fw-bold">Đường dẫn hình ảnh (URL)</label>
+                            <input type="text" class="form-control rounded-3" id="editFoodImage" name="image" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editFoodVideo" class="form-label fw-bold">Đường dẫn Video (URL)</label>
+                            <input type="text" class="form-control rounded-3" id="editFoodVideo" name="video" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editFoodPrepTime" class="form-label fw-bold">Thời gian chuẩn bị (Phút)</label>
+                            <input type="number" class="form-control rounded-3" id="editFoodPrepTime" name="prepTime" min="1" />
+                        </div>
+                        <div class="col-12">
+                            <label for="editFoodDescription" class="form-label fw-bold">Mô tả ngắn món ăn</label>
+                            <textarea class="form-control rounded-3" id="editFoodDescription" name="description" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light p-3">
+                    <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">Lưu Thay Đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 3. Delete Food Confirmation Modal -->
+<div class="modal fade" id="deleteFoodModal" tabindex="-1" aria-labelledby="deleteFoodModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-3">
+            <form action="@Url.Action("DeleteFood", "Restaurant", new { area = "Restaurant" })" method="post">
+                <input type="hidden" id="deleteFoodId" name="idFood" />
+                <div class="modal-header bg-danger text-white py-3">
+                    <h5 class="modal-title fw-bold" id="deleteFoodModalLabel">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Xác Nhận Xóa Món Ăn
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <p class="fs-5 mb-1 text-dark">Bạn có chắc chắn muốn xóa món ăn này?</p>
+                    <p class="fw-bold text-danger fs-4 mb-3" id="deleteFoodNameDisplay"></p>
+                    <p class="text-secondary small m-0">Hành động này không thể hoàn tác và món ăn sẽ biến mất khỏi thực đơn của thực khách.</p>
+                </div>
+                <div class="modal-footer bg-light p-3">
+                    <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">Xác Nhận Xóa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- ========================================== -->
+<!-- MODALS FOR PROMOTION CRUD -->
+<!-- ========================================== -->
+
+<!-- 1. Create Promotion Modal -->
+<div class="modal fade" id="createPromoModal" tabindex="-1" aria-labelledby="createPromoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-3">
+            <form action="@Url.Action("CreatePromotion", "Restaurant", new { area = "Restaurant" })" method="post">
+                <div class="modal-header bg-dark text-white py-3">
+                    <h5 class="modal-title fw-bold" id="createPromoModalLabel">
+                        <i class="fas fa-plus-circle me-2 text-success"></i>Thêm Chương Trình Khuyến Mãi Mới
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="createPromoType" class="form-label fw-bold">Kiểu giảm giá</label>
+                            <select class="form-select rounded-3" id="createPromoType" name="type" required>
+                                <option value="PERCENTAGE">Giảm theo Phần trăm (%)</option>
+                                <option value="FIXED_AMOUNT">Giảm số tiền Cố định (đ)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="createPromoValue" class="form-label fw-bold">Giá trị giảm</label>
+                            <input type="number" class="form-control rounded-3" id="createPromoValue" name="value" required min="0" placeholder="Ví dụ: 10 (cho 10%) hoặc 20000 (cho 20k)" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="createPromoMinVal" class="form-label fw-bold">Giá trị đơn hàng tối thiểu (đ)</label>
+                            <input type="number" class="form-control rounded-3" id="createPromoMinVal" name="minOrderValue" required min="0" value="0" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="createPromoMaxDisc" class="form-label fw-bold">Mức giảm giá tối đa (đ)</label>
+                            <input type="number" class="form-control rounded-3" id="createPromoMaxDisc" name="maxDiscount" required min="0" value="50000" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="createPromoLimit" class="form-label fw-bold">Giới hạn số lần sử dụng</label>
+                            <input type="number" class="form-control rounded-3" id="createPromoLimit" name="usageLimit" required min="1" value="100" />
+                        </div>
+                        <div class="col-md-6">
+                            <!-- empty space for spacing grid -->
+                        </div>
+                        <div class="col-md-6">
+                            <label for="createPromoStart" class="form-label fw-bold">Ngày bắt đầu hiệu lực</label>
+                            <input type="datetime-local" class="form-control rounded-3" id="createPromoStart" name="startDate" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="createPromoEnd" class="form-label fw-bold">Ngày hết hạn</label>
+                            <input type="datetime-local" class="form-control rounded-3" id="createPromoEnd" name="endDate" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light p-3">
+                    <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold">Tạo Khuyến Mãi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 2. Edit Promotion Modal -->
+<div class="modal fade" id="editPromoModal" tabindex="-1" aria-labelledby="editPromoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-3">
+            <form action="@Url.Action("UpdatePromotion", "Restaurant", new { area = "Restaurant" })" method="post">
+                <input type="hidden" id="editPromoId" name="idPromo" />
+                <input type="hidden" id="editPromoUsedCount" name="usedCount" />
+                <div class="modal-header bg-dark text-white py-3">
+                    <h5 class="modal-title fw-bold" id="editPromoModalLabel">
+                        <i class="fas fa-edit me-2 text-success"></i>Chỉnh Sửa Chương Trình Khuyến Mãi
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="editPromoType" class="form-label fw-bold">Kiểu giảm giá</label>
+                            <select class="form-select rounded-3" id="editPromoType" name="type" required>
+                                <option value="PERCENTAGE">Giảm theo Phần trăm (%)</option>
+                                <option value="FIXED_AMOUNT">Giảm số tiền Cố định (đ)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editPromoValue" class="form-label fw-bold">Giá trị giảm</label>
+                            <input type="number" class="form-control rounded-3" id="editPromoValue" name="value" required min="0" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editPromoMinVal" class="form-label fw-bold">Giá trị đơn hàng tối thiểu (đ)</label>
+                            <input type="number" class="form-control rounded-3" id="editPromoMinVal" name="minOrderValue" required min="0" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editPromoMaxDisc" class="form-label fw-bold">Mức giảm giá tối đa (đ)</label>
+                            <input type="number" class="form-control rounded-3" id="editPromoMaxDisc" name="maxDiscount" required min="0" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editPromoLimit" class="form-label fw-bold">Giới hạn số lần sử dụng</label>
+                            <input type="number" class="form-control rounded-3" id="editPromoLimit" name="usageLimit" required min="1" />
+                        </div>
+                        <div class="col-md-6">
+                            <!-- empty space for spacing -->
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editPromoStart" class="form-label fw-bold">Ngày bắt đầu hiệu lực</label>
+                            <input type="datetime-local" class="form-control rounded-3" id="editPromoStart" name="startDate" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editPromoEnd" class="form-label fw-bold">Ngày hết hạn</label>
+                            <input type="datetime-local" class="form-control rounded-3" id="editPromoEnd" name="endDate" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light p-3">
+                    <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">Lưu Thay Đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 3. Delete Promotion Confirmation Modal -->
+<div class="modal fade" id="deletePromoModal" tabindex="-1" aria-labelledby="deletePromoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-3">
+            <form action="@Url.Action("DeletePromotion", "Restaurant", new { area = "Restaurant" })" method="post">
+                <input type="hidden" id="deletePromoId" name="idPromo" />
+                <div class="modal-header bg-danger text-white py-3">
+                    <h5 class="modal-title fw-bold" id="deletePromoModalLabel">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Xác Nhận Xóa Khuyến Mãi
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <p class="fs-5 text-dark mb-2">Bạn có chắc chắn muốn xóa mã chương trình khuyến mãi này?</p>
+                    <p class="text-secondary small m-0">Hành động này sẽ gỡ bỏ chương trình khuyến mãi và khách hàng sẽ không thể nhập voucher này nữa.</p>
+                </div>
+                <div class="modal-footer bg-light p-3">
+                    <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">Xác Nhận Xóa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Setup dates defaults for create promo modal
+        const now = new Date();
+        const startString = now.toISOString().slice(0, 16);
+        const inOneMonth = new Date(now.setMonth(now.getMonth() + 1));
+        const endString = inOneMonth.toISOString().slice(0, 16);
+        
+        document.getElementById("createPromoStart").value = startString;
+        document.getElementById("createPromoEnd").value = endString;
+
+        // FOODS EDIT MODAL DATA BINDING
+        const editFoodButtons = document.querySelectorAll(".edit-food-btn");
+        editFoodButtons.forEach(btn => {
+            btn.addEventListener("click", function() {
+                const id = this.getAttribute("data-id");
+                const name = this.getAttribute("data-name");
+                const category = this.getAttribute("data-category");
+                const desc = this.getAttribute("data-description");
+                const price = this.getAttribute("data-price");
+                const discount = this.getAttribute("data-discount");
+                const image = this.getAttribute("data-image");
+                const video = this.getAttribute("data-video");
+                const preptime = this.getAttribute("data-preptime");
+
+                document.getElementById("editFoodId").value = id;
+                document.getElementById("editFoodName").value = name;
+                document.getElementById("editFoodCategory").value = category;
+                document.getElementById("editFoodDescription").value = desc;
+                document.getElementById("editFoodPrice").value = price;
+                document.getElementById("editFoodDiscount").value = discount;
+                document.getElementById("editFoodImage").value = image;
+                document.getElementById("editFoodVideo").value = video;
+                document.getElementById("editFoodPrepTime").value = preptime;
+            });
+        });
+
+        // FOODS DELETE MODAL DATA BINDING
+        const deleteFoodButtons = document.querySelectorAll(".delete-food-btn");
+        deleteFoodButtons.forEach(btn => {
+            btn.addEventListener("click", function() {
+                const id = this.getAttribute("data-id");
+                const name = this.getAttribute("data-name");
+
+                document.getElementById("deleteFoodId").value = id;
+                document.getElementById("deleteFoodNameDisplay").textContent = name;
+            });
+        });
+
+        // PROMOTION EDIT MODAL DATA BINDING
+        const editPromoButtons = document.querySelectorAll(".edit-promo-btn");
+        editPromoButtons.forEach(btn => {
+            btn.addEventListener("click", function() {
+                const id = this.getAttribute("data-id");
+                const type = this.getAttribute("data-type");
+                const val = this.getAttribute("data-value");
+                const minval = this.getAttribute("data-minval");
+                const maxdisc = this.getAttribute("data-maxdisc");
+                const limit = this.getAttribute("data-limit");
+                const used = this.getAttribute("data-used");
+                const start = this.getAttribute("data-start");
+                const end = this.getAttribute("data-end");
+
+                document.getElementById("editPromoId").value = id;
+                document.getElementById("editPromoType").value = type;
+                document.getElementById("editPromoValue").value = val;
+                document.getElementById("editPromoMinVal").value = minval;
+                document.getElementById("editPromoMaxDisc").value = maxdisc;
+                document.getElementById("editPromoLimit").value = limit;
+                document.getElementById("editPromoUsedCount").value = used;
+                document.getElementById("editPromoStart").value = start;
+                document.getElementById("editPromoEnd").value = end;
+            });
+        });
+
+        // PROMOTION DELETE MODAL DATA BINDING
+        const deletePromoButtons = document.querySelectorAll(".delete-promo-btn");
+        deletePromoButtons.forEach(btn => {
+            btn.addEventListener("click", function() {
+                const id = this.getAttribute("data-id");
+                document.getElementById("deletePromoId").value = id;
+            });
+        });
+    });
+</script>
+
 <style>
-.restaurant-header { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); }
-.restaurant-sidebar { background: #f8f9fa; border-radius: 10px; padding: 20px 0; min-height: calc(100vh - 200px); }
-.restaurant-sidebar .nav-link { color: #495057; padding: 12px 20px; margin: 5px 15px; border-radius: 8px; transition: all 0.3s ease; }
-.restaurant-sidebar .nav-link:hover { background: #e9ecef; color: #212529; }
-.restaurant-sidebar .nav-link.active { background: #28a745; color: white; }
+.admin-header {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+}
+
+.restaurant-sidebar {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px 0;
+    min-height: calc(100vh - 200px);
+}
+
+.restaurant-sidebar .nav-link {
+    color: #475569;
+    padding: 12px 20px;
+    margin: 5px 15px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.restaurant-sidebar .nav-link:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.restaurant-sidebar .nav-link.active {
+    background: #10b981;
+    color: white;
+}
+
+.food-card {
+    border: none;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.food-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
+}
+
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
 </style>
