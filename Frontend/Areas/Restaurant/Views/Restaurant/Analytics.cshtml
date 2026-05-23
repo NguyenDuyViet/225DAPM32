@@ -7,7 +7,7 @@
         <div class="row align-items-center">
             <div class="col-md-6">
                 <h1 class="h2 mb-0">
-                    <i class="fas fa-store me-3"></i>Dashboard Nhà hàng
+                    <i class="fas fa-store me-3 text-success"></i>Dashboard Nhà hàng
                 </h1>
                 <p class="mb-0 opacity-75">Quản lý nhà hàng của bạn</p>
             </div>
@@ -22,8 +22,8 @@
                             <i class="fas fa-user-tie me-2"></i>Quản lý
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="@Url.Action("Profile", "Restaurant")"><i class="fas fa-building me-2"></i>Thông tin nhà hàng</a></li>
-                            <li><a class="dropdown-item" href="@Url.Action("Settings", "Restaurant")"><i class="fas fa-cog me-2"></i>Cài đặt</a></li>
+                            <li><a class="dropdown-item" href="@Url.Action("Profile", "Restaurant", new { area = "Restaurant" })"><i class="fas fa-building me-2"></i>Thông tin nhà hàng</a></li>
+                            <li><a class="dropdown-item" href="@Url.Action("Settings", "Restaurant", new { area = "Restaurant" })"><i class="fas fa-cog me-2"></i>Cài đặt</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
                         </ul>
@@ -35,15 +35,33 @@
 </div>
 
 <div class="container-fluid">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
     <div class="row">
         <div class="col-md-2">
-            <div class="restaurant-sidebar">
+            <div class="restaurant-sidebar shadow-sm">
                 <nav class="nav flex-column">
                     <a class="nav-link" href="@Url.Action("Index", "Restaurant", new { area = "Restaurant" })">
                         <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                     </a>
                     <a class="nav-link" href="@Url.Action("Orders", "Restaurant", new { area = "Restaurant" })">
                         <i class="fas fa-shopping-cart me-2"></i>Đơn hàng
+                    </a>
+                    <a class="nav-link" href="@Url.Action("Chat", "Restaurant", new { area = "Restaurant" })">
+                        <i class="fas fa-comments me-2"></i>Chat
                     </a>
                     <a class="nav-link active" href="@Url.Action("Analytics", "Restaurant", new { area = "Restaurant" })">
                         <i class="fas fa-chart-line me-2"></i>Thống kê
@@ -59,23 +77,28 @@
         </div>
 
         <div class="col-md-10">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <h2 class="mb-4">Thống kê Nhà hàng</h2>
+            <div class="card border-0 shadow-sm bg-white">
+                <div class="card-body p-4">
+                    <h2 class="mb-4 fw-bold text-dark"><i class="fas fa-chart-bar me-2 text-success"></i>Báo cáo & Thống kê</h2>
+                    
                     <div class="row g-4">
-                        <div class="col-md-6">
+                        <div class="col-md-7">
                             <div class="card border-0 shadow-sm bg-light">
-                                <div class="card-body">
-                                    <h5>Doanh thu</h5>
-                                    <canvas id="restaurantRevenue" height="200"></canvas>
+                                <div class="card-body p-4">
+                                    <h5 class="fw-bold mb-3 text-dark"><i class="fas fa-money-bill-wave me-2 text-success"></i>Doanh thu 7 ngày gần đây</h5>
+                                    <div style="position: relative; height:320px;">
+                                        <canvas id="restaurantRevenue"></canvas>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-5">
                             <div class="card border-0 shadow-sm bg-light">
-                                <div class="card-body">
-                                    <h5>Đơn hàng theo trạng thái</h5>
-                                    <canvas id="restaurantStatus" height="200"></canvas>
+                                <div class="card-body p-4">
+                                    <h5 class="fw-bold mb-3 text-dark"><i class="fas fa-chart-pie me-2 text-primary"></i>Trạng thái đơn hàng</h5>
+                                    <div style="position: relative; height:320px;">
+                                        <canvas id="restaurantStatus"></canvas>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -87,32 +110,33 @@
 </div>
 
 <style>
-.restaurant-header {
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+.admin-header {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
 }
 
 .restaurant-sidebar {
     background: #f8f9fa;
-    border-radius: 10px;
+    border-radius: 12px;
     padding: 20px 0;
     min-height: calc(100vh - 200px);
 }
 
 .restaurant-sidebar .nav-link {
-    color: #495057;
+    color: #475569;
     padding: 12px 20px;
     margin: 5px 15px;
     border-radius: 8px;
-    transition: all 0.3s ease;
+    font-weight: 600;
+    transition: all 0.2s ease;
 }
 
 .restaurant-sidebar .nav-link:hover {
-    background: #e9ecef;
-    color: #212529;
+    background: #e2e8f0;
+    color: #0f172a;
 }
 
 .restaurant-sidebar .nav-link.active {
-    background: #28a745;
+    background: #10b981;
     color: white;
 }
 </style>
@@ -120,35 +144,81 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Biểu đồ doanh thu
-        const revenueCtx = document.getElementById('restaurantRevenue');
-        if (revenueCtx) {
-            new Chart(revenueCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'],
-                    datasets: [{
-                        label: 'Doanh thu',
-                        data: [12, 15, 18, 14, 20, 22, 25],
-                        backgroundColor: '#198754'
-                    }]
-                }
-            });
-        }
+        document.addEventListener("DOMContentLoaded", function() {
+            // Biểu đồ doanh thu
+            const revenueCtx = document.getElementById('restaurantRevenue');
+            if (revenueCtx) {
+                const dayLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.DayLabels ?? new List<string> { "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ nhật" }));
+                const revenueData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.RevenueData ?? new List<decimal> { 0, 0, 0, 0, 0, 0, 0 }));
 
-        // Biểu đồ trạng thái đơn hàng
-        const statusCtx = document.getElementById('restaurantStatus');
-        if (statusCtx) {
-            new Chart(statusCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Đã xác nhận', 'Đang chuẩn bị', 'Đã giao'],
-                    datasets: [{
-                        data: [25, 10, 65],
-                        backgroundColor: ['#0d6efd', '#ffc107', '#198754']
-                    }]
-                }
-            });
-        }
+                new Chart(revenueCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: dayLabels,
+                        datasets: [{
+                            label: 'Doanh thu (VND)',
+                            data: revenueData,
+                            backgroundColor: '#10b981',
+                            borderColor: '#059669',
+                            borderWidth: 1,
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value.toLocaleString('vi-VN') + ' đ';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Biểu đồ trạng thái đơn hàng
+            const statusCtx = document.getElementById('restaurantStatus');
+            if (statusCtx) {
+                const statusLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.StatusLabels ?? new List<string> { "Đã xác nhận", "Đang chuẩn bị", "Đã giao" }));
+                const statusData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.StatusData ?? new List<int> { 0, 0, 0 }));
+
+                new Chart(statusCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: statusLabels,
+                        datasets: [{
+                            data: statusData,
+                            backgroundColor: ['#0d6efd', '#ffc107', '#10b981'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 20,
+                                    font: {
+                                        weight: '600'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
     </script>
 }

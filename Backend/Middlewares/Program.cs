@@ -1,15 +1,21 @@
 using Backend.Data;
 using Backend.Extensions;
+using Backend.Hubs;
 using Backend.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.SqlServer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -19,6 +25,9 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddRepositories();
 // Add Services
 builder.Services.AddApplicationServices();
+
+// SignalR
+builder.Services.AddSignalR();
 
 
 
@@ -73,22 +82,22 @@ builder.Services.AddSwaggerGen(options =>
 // Database
 // ==============================
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(
-        builder.Configuration.GetConnectionString("MySqlConnection"),
-        new MySqlServerVersion(new Version(8, 0, 21)),
-        mySqlOptions => mySqlOptions.EnableRetryOnFailure(
-            maxRetryCount: 5,
-            maxRetryDelay: TimeSpan.FromSeconds(10),
-            errorNumbersToAdd: null
-        )
-    )
-);
+// builder.Services.AddDbContext<AppDbContext>(options =>
+//     options.UseMySql(
+//         builder.Configuration.GetConnectionString("MySqlConnection"),
+//         new MySqlServerVersion(new Version(8, 0, 21)),
+//         mySqlOptions => mySqlOptions.EnableRetryOnFailure(
+//             maxRetryCount: 5,
+//             maxRetryDelay: TimeSpan.FromSeconds(10),
+//             errorNumbersToAdd: null
+//         )
+//     )
+// );
 
 // Change to SQL Server if needed
-// builder.Services.AddDbContext<AppDbContext>(options =>
-//     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-// );
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+);
 
 
 // ==============================
@@ -141,9 +150,10 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy
-                .AllowAnyOrigin()
+                .WithOrigins("http://localhost:5241", "https://localhost:7241")
                 .AllowAnyMethod()
-                .AllowAnyHeader();
+                .AllowAnyHeader()
+                .AllowCredentials(); // Required for SignalR WebSocket
         }
     );
 });
@@ -181,6 +191,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<ChatHub>("/chatHub");
 
 
 // ==============================

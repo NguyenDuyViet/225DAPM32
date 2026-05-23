@@ -1,0 +1,596 @@
+@using _225DAPM32.Areas.Restaurant
+@{
+    ViewData["Title"] = "Chat";
+    int restaurantId = ViewBag.RestaurantId ?? 1;
+    var chatRooms = ViewBag.ChatRooms as List<RestaurantController.ChatRoomInfo> ?? new();
+}
+
+<!-- Restaurant Header (đồng bộ với các trang khác) -->
+<div class="admin-header bg-dark text-white py-4 mb-4">
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h1 class="h2 mb-0">
+                    <i class="fas fa-store me-3 text-success"></i>Dashboard Nhà hàng
+                </h1>
+                <p class="mb-0 opacity-75">Quản lý nhà hàng của bạn</p>
+            </div>
+            <div class="col-md-6 text-end">
+                <div class="d-flex align-items-center justify-content-end">
+                    <div class="me-3 text-end">
+                        <small class="opacity-75">Hôm nay</small>
+                        <div class="fw-bold">@DateTime.Now.ToString("dd/MM/yyyy")</div>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-tie me-2"></i>Quản lý
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="@Url.Action("Profile", "Restaurant", new { area = "Restaurant" })"><i class="fas fa-building me-2"></i>Thông tin nhà hàng</a></li>
+                            <li><a class="dropdown-item" href="@Url.Action("Settings", "Restaurant", new { area = "Restaurant" })"><i class="fas fa-cog me-2"></i>Cài đặt</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar (đồng bộ với các trang khác) -->
+        <div class="col-md-2">
+            <div class="restaurant-sidebar shadow-sm">
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="@Url.Action("Index", "Restaurant", new { area = "Restaurant" })">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                    <a class="nav-link" href="@Url.Action("Orders", "Restaurant", new { area = "Restaurant" })">
+                        <i class="fas fa-shopping-cart me-2"></i>Đơn hàng
+                    </a>
+                    <a class="nav-link active" href="@Url.Action("Chat", "Restaurant", new { area = "Restaurant" })">
+                        <i class="fas fa-comments me-2"></i>Chat
+                        <span class="badge bg-success ms-1" id="totalUnreadBadge" style="display:none;"></span>
+                    </a>
+                    <a class="nav-link" href="@Url.Action("Analytics", "Restaurant", new { area = "Restaurant" })">
+                        <i class="fas fa-chart-line me-2"></i>Thống kê
+                    </a>
+                    <a class="nav-link" href="@Url.Action("Profile", "Restaurant", new { area = "Restaurant" })">
+                        <i class="fas fa-building me-2"></i>Nhà hàng
+                    </a>
+                    <a class="nav-link" href="@Url.Action("Settings", "Restaurant", new { area = "Restaurant" })">
+                        <i class="fas fa-cog me-2"></i>Cài đặt
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Chat content (col-md-10) -->
+        <div class="col-md-10 ps-0">
+            <div class="card border-0 shadow-sm bg-white rounded-3 overflow-hidden" style="height: calc(100vh - 160px);">
+                <div class="d-flex h-100">
+
+                    <!-- Danh sách phòng chat -->
+                    <div class="chat-room-list border-end" style="width:300px; min-width:280px;">
+                        <div class="p-3 border-bottom">
+                            <h6 class="mb-2 fw-bold text-dark">
+                                <i class="fas fa-comments me-2 text-success"></i>Tin nhắn
+                            </h6>
+                            <div class="position-relative">
+                                <i class="fas fa-search position-absolute text-muted" style="left:10px;top:50%;transform:translateY(-50%);font-size:12px;"></i>
+                                <input type="text" class="form-control form-control-sm rounded-pill ps-4"
+                                       id="roomSearch" placeholder="Tìm kiếm..." oninput="filterRooms(this.value)">
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-1 px-3 py-2 border-bottom">
+                            <button class="btn btn-sm btn-success rounded-pill flex-fill active-tab" id="tabAll"
+                                    onclick="filterByTab('all', this)">Tất cả</button>
+                            <button class="btn btn-sm btn-outline-primary rounded-pill flex-fill" id="tabCustomer"
+                                    onclick="filterByTab('customer', this)">
+                                <i class="fas fa-user me-1"></i>Khách
+                            </button>
+                            <button class="btn btn-sm btn-outline-warning rounded-pill flex-fill" id="tabShipper"
+                                    onclick="filterByTab('shipper', this)">
+                                <i class="fas fa-motorcycle me-1"></i>Shipper
+                            </button>
+                        </div>
+
+                        <div class="overflow-auto" id="roomList" style="height: calc(100% - 120px);">
+                            @if (!chatRooms.Any())
+                            {
+                                <div class="text-center py-5 text-muted">
+                                    <i class="fas fa-inbox fa-2x mb-2 d-block text-muted"></i>
+                                    <small>Chưa có đơn hàng nào.<br/>Chat xuất hiện khi có đơn.</small>
+                                </div>
+                            }
+                            else
+                            {
+                                foreach (var room in chatRooms)
+                                {
+                                    var statusClass = room.Status switch {
+                                        "pending"   => "bg-warning",
+                                        "preparing" => "bg-primary",
+                                        "ready"     => "bg-purple",
+                                        "delivering"=> "bg-success",
+                                        "done"      => "bg-secondary",
+                                        "cancelled" => "bg-danger",
+                                        _ => "bg-secondary"
+                                    };
+                                    var statusText = room.Status switch {
+                                        "pending"   => "Chờ",
+                                        "preparing" => "Đang nấu",
+                                        "ready"     => "Sẵn sàng",
+                                        "delivering"=> "Đang giao",
+                                        "done"      => "Xong",
+                                        "cancelled" => "Đã hủy",
+                                        _ => room.Status
+                                    };
+                                    var icon = room.PartnerRole == "shipper" ? "🏍️" : "👤";
+                                    var avatarBg = room.PartnerRole == "shipper" ? "bg-warning" : "bg-primary";
+
+                                    <div class="room-item d-flex align-items-center gap-3 px-3 py-2 border-bottom"
+                                         id="room-@room.RoomId"
+                                         data-room="@room.RoomId"
+                                         data-partner="@room.PartnerName"
+                                         data-role="@room.PartnerRole"
+                                         data-order="@room.OrderCode"
+                                         data-orderid="@room.OrderId"
+                                         onclick="openRoom(this)"
+                                         style="cursor:pointer; transition:background .15s;">
+                                        <div class="position-relative">
+                                            <div class="rounded-circle @avatarBg text-white d-flex align-items-center justify-content-center fw-bold"
+                                                 style="width:42px;height:42px;font-size:18px;flex-shrink:0;">
+                                                @icon
+                                            </div>
+                                            <span class="badge bg-danger rounded-pill position-absolute d-none"
+                                                  id="badge-@room.RoomId"
+                                                  style="top:-4px;right:-4px;font-size:9px;min-width:16px;padding:2px 4px;">0</span>
+                                        </div>
+                                        <div class="flex-fill overflow-hidden">
+                                            <div class="fw-semibold text-dark text-truncate" style="font-size:14px;">@room.PartnerName</div>
+                                            <div class="text-muted text-truncate" id="preview-@room.RoomId" style="font-size:12px;">@room.OrderCode</div>
+                                        </div>
+                                        <div class="text-end flex-shrink-0">
+                                            <div class="text-muted mb-1" id="time-@room.RoomId" style="font-size:11px;">
+                                                @room.LastTime.AddHours(7).ToString("HH:mm")
+                                            </div>
+                                            <span class="badge @statusClass bg-opacity-75" style="font-size:10px;">@statusText</span>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Khu vực chat -->
+                    <div class="d-flex flex-column flex-fill">
+
+                        <!-- Empty state -->
+                        <div id="chatEmpty" class="d-flex flex-column align-items-center justify-content-center flex-fill text-muted">
+                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-3"
+                                 style="width:80px;height:80px;font-size:36px;">💬</div>
+                            <h5 class="text-secondary fw-semibold">Chọn cuộc trò chuyện</h5>
+                            <p class="text-muted text-center" style="font-size:14px;">
+                                Chọn một đơn hàng bên trái để bắt đầu<br/>chat với khách hàng hoặc shipper
+                            </p>
+                        </div>
+
+                        <!-- Chat view -->
+                        <div id="chatView" style="display:none; height:100%;" class="d-flex flex-column">
+                            <!-- Header -->
+                            <div class="d-flex align-items-center gap-3 px-4 py-3 border-bottom bg-light">
+                                <div class="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold"
+                                     id="chatHeaderAvatar"
+                                     style="width:40px;height:40px;font-size:20px;background:#3b82f6;flex-shrink:0;">
+                                    👤
+                                </div>
+                                <div class="flex-fill">
+                                    <div class="fw-bold text-dark" id="chatHeaderName" style="font-size:15px;">–</div>
+                                    <small class="text-muted" id="chatHeaderSub">–</small>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <span id="connStatus" class="badge bg-secondary" style="font-size:11px;">Đang kết nối...</span>
+                                    <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="refreshMessages()" title="Làm mới">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Messages -->
+                            <div class="flex-fill overflow-auto p-4" id="messagesContainer"
+                                 style="background:#f8fafc; display:flex; flex-direction:column; gap:12px;">
+                                <div class="text-center text-muted" id="dateDivider" style="font-size:12px;">
+                                    <span class="badge bg-light text-secondary border px-3">Hôm nay</span>
+                                </div>
+                            </div>
+
+                            <!-- Typing -->
+                            <div id="typingIndicator" class="px-4 py-1 text-muted" style="font-size:12px; font-style:italic; min-height:22px; display:none;">
+                                <span id="typingName"></span> đang nhập...
+                                <span class="ms-1">
+                                    <span class="typing-dot"></span>
+                                    <span class="typing-dot"></span>
+                                    <span class="typing-dot"></span>
+                                </span>
+                            </div>
+
+                            <!-- Input -->
+                            <div class="p-3 border-top bg-white">
+                                <div class="input-group rounded-pill border overflow-hidden shadow-sm">
+                                    <textarea id="msgInput"
+                                              class="form-control border-0 bg-white"
+                                              placeholder="Nhập tin nhắn... (Enter để gửi)"
+                                              rows="1"
+                                              style="resize:none; font-size:14px; max-height:100px;"
+                                              onkeydown="handleKeydown(event)"
+                                              oninput="handleInput(this)"></textarea>
+                                    <button class="btn btn-success px-4" id="sendBtn" onclick="sendMessage()" disabled>
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                                <div class="mt-1">
+                                    <small class="text-muted" style="font-size:11px;">
+                                        <i class="fas fa-keyboard me-1"></i>Enter gửi · Shift+Enter xuống dòng
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.admin-header {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+}
+
+.restaurant-sidebar {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px 0;
+    min-height: calc(100vh - 200px);
+}
+
+.restaurant-sidebar .nav-link {
+    color: #475569;
+    padding: 12px 20px;
+    margin: 5px 15px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.restaurant-sidebar .nav-link:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.restaurant-sidebar .nav-link.active {
+    background: #10b981;
+    color: white;
+}
+
+.chat-room-list {
+    background: #fff;
+}
+
+.room-item:hover {
+    background-color: #f1f5f9;
+}
+
+.room-item.active {
+    background-color: #ecfdf5;
+    border-left: 3px solid #10b981 !important;
+}
+
+/* Bubble messages */
+.msg-mine .bubble {
+    background: #10b981;
+    color: #fff;
+    border-radius: 18px 18px 4px 18px;
+}
+
+.msg-theirs .bubble {
+    background: #fff;
+    color: #1e293b;
+    border-radius: 18px 18px 18px 4px;
+    border: 1px solid #e2e8f0;
+}
+
+.bubble {
+    padding: 10px 16px;
+    max-width: 65%;
+    font-size: 14px;
+    line-height: 1.5;
+    word-break: break-word;
+    display: inline-block;
+}
+
+.msg-time {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 3px;
+}
+
+/* Typing dots */
+.typing-dot {
+    display: inline-block;
+    width: 5px; height: 5px;
+    background: #94a3b8;
+    border-radius: 50%;
+    margin: 0 1px;
+    animation: bounce .8s infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: .15s; }
+.typing-dot:nth-child(3) { animation-delay: .3s; }
+
+@@keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-4px); }
+}
+
+/* Active tab */
+.active-tab {
+    background: #10b981 !important;
+    border-color: #10b981 !important;
+    color: #fff !important;
+}
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+
+<script>
+    const RESTAURANT_ID = @restaurantId;
+    const SENDER_ROLE = "restaurant";
+    const SENDER_NAME = "Nhà hàng";
+    let currentRoomId = null;
+    let currentOrderId = null;
+    let connection = null;
+    let typingTimer = null;
+    let typingHideTimer = null;
+
+    // ---- SignalR ----
+    async function initSignalR() {
+        connection = new signalR.HubConnectionBuilder()
+            .withUrl("http://localhost:8000/chatHub", {
+                withCredentials: true,
+                transport: signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.LongPolling
+            })
+            .withAutomaticReconnect([0, 2000, 5000, 10000])
+            .configureLogging(signalR.LogLevel.Warning)
+            .build();
+
+        connection.on("ReceiveMessage", (msg) => {
+            if (msg.roomId === currentRoomId) {
+                appendMessage(msg);
+                scrollToBottom();
+            }
+            updatePreview(msg.roomId, msg.content, msg.sentAt);
+        });
+
+        connection.on("LoadHistory", (messages) => {
+            renderHistory(messages);
+        });
+
+        connection.on("UserTyping", (name) => {
+            if (name !== SENDER_NAME) showTyping(name);
+        });
+
+        connection.onreconnecting(() => setStatus('warning', 'Đang kết nối lại...'));
+        connection.onreconnected(() => setStatus('success', 'Đã kết nối'));
+        connection.onclose(() => setStatus('danger', 'Mất kết nối'));
+
+        try {
+            await connection.start();
+            setStatus('success', 'Đã kết nối');
+        } catch {
+            setStatus('danger', 'Không kết nối được');
+        }
+    }
+
+    function setStatus(cls, text) {
+        const el = document.getElementById('connStatus');
+        el.className = `badge bg-${cls}`;
+        el.textContent = text;
+    }
+
+    // ---- Room ----
+    async function openRoom(el) {
+        const roomId = el.dataset.room;
+        document.querySelectorAll('.room-item').forEach(r => r.classList.remove('active'));
+        el.classList.add('active');
+
+        if (currentRoomId && connection?.state === 'Connected') {
+            await connection.invoke("LeaveRoom", currentRoomId).catch(() => {});
+        }
+
+        currentRoomId = roomId;
+        currentOrderId = el.dataset.orderid;
+
+        const role = el.dataset.role;
+        const name = el.dataset.partner;
+        const order = el.dataset.order;
+
+        // Update header
+        document.getElementById('chatHeaderName').textContent = name;
+        document.getElementById('chatHeaderSub').textContent =
+            `Đơn ${order} · ${role === 'shipper' ? '🏍️ Shipper' : '👤 Khách hàng'}`;
+
+        const avatar = document.getElementById('chatHeaderAvatar');
+        avatar.textContent = role === 'shipper' ? '🏍️' : '👤';
+        avatar.style.background = role === 'shipper' ? '#f59e0b' : '#3b82f6';
+
+        // Show chat view
+        document.getElementById('chatEmpty').style.display = 'none';
+        const view = document.getElementById('chatView');
+        view.style.display = 'flex';
+
+        // Loading
+        const mc = document.getElementById('messagesContainer');
+        mc.innerHTML = `<div class="text-center text-muted py-4">
+            <i class="fas fa-spinner fa-spin text-success me-2"></i>Đang tải lịch sử...</div>`;
+
+        if (connection?.state === 'Connected') {
+            await connection.invoke("JoinRoom", roomId, RESTAURANT_ID, SENDER_ROLE).catch(console.error);
+        }
+
+        // Clear badge
+        const badge = document.getElementById(`badge-${roomId}`);
+        if (badge) badge.classList.add('d-none');
+
+        document.getElementById('msgInput').focus();
+    }
+
+    function refreshMessages() {
+        if (currentRoomId && connection?.state === 'Connected') {
+            document.getElementById('messagesContainer').innerHTML = '';
+            connection.invoke("JoinRoom", currentRoomId, RESTAURANT_ID, SENDER_ROLE).catch(console.error);
+        }
+    }
+
+    // ---- Messages ----
+    function renderHistory(messages) {
+        const mc = document.getElementById('messagesContainer');
+        mc.innerHTML = `<div class="text-center mb-2">
+            <span class="badge bg-light text-secondary border px-3" style="font-size:11px;">Lịch sử tin nhắn</span></div>`;
+
+        if (!messages || messages.length === 0) {
+            mc.innerHTML += `<div class="text-center py-4 text-muted">
+                <div style="font-size:40px;">💬</div>
+                <small class="d-block mt-2">Chưa có tin nhắn.<br/>Hãy bắt đầu cuộc trò chuyện!</small></div>`;
+        } else {
+            messages.forEach(m => appendMessage(m));
+        }
+        scrollToBottom();
+    }
+
+    function appendMessage(msg) {
+        const mc = document.getElementById('messagesContainer');
+        const isMine = msg.senderRole === 'restaurant';
+        const time = formatTime(msg.sentAt);
+        const icon = msg.senderRole === 'shipper' ? '🏍️' : '👤';
+
+        const wrap = document.createElement('div');
+        wrap.className = `d-flex flex-column ${isMine ? 'align-items-end' : 'align-items-start'}`;
+        wrap.innerHTML = isMine
+            ? `<div class="msg-mine d-flex flex-column align-items-end">
+                   <div class="bubble">${escHtml(msg.content)}</div>
+                   <div class="msg-time">${time}</div>
+               </div>`
+            : `<div class="msg-theirs d-flex flex-column align-items-start">
+                   <small class="text-muted mb-1" style="font-size:11px;">${icon} ${escHtml(msg.senderName || msg.senderRole)}</small>
+                   <div class="bubble">${escHtml(msg.content)}</div>
+                   <div class="msg-time">${time}</div>
+               </div>`;
+        mc.appendChild(wrap);
+    }
+
+    function updatePreview(roomId, content, sentAt) {
+        const p = document.getElementById(`preview-${roomId}`);
+        const t = document.getElementById(`time-${roomId}`);
+        if (p) p.textContent = content.length > 30 ? content.slice(0, 30) + '...' : content;
+        if (t) t.textContent = formatTime(sentAt);
+    }
+
+    // ---- Send ----
+    async function sendMessage() {
+        const input = document.getElementById('msgInput');
+        const content = input.value.trim();
+        if (!content || !currentRoomId || connection?.state !== 'Connected') return;
+
+        input.value = '';
+        input.style.height = 'auto';
+        document.getElementById('sendBtn').disabled = true;
+
+        try {
+            await connection.invoke(
+                "SendMessage", currentRoomId, content,
+                RESTAURANT_ID, SENDER_ROLE, SENDER_NAME,
+                parseInt(currentOrderId) || null
+            );
+        } catch {
+            alert("Không thể gửi tin nhắn. Vui lòng thử lại.");
+        }
+    }
+
+    function handleKeydown(e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    }
+
+    function handleInput(el) {
+        el.style.height = 'auto';
+        el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+        document.getElementById('sendBtn').disabled = el.value.trim().length === 0;
+
+        if (currentRoomId && connection?.state === 'Connected') {
+            clearTimeout(typingTimer);
+            connection.invoke("Typing", currentRoomId, SENDER_NAME).catch(() => {});
+        }
+    }
+
+    // ---- Typing ----
+    function showTyping(name) {
+        const el = document.getElementById('typingIndicator');
+        document.getElementById('typingName').textContent = name;
+        el.style.display = 'block';
+        clearTimeout(typingHideTimer);
+        typingHideTimer = setTimeout(() => { el.style.display = 'none'; }, 3000);
+    }
+
+    // ---- Filter ----
+    function filterByTab(tab, btn) {
+        document.querySelectorAll('.d-flex.gap-1 button').forEach(b => {
+            b.classList.remove('active-tab', 'btn-success');
+            if (!b.classList.contains('btn-outline-primary') && !b.classList.contains('btn-outline-warning')) {
+                b.classList.add('btn-outline-secondary');
+            }
+        });
+        btn.classList.add('active-tab');
+        filterRooms(document.getElementById('roomSearch').value, tab);
+    }
+
+    let activeTab = 'all';
+    function filterRooms(query, tab) {
+        if (tab !== undefined) activeTab = tab;
+        const q = query.toLowerCase();
+        document.querySelectorAll('.room-item').forEach(item => {
+            const name = (item.dataset.partner || '').toLowerCase();
+            const order = (item.dataset.order || '').toLowerCase();
+            const role = item.dataset.role || '';
+            const matchQ = !q || name.includes(q) || order.includes(q);
+            const matchT = activeTab === 'all' || role === activeTab;
+            item.style.display = matchQ && matchT ? 'flex' : 'none';
+        });
+    }
+
+    // ---- Utils ----
+    function scrollToBottom() {
+        const c = document.getElementById('messagesContainer');
+        setTimeout(() => c.scrollTop = c.scrollHeight, 60);
+    }
+
+    function formatTime(iso) {
+        if (!iso) return '';
+        try {
+            const d = new Date(iso);
+            const h = d.getUTCHours().toString().padStart(2, '0');
+            const m = d.getUTCMinutes().toString().padStart(2, '0');
+            return `${h}:${m}`;
+        } catch { return ''; }
+    }
+
+    function escHtml(s) {
+        if (!s) return '';
+        return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                .replace(/"/g,'&quot;').replace(/\n/g,'<br>');
+    }
+
+    initSignalR();
+</script>

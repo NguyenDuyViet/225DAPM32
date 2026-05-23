@@ -24,6 +24,7 @@ namespace _225DAPM32.Models
         public DateTime? CanceledAt { get; set; }
 
         // Additional frontend properties
+        public string? OrderCode { get; set; }
         public string? TrackingNumber { get; set; }
         public string? DriverName { get; set; }
         public string? DriverPhone { get; set; }
@@ -53,5 +54,19 @@ namespace _225DAPM32.Models
             "canceled" => "danger",
             _ => "secondary"
         };
+
+        // Danh sách món ăn trong đơn hàng
+        public List<OrderFoodViewModel>? OrderFoods { get; set; }
+    }
+
+    public class OrderFoodViewModel
+    {
+        public int IdFood { get; set; }
+        public string Name { get; set; }
+        public int Quantity { get; set; }
+        public decimal UnitPrice { get; set; }
+        public decimal TotalPrice { get; set; }
+        public string? Note { get; set; }
+        public string? Image { get; set; }
     }
 }
