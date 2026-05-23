@@ -3,9 +3,13 @@
     ViewData["Title"] = "Quản lý Nhà hàng";
 }
 
-<h2 class="mb-4">Quản lý Nhà hàng</h2>
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h2 class="mb-0">Quản lý Nhà hàng</h2>
+    <span class="badge bg-light text-dark border">@Model.Count() nhà hàng</span>
+</div>
+
 <div class="table-responsive">
-    <table class="table table-hover align-middle">
+    <table class="table table-hover align-middle admin-table">
         <thead class="table-light">
             <tr>
                 <th>Tên nhà hàng</th>
@@ -13,18 +17,84 @@
                 <th>Giờ mở</th>
                 <th>Giờ đóng</th>
                 <th>Trạng thái</th>
+                <th>Thao tác</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var item in Model)
             {
+                var modalId = $"restaurantDetail{item.IdRestaurant}";
+
                 <tr>
-                    <td>@item.NameRestaurant</td>
+                    <td class="fw-semibold">@item.NameRestaurant</td>
                     <td>@item.Address</td>
                     <td>@item.OpenTime.ToString(@"hh\:mm")</td>
                     <td>@item.CloseTime.ToString(@"hh\:mm")</td>
                     <td><span class="badge bg-success">Hoạt động</span></td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#@modalId">
+                            <i class="fas fa-eye me-1"></i>Xem chi tiết
+                        </button>
+                    </td>
                 </tr>
+
+                <div class="modal fade" id="@modalId" tabindex="-1" aria-labelledby="@(modalId)Label" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="@(modalId)Label">Chi tiết nhà hàng #@item.IdRestaurant</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Mã nhà hàng</div>
+                                        <div class="fw-semibold">#@item.IdRestaurant</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Tên nhà hàng</div>
+                                        <div class="fw-semibold">@item.NameRestaurant</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Trạng thái</div>
+                                        <span class="badge bg-success">Hoạt động</span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Ảnh nhà hàng</div>
+                                        <div>@item.Image</div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="text-muted small">Mô tả</div>
+                                        <div>@item.Description</div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="text-muted small">Địa chỉ</div>
+                                        <div>@item.Address</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Giờ mở cửa</div>
+                                        <div>@item.OpenTime.ToString(@"hh\:mm")</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Giờ đóng cửa</div>
+                                        <div>@item.CloseTime.ToString(@"hh\:mm")</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Vĩ độ</div>
+                                        <div>@item.Lat</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Kinh độ</div>
+                                        <div>@item.Lng</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             }
         </tbody>
     </table>

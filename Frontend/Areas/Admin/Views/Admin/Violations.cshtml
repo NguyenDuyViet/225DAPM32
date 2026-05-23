@@ -3,40 +3,89 @@
     ViewData["Title"] = "Cảnh báo vi phạm";
 }
 
-<h2 class="mb-4">Cảnh báo vi phạm</h2>
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h2 class="mb-0">Cảnh báo vi phạm</h2>
+    <button class="btn btn-warning">
+        <i class="fas fa-check-double me-1"></i>Đã xem tất cả
+    </button>
+</div>
+
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body">
-        <p>Giám sát và theo dõi các vi phạm bảo mật, hành vi bất thường hoặc truy cập trái phép trong hệ thống.</p>
-        <button class="btn btn-warning">Đã xem tất cả</button>
+        <p class="mb-0">Giám sát các vi phạm bảo mật, hành vi bất thường hoặc truy cập trái phép trong hệ thống.</p>
     </div>
 </div>
 
 <div class="table-responsive">
-    <table class="table table-hover align-middle">
+    <table class="table table-hover align-middle admin-table">
         <thead class="table-light">
             <tr>
                 <th>Cảnh báo</th>
                 <th>Mức độ</th>
                 <th>Thời gian</th>
                 <th>Trạng thái</th>
+                <th>Thao tác</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var alert in Model)
             {
+                var modalId = $"violationDetail{alert.Id}";
+                var severityClass = alert.Severity == "High" ? "bg-danger" : alert.Severity == "Medium" ? "bg-warning text-dark" : "bg-secondary";
+                var statusClass = alert.Status == "Pending" ? "bg-warning text-dark" : "bg-success";
+                var severityText = alert.Severity == "High" ? "Cao" : alert.Severity == "Medium" ? "Trung bình" : "Thấp";
+                var statusText = alert.Status == "Pending" ? "Chờ xử lý" : "Đã xem";
+
                 <tr>
                     <td>
                         <strong>@alert.Title</strong>
                         <div class="text-muted">@alert.Description</div>
                     </td>
-                    <td>
-                        <span class="badge @((alert.Severity == "High") ? "bg-danger" : (alert.Severity == "Medium") ? "bg-warning text-dark" : "bg-secondary")">@alert.Severity</span>
-                    </td>
+                    <td><span class="badge @severityClass">@severityText</span></td>
                     <td>@alert.CreatedAt.ToString("HH:mm dd/MM/yyyy")</td>
+                    <td><span class="badge @statusClass">@statusText</span></td>
                     <td>
-                        <span class="badge @(alert.Status == "Pending" ? "bg-warning text-dark" : "bg-success")">@alert.Status</span>
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#@modalId">
+                            <i class="fas fa-eye me-1"></i>Xem chi tiết
+                        </button>
                     </td>
                 </tr>
+
+                <div class="modal fade" id="@modalId" tabindex="-1" aria-labelledby="@(modalId)Label" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="@(modalId)Label">Chi tiết vi phạm #@alert.Id</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <div class="text-muted small">Tiêu đề</div>
+                                    <div class="fw-semibold">@alert.Title</div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="text-muted small">Mức độ</div>
+                                    <span class="badge @severityClass">@severityText</span>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="text-muted small">Trạng thái xử lý</div>
+                                    <span class="badge @statusClass">@statusText</span>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="text-muted small">Thời gian ghi nhận</div>
+                                    <div>@alert.CreatedAt.ToString("HH:mm dd/MM/yyyy")</div>
+                                </div>
+                                <div>
+                                    <div class="text-muted small">Mô tả</div>
+                                    <div>@alert.Description</div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             }
         </tbody>
     </table>

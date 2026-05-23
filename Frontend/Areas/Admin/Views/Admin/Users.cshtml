@@ -3,9 +3,28 @@
     ViewData["Title"] = "Quản lý Người dùng";
 }
 
-<h2 class="mb-4">Quản lý Người dùng</h2>
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h2 class="mb-0">Quản lý Người dùng</h2>
+    <span class="badge bg-light text-dark border">@Model.Count() tài khoản</span>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+    </div>
+}
+
 <div class="table-responsive">
-    <table class="table table-hover align-middle">
+    <table class="table table-hover align-middle admin-table">
         <thead class="table-light">
             <tr>
                 <th>Người dùng</th>
@@ -13,18 +32,115 @@
                 <th>Điện thoại</th>
                 <th>Trạng thái</th>
                 <th>Ngày đăng ký</th>
+                <th>Thao tác</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var user in Model)
             {
+                var isActive = string.Equals(user.Status, "active", StringComparison.OrdinalIgnoreCase);
+                var statusClass = isActive ? "bg-success" : "bg-danger";
+                var statusText = isActive ? "Đang hoạt động" : "Đã khóa";
+                var modalId = $"userDetail{user.IdUser}";
+
                 <tr>
-                    <td>@user.Username</td>
-                    <td>@user.Email</td>
-                    <td>@user.Phone</td>
-                    <td><span class="badge bg-success">@user.Status</span></td>
+                    <td>
+                        <div class="fw-semibold">@user.Username</div>
+                        <small class="text-muted">@(!string.IsNullOrWhiteSpace(user.FullName) ? user.FullName : "Chưa cập nhật họ tên")</small>
+                    </td>
+                    <td>@(user.Email ?? "Chưa cập nhật")</td>
+                    <td>@(user.Phone ?? "Chưa cập nhật")</td>
+                    <td><span class="badge @statusClass">@statusText</span></td>
                     <td>@user.CreatedAt.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        <div class="admin-actions">
+                            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#@modalId">
+                                <i class="fas fa-eye me-1"></i>Xem chi tiết
+                            </button>
+                            <form asp-area="Admin" asp-controller="Admin" asp-action="ToggleUserStatus" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@user.IdUser" />
+                                <button type="submit" class="btn btn-sm @(isActive ? "btn-outline-danger" : "btn-outline-success")">
+                                    <i class="fas @(isActive ? "fa-lock" : "fa-lock-open") me-1"></i>@(isActive ? "Khóa" : "Mở khóa")
+                                </button>
+                            </form>
+                        </div>
+                    </td>
                 </tr>
+
+                <div class="modal fade" id="@modalId" tabindex="-1" aria-labelledby="@(modalId)Label" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="@(modalId)Label">Chi tiết tài khoản #@user.IdUser</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Mã người dùng</div>
+                                        <div class="fw-semibold">#@user.IdUser</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Mã vai trò</div>
+                                        <div>#@user.IdRole</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Tên đăng nhập</div>
+                                        <div class="fw-semibold">@user.Username</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Mật khẩu</div>
+                                        <div>Đã ẩn vì bảo mật</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Họ tên</div>
+                                        <div class="fw-semibold">@(!string.IsNullOrWhiteSpace(user.FullName) ? user.FullName : "Chưa cập nhật")</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Email</div>
+                                        <div>@(!string.IsNullOrWhiteSpace(user.Email) ? user.Email : "Chưa cập nhật")</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Điện thoại</div>
+                                        <div>@(!string.IsNullOrWhiteSpace(user.Phone) ? user.Phone : "Chưa cập nhật")</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Địa chỉ</div>
+                                        <div>@(!string.IsNullOrWhiteSpace(user.Address) ? user.Address : "Chưa cập nhật")</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Trạng thái</div>
+                                        <span class="badge @statusClass">@statusText</span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Ảnh đại diện</div>
+                                        <div>@(!string.IsNullOrWhiteSpace(user.Avatar) ? user.Avatar : "Chưa cập nhật")</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Ngày tạo</div>
+                                        <div>@user.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Lần online cuối</div>
+                                        <div>@(user.LastOnline?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa có dữ liệu")</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Tỷ lệ hủy đơn</div>
+                                        <div>@((user.CancelRate ?? 0).ToString("P0"))</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Tọa độ gần nhất</div>
+                                        <div>@(user.CurrentLat?.ToString() ?? "-"), @(user.CurrentLng?.ToString() ?? "-")</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             }
         </tbody>
     </table>

@@ -3,9 +3,13 @@
     ViewData["Title"] = "Quản lý Đơn hàng";
 }
 
-<h2 class="mb-4">Quản lý Đơn hàng</h2>
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h2 class="mb-0">Quản lý Đơn hàng</h2>
+    <span class="badge bg-light text-dark border">@Model.Count() đơn hàng</span>
+</div>
+
 <div class="table-responsive">
-    <table class="table table-hover align-middle">
+    <table class="table table-hover align-middle admin-table">
         <thead class="table-light">
             <tr>
                 <th>Mã đơn</th>
@@ -13,31 +17,132 @@
                 <th>Tổng tiền</th>
                 <th>Shipper</th>
                 <th>Thời gian tạo</th>
+                <th>Thao tác</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var order in Model)
             {
+                var modalId = $"orderDetail{order.IdOrder}";
+
                 <tr>
-                    <td>#@order.IdOrder</td>
-                    <td>
-                        @if (order.Status == "Completed")
-                        {
-                            <span class="badge bg-success">Hoàn thành</span>
-                        }
-                        else if (order.Status == "Delivering")
-                        {
-                            <span class="badge bg-warning">Đang giao</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-secondary">@order.Status</span>
-                        }
-                    </td>
+                    <td class="fw-semibold">@(order.OrderCode ?? $"#{order.IdOrder}")</td>
+                    <td><span class="badge bg-@order.StatusColor">@order.StatusText</span></td>
                     <td>@order.FinalTotal.ToString("N0") VND</td>
-                    <td>@order.DriverName</td>
+                    <td>@(order.DriverName ?? "Chưa phân công")</td>
                     <td>@order.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#@modalId">
+                            <i class="fas fa-eye me-1"></i>Xem chi tiết
+                        </button>
+                    </td>
                 </tr>
+
+                <div class="modal fade" id="@modalId" tabindex="-1" aria-labelledby="@(modalId)Label" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="@(modalId)Label">Chi tiết đơn hàng @(order.OrderCode ?? $"#{order.IdOrder}")</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Mã đơn hàng</div>
+                                        <div class="fw-semibold">#@order.IdOrder</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Mã hiển thị</div>
+                                        <div>@(order.OrderCode ?? "Chưa có")</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Mã khách hàng</div>
+                                        <div>#@order.IdUser</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Mã nhà hàng</div>
+                                        <div>#@order.IdRestaurant</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Mã shipper</div>
+                                        <div>@(order.IdDriver?.ToString() ?? "Chưa phân công")</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Mã voucher</div>
+                                        <div>@(order.IdVoucher?.ToString() ?? "Không áp dụng")</div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="text-muted small">Địa chỉ giao hàng</div>
+                                        <div>@(!string.IsNullOrWhiteSpace(order.DeliveryAddress) ? order.DeliveryAddress : "Chưa cập nhật")</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Vĩ độ giao hàng</div>
+                                        <div>@(order.DeliveryLat?.ToString() ?? "Chưa có")</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Kinh độ giao hàng</div>
+                                        <div>@(order.DeliveryLng?.ToString() ?? "Chưa có")</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Trạng thái đơn hàng</div>
+                                        <span class="badge bg-@order.StatusColor">@order.StatusText</span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Trạng thái thanh toán</div>
+                                        <div>@order.PaymentStatusText</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Phương thức thanh toán</div>
+                                        <div>@order.PaymentMethod</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Tiền món ăn</div>
+                                        <div>@order.FoodAmount.ToString("N0") VND</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Phí giao hàng</div>
+                                        <div>@order.ShippingFee.ToString("N0") VND</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Giảm giá</div>
+                                        <div>@order.Discount.ToString("N0") VND</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Tổng thanh toán</div>
+                                        <div class="fw-semibold">@order.FinalTotal.ToString("N0") VND</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Ngày tạo</div>
+                                        <div>@order.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Cập nhật lần cuối</div>
+                                        <div>@(order.UpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa cập nhật")</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Thông tin shipper</div>
+                                        <div>@(order.DriverName ?? "Chưa phân công") - @(order.DriverPhone ?? "Chưa có SĐT")</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Dự kiến giao</div>
+                                        <div>@(order.EstimatedDelivery?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa có")</div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="text-muted small">Ghi chú</div>
+                                        <div>@(!string.IsNullOrWhiteSpace(order.Note) ? order.Note : "Không có ghi chú")</div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="text-muted small">Lý do hủy</div>
+                                        <div>@(!string.IsNullOrWhiteSpace(order.CancelReason) ? order.CancelReason : "Không có")</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             }
         </tbody>
     </table>

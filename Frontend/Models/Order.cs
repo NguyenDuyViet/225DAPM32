@@ -8,23 +8,32 @@ namespace _225DAPM32.Models
         [Key]
         public int IdOrder { get; set; }
         public int IdUser { get; set; }
-        public int IdAddress { get; set; }
+        public int IdRestaurant { get; set; }
         public int? IdDriver { get; set; }
+        public int? IdVoucher { get; set; }
+        public string? OrderCode { get; set; }
+        public string? DeliveryAddress { get; set; }
+        public decimal? DeliveryLat { get; set; }
+        public decimal? DeliveryLng { get; set; }
         public string PaymentMethod { get; set; }
-        public decimal Total { get; set; }
+        public decimal FoodAmount { get; set; }
         public decimal ShippingFee { get; set; }
         public decimal Discount { get; set; }
         public decimal FinalTotal { get; set; }
+        public string? PaymentStatus { get; set; }
         public string Status { get; set; } // 'pending','confirmed','delivering','completed','canceled'
-        public string Note { get; set; }
+        public string? Note { get; set; }
+        public string? CancelReason { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+
+        // Legacy/frontend fields kept for existing customer profile/cart screens.
+        public int IdAddress { get; set; }
+        public decimal Total { get; set; }
         public DateTime? ConfirmedAt { get; set; }
         public DateTime? DeliveringAt { get; set; }
         public DateTime? DeliveredAt { get; set; }
         public DateTime? CanceledAt { get; set; }
-
-        // Additional frontend properties
-        public string? OrderCode { get; set; }
         public string? TrackingNumber { get; set; }
         public string? DriverName { get; set; }
         public string? DriverPhone { get; set; }
@@ -34,6 +43,8 @@ namespace _225DAPM32.Models
         public User? User { get; set; }
         [ForeignKey("IdAddress")]
         public Address? Address { get; set; }
+        [ForeignKey("IdRestaurant")]
+        public Restaurant? Restaurant { get; set; }
 
         public string StatusText => Status switch
         {
@@ -55,7 +66,14 @@ namespace _225DAPM32.Models
             _ => "secondary"
         };
 
-        // Danh sách món ăn trong đơn hàng
+        public string PaymentStatusText => PaymentStatus switch
+        {
+            "paid" => "Đã thanh toán",
+            "unpaid" => "Chưa thanh toán",
+            "refunded" => "Đã hoàn tiền",
+            _ => "Chưa xác định"
+        };
+
         public List<OrderFoodViewModel>? OrderFoods { get; set; }
     }
 

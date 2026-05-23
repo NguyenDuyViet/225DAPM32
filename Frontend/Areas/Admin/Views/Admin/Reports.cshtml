@@ -2,23 +2,85 @@
     ViewData["Title"] = "Báo cáo & Thống kê";
 }
 
-<h2 class="mb-4">Báo cáo & Thống kê</h2>
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h2 class="mb-0">Báo cáo & Thống kê</h2>
+    <span class="badge bg-light text-dark border">Cập nhật hôm nay</span>
+</div>
+
 <div class="row g-4">
     <div class="col-md-6">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
-                <h5>Doanh thu theo tuần</h5>
-                <p class="text-muted">Biểu đồ doanh thu giúp admin theo dõi tăng trưởng.</p>
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h5>Doanh thu theo tuần</h5>
+                        <p class="text-muted mb-0">Theo dõi tăng trưởng doanh thu theo ngày.</p>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#revenueReportDetail">
+                        <i class="fas fa-eye me-1"></i>Xem chi tiết
+                    </button>
+                </div>
                 <canvas id="adminRevenueChart" height="200"></canvas>
             </div>
         </div>
     </div>
     <div class="col-md-6">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
-                <h5>Đơn hàng theo trạng thái</h5>
-                <p class="text-muted">Tổng quan về trạng thái đơn hàng đang xử lý.</p>
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h5>Đơn hàng theo trạng thái</h5>
+                        <p class="text-muted mb-0">Tổng quan các đơn hàng đang xử lý.</p>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#orderStatusReportDetail">
+                        <i class="fas fa-eye me-1"></i>Xem chi tiết
+                    </button>
+                </div>
                 <canvas id="adminOrderStatusChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="revenueReportDetail" tabindex="-1" aria-labelledby="revenueReportDetailLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="revenueReportDetailLabel">Chi tiết báo cáo doanh thu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Báo cáo hiển thị doanh thu từ thứ hai đến chủ nhật, dùng để so sánh xu hướng tăng trưởng trong tuần.</p>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between px-0"><span>Ngày cao nhất</span><strong>Chủ nhật - 2,800,000 VND</strong></li>
+                    <li class="list-group-item d-flex justify-content-between px-0"><span>Ngày thấp nhất</span><strong>Thứ hai - 1,500,000 VND</strong></li>
+                    <li class="list-group-item d-flex justify-content-between px-0"><span>Xu hướng</span><strong>Tăng</strong></li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="orderStatusReportDetail" tabindex="-1" aria-labelledby="orderStatusReportDetailLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="orderStatusReportDetailLabel">Chi tiết báo cáo đơn hàng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Báo cáo chia đơn hàng theo trạng thái để admin theo dõi tỉ lệ hoàn thành và các đơn cần xử lý.</p>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between px-0"><span>Hoàn thành</span><strong>55%</strong></li>
+                    <li class="list-group-item d-flex justify-content-between px-0"><span>Đang giao</span><strong>30%</strong></li>
+                    <li class="list-group-item d-flex justify-content-between px-0"><span>Chờ xử lý</span><strong>15%</strong></li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
             </div>
         </div>
     </div>
@@ -43,6 +105,7 @@
                 }
             });
         }
+
         const orderStatusCtx = document.getElementById('adminOrderStatusChart');
         if (orderStatusCtx) {
             new Chart(orderStatusCtx, {

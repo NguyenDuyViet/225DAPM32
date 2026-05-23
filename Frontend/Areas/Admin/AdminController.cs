@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
 using _225DAPM32.Areas.Admin.Models;
 using _225DAPM32.Models;
 using RestaurantEntity = _225DAPM32.Models.Restaurant;
@@ -11,20 +10,20 @@ namespace _225DAPM32.Areas.Admin
     {
         private static readonly List<RestaurantEntity> SampleRestaurants = new()
         {
-            new RestaurantEntity { IdRestaurant = 1, NameRestaurant = "Nhà hàng Phở 24h", Description = "Phở gà, phở bò đặc biệt", Image = "/images/restaurant1.jpg", Address = "123 Đường ABC, Q.1", OpenTime = new TimeSpan(6,0,0), CloseTime = new TimeSpan(22,0,0), Lat = 10.762622m, Lng = 106.660172m },
-            new RestaurantEntity { IdRestaurant = 2, NameRestaurant = "Gà rán Crispy", Description = "Gà rán giòn tan", Image = "/images/restaurant2.jpg", Address = "456 Đường XYZ, Q.3", OpenTime = new TimeSpan(10,0,0), CloseTime = new TimeSpan(23,0,0), Lat = 10.762700m, Lng = 106.682000m }
+            new RestaurantEntity { IdRestaurant = 1, NameRestaurant = "Nhà hàng Phở 24h", Description = "Phở gà, phở bò đặc biệt", Image = "/images/restaurant1.jpg", Address = "123 Đường ABC, Q.1", OpenTime = new TimeSpan(6, 0, 0), CloseTime = new TimeSpan(22, 0, 0), Lat = 10.762622m, Lng = 106.660172m },
+            new RestaurantEntity { IdRestaurant = 2, NameRestaurant = "Gà rán Crispy", Description = "Gà rán giòn tan", Image = "/images/restaurant2.jpg", Address = "456 Đường XYZ, Q.3", OpenTime = new TimeSpan(10, 0, 0), CloseTime = new TimeSpan(23, 0, 0), Lat = 10.762700m, Lng = 106.682000m }
         };
 
         private static readonly List<User> SampleUsers = new()
         {
-            new User { IdUser = 1, Username = "nguyenvana", Email = "nguyenvana@example.com", Phone = "0912345678", Status = "active", CreatedAt = DateTime.Now.AddMonths(-5), LastOnline = DateTime.Now.AddMinutes(-12), Avatar = "/images/user1.jpg", IdRole = 1 },
-            new User { IdUser = 2, Username = "tranthib", Email = "tranthib@example.com", Phone = "0987654321", Status = "active", CreatedAt = DateTime.Now.AddMonths(-2), LastOnline = DateTime.Now.AddHours(-1), Avatar = "/images/user2.jpg", IdRole = 1 }
+            new User { IdUser = 1, IdRole = 2, Username = "nguyenvana", Password = "********", FullName = "Nguyễn Văn A", Email = "nguyenvana@example.com", Phone = "0912345678", Address = "12 Nguyễn Trãi, Quận 1, TP.HCM", Avatar = "/images/user1.jpg", Status = "active", CreatedAt = DateTime.Now.AddMonths(-5), LastOnline = DateTime.Now.AddMinutes(-12), CurrentLat = 10.762622m, CurrentLng = 106.660172m, CancelRate = 0.02f, UpdateBio = "Khách hàng thân thiết" },
+            new User { IdUser = 2, IdRole = 2, Username = "tranthib", Password = "********", FullName = "Trần Thị B", Email = "tranthib@example.com", Phone = "0987654321", Address = "45 Lê Lợi, Quận 3, TP.HCM", Avatar = "/images/user2.jpg", Status = "active", CreatedAt = DateTime.Now.AddMonths(-2), LastOnline = DateTime.Now.AddHours(-1), CurrentLat = 10.762700m, CurrentLng = 106.682000m, CancelRate = 0.01f, UpdateBio = "Thường đặt món buổi trưa" }
         };
 
         private static readonly List<Order> SampleOrders = new()
         {
-            new Order { IdOrder = 1001, IdUser = 1, Total = 185000m, ShippingFee = 15000m, Discount = 0m, FinalTotal = 200000m, Status = "delivering", CreatedAt = DateTime.Now.AddMinutes(-40), DriverName = "Trần Văn C", DriverPhone = "0911222333", EstimatedDelivery = DateTime.Now.AddMinutes(20) },
-            new Order { IdOrder = 1002, IdUser = 2, Total = 255000m, ShippingFee = 15000m, Discount = 0m, FinalTotal = 270000m, Status = "completed", CreatedAt = DateTime.Now.AddHours(-2), DriverName = "Lê Thị D", DriverPhone = "0909988776", EstimatedDelivery = DateTime.Now.AddHours(-1) }
+            new Order { IdOrder = 1001, IdUser = 1, IdRestaurant = 1, IdDriver = 6, IdVoucher = null, OrderCode = "MN1001", DeliveryAddress = "12 Nguyễn Trãi, Quận 1, TP.HCM", DeliveryLat = 10.762622m, DeliveryLng = 106.660172m, FoodAmount = 185000m, Total = 185000m, ShippingFee = 15000m, Discount = 0m, FinalTotal = 200000m, PaymentMethod = "COD", PaymentStatus = "unpaid", Status = "delivering", Note = "Giao giờ hành chính", CancelReason = null, CreatedAt = DateTime.Now.AddMinutes(-40), UpdatedAt = DateTime.Now.AddMinutes(-10), DriverName = "Trần Văn C", DriverPhone = "0911222333", EstimatedDelivery = DateTime.Now.AddMinutes(20) },
+            new Order { IdOrder = 1002, IdUser = 2, IdRestaurant = 2, IdDriver = 7, IdVoucher = 1, OrderCode = "MN1002", DeliveryAddress = "45 Lê Lợi, Quận 3, TP.HCM", DeliveryLat = 10.762700m, DeliveryLng = 106.682000m, FoodAmount = 255000m, Total = 255000m, ShippingFee = 15000m, Discount = 0m, FinalTotal = 270000m, PaymentMethod = "Ví điện tử", PaymentStatus = "paid", Status = "completed", Note = "Không gọi trước", CancelReason = null, CreatedAt = DateTime.Now.AddHours(-2), UpdatedAt = DateTime.Now.AddHours(-1), DriverName = "Lê Thị D", DriverPhone = "0909988776", EstimatedDelivery = DateTime.Now.AddHours(-1) }
         };
 
         private static readonly List<SecurityPolicyViewModel> SamplePolicies = new()
@@ -43,7 +42,7 @@ namespace _225DAPM32.Areas.Admin
 
         public IActionResult Index()
         {
-            ViewData["Title"] = "Admin Dashboard";
+            ViewData["Title"] = "Tổng quan Admin";
             var model = new AdminDashboardViewModel
             {
                 RestaurantsCount = SampleRestaurants.Count,
@@ -64,6 +63,24 @@ namespace _225DAPM32.Areas.Admin
         {
             ViewData["Title"] = "Quản lý Người dùng";
             return View(SampleUsers);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ToggleUserStatus(int id)
+        {
+            var user = SampleUsers.FirstOrDefault(item => item.IdUser == id);
+            if (user == null)
+            {
+                TempData["Error"] = "Không tìm thấy tài khoản cần cập nhật.";
+                return RedirectToAction(nameof(Users));
+            }
+
+            user.Status = string.Equals(user.Status, "active", StringComparison.OrdinalIgnoreCase)
+                ? "locked"
+                : "active";
+            TempData["Success"] = $"Đã cập nhật trạng thái tài khoản {user.Username}.";
+            return RedirectToAction(nameof(Users));
         }
 
         public IActionResult Orders()
