@@ -1,4 +1,4 @@
-﻿namespace Backend.DTOs.Request
+namespace Backend.DTOs.Request
 {
     public class FoodRequest
     {
@@ -11,5 +11,6 @@
         public decimal Price { get; set; }
         public decimal? Discount { get; set; } = 0;
         public int? PrepTime { get; set; }
+        public int DailyQuantity { get; set; } = 50;
     }
 }

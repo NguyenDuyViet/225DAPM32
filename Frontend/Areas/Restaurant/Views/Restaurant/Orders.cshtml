@@ -81,9 +81,24 @@
         <div class="col-md-10">
             <div class="card border-0 shadow-sm bg-white">
                 <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                         <h2 class="mb-0 fw-bold text-dark"><i class="fas fa-receipt me-2 text-success"></i>Quản lý Đơn hàng</h2>
-                        <span class="badge bg-secondary px-3 py-2 rounded-pill fw-bold">Tổng cộng: @Model.Count() đơn</span>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <form action="@Url.Action("SimulateOrder", "Restaurant", new { area = "Restaurant" })" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-warning rounded-pill px-3 fw-bold shadow-sm">
+                                    <i class="fas fa-magic me-2"></i>Tạo đơn hàng giả lập (Khách)
+                                </button>
+                            </form>
+                            <form action="@Url.Action("SimulateDelivery", "Restaurant", new { area = "Restaurant" })" method="post" class="d-inline border-start ps-2">
+                                <div class="input-group input-group-sm">
+                                    <input type="number" name="orderId" class="form-control rounded-start-pill text-center fw-bold" placeholder="ID đơn" required style="width: 80px; border-color: #10b981;">
+                                    <button type="submit" class="btn btn-success rounded-end-pill fw-bold px-3 shadow-sm">
+                                        <i class="fas fa-check-double me-1"></i>Shipper giao xong
+                                    </button>
+                                </div>
+                            </form>
+                            <span class="badge bg-secondary px-3 py-2 rounded-pill fw-bold ms-2">Tổng cộng: @Model.Count() đơn</span>
+                        </div>
                     </div>
                     
                     <div class="table-responsive">
@@ -106,7 +121,7 @@
                                     @foreach (var order in Model)
                                     {
                                         var foodsJson = JsonSerializer.Serialize(order.OrderFoods ?? new List<_225DAPM32.Models.OrderFoodViewModel>());
-                                        <tr>
+                                        <tr data-order-id="@order.IdOrder" data-status="@order.Status">
                                             <td class="fw-bold text-primary">#@order.IdOrder</td>
                                             <td>
                                                 <div class="fw-bold">@order.User?.FullName</div>
@@ -203,30 +218,53 @@
                                                         </form>
                                                     </div>
                                                     <!-- Hàng 2: Hành động nhanh -->
-                                                    <div class="d-flex gap-1 mt-1">
-                                                        @if (order.Status == "pending" || order.Status == "restaurant_accepted")
+                                                    <div class="d-flex gap-1 mt-1 flex-wrap justify-content-center">
+                                                        @if (order.Status == "pending")
                                                         {
                                                             <form action="@Url.Action("UpdateOrderStatus", "Restaurant", new { area = "Restaurant" })" method="post" class="d-inline">
                                                                 <input type="hidden" name="orderId" value="@order.IdOrder" />
-                                                                <input type="hidden" name="status" value="completed" />
-                                                                <button type="submit" class="btn btn-xs btn-primary fw-bold rounded-pill px-2 py-0.5">
-                                                                    <i class="fas fa-utensils me-1"></i>Chuẩn bị
+                                                                <input type="hidden" name="status" value="preparing" />
+                                                                <button type="submit" class="btn btn-xs btn-primary fw-bold rounded-pill px-2 py-0.5 shadow-sm">
+                                                                    <i class="fas fa-check me-1"></i>Xác nhận đơn
+                                                                </button>
+                                                            </form>
+                                                            <form action="@Url.Action("UpdateOrderStatus", "Restaurant", new { area = "Restaurant" })" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn từ chối đơn hàng này?')">
+                                                                <input type="hidden" name="orderId" value="@order.IdOrder" />
+                                                                <input type="hidden" name="status" value="canceled" />
+                                                                <button type="submit" class="btn btn-xs btn-danger fw-bold rounded-pill px-2 py-0.5 shadow-sm">
+                                                                    <i class="fas fa-times me-1"></i>Từ chối
                                                                 </button>
                                                             </form>
                                                         }
-                                                        else if (order.Status == "preparing")
+                                                        else if (order.Status == "restaurant_accepted" || order.Status == "preparing")
                                                         {
                                                             <form action="@Url.Action("UpdateOrderStatus", "Restaurant", new { area = "Restaurant" })" method="post" class="d-inline">
                                                                 <input type="hidden" name="orderId" value="@order.IdOrder" />
                                                                 <input type="hidden" name="status" value="ready_for_pickup" />
-                                                                <button type="submit" class="btn btn-xs btn-success fw-bold rounded-pill px-2 py-0.5">
-                                                                    <i class="fas fa-check me-1"></i>Nấu xong
+                                                                <button type="submit" class="btn btn-xs btn-success fw-bold rounded-pill px-2 py-0.5 shadow-sm">
+                                                                    <i class="fas fa-check-circle me-1"></i>Nấu xong
                                                                 </button>
                                                             </form>
                                                         }
-                                                        else
+                                                        else if (order.Status == "ready_for_pickup" || order.Status == "cooked")
                                                         {
-                                                            <small class="text-muted"><i class="fas fa-check-circle me-1 text-xs"></i>Đã xử lý</small>
+                                                            <button type="button" class="btn btn-xs btn-info text-white fw-bold rounded-pill px-2 py-0.5 shadow-sm btn-handover" 
+                                                                    data-id="@order.IdOrder" 
+                                                                    data-code="@(order.OrderCode ?? order.IdOrder.ToString())">
+                                                                <i class="fas fa-motorcycle me-1"></i>Bàn giao Shipper
+                                                            </button>
+                                                        }
+                                                        else if (order.Status == "delivering")
+                                                        {
+                                                            <span class="text-info small fw-bold"><i class="fas fa-motorcycle me-1 animate-pulse"></i>Đang giao hàng...</span>
+                                                        }
+                                                        else if (order.Status == "completed")
+                                                        {
+                                                            <span class="text-success small fw-bold"><i class="fas fa-check-circle me-1"></i>Hoàn thành</span>
+                                                        }
+                                                        else if (order.Status == "canceled")
+                                                        {
+                                                            <span class="text-danger small fw-bold"><i class="fas fa-times-circle me-1"></i>Đã hủy</span>
                                                         }
                                                     </div>
                                                 </div>
@@ -484,15 +522,340 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("editOrderId").value = orderId;
             document.getElementById("editAddress").value = address;
             document.getElementById("editNote").value = note;
-            document.getElementById("editStatus").value = status;
+            
+            // Dynamic dropdown filtering based on shipper handover state
+            const editStatusSelect = document.getElementById("editStatus");
+            editStatusSelect.innerHTML = ""; // Clear options
+            
+            const isHandedOver = (status === "delivering" || status === "completed");
+            
+            if (isHandedOver) {
+                // If handed over to shipper, show only delivering and completed
+                editStatusSelect.innerHTML = `
+                    <option value="delivering">Đang giao hàng</option>
+                    <option value="completed">Đã hoàn thành</option>
+                `;
+            } else {
+                // Before handover, show only pre-handover states:
+                // "chờ xác nhận" (pending), "đã nhận đơn" (restaurant_accepted), "đang chuẩn bị" (preparing), "nấu xong/chờ tài xế" (ready_for_pickup), and "đã hủy đơn" (canceled)
+                editStatusSelect.innerHTML = `
+                    <option value="pending">Chờ xác nhận</option>
+                    <option value="restaurant_accepted">Đã nhận đơn</option>
+                    <option value="preparing">Đang chuẩn bị</option>
+                    <option value="ready_for_pickup">Nấu xong/Chờ tài xế</option>
+                    <option value="canceled">Đã hủy đơn</option>
+                `;
+            }
+            
+            editStatusSelect.value = status;
 
             // Open Modal
             const editModal = new bootstrap.Modal(document.getElementById("editOrderModal"));
             editModal.show();
         });
     });
+
+    // 3. Bàn giao Shipper Modal trigger
+    const handoverButtons = document.querySelectorAll(".btn-handover");
+    handoverButtons.forEach(button => {
+        button.addEventListener("click", function () {
+            const orderId = this.getAttribute("data-id");
+            const orderCode = this.getAttribute("data-code");
+
+            document.getElementById("handoverOrderId").value = orderId;
+            document.getElementById("tipOrderId").textContent = orderId;
+            document.getElementById("verifyCode").value = "";
+
+            const handoverModal = new bootstrap.Modal(document.getElementById("handoverOrderModal"));
+            handoverModal.show();
+        });
+    });
+
+    // ==========================================
+    // Realtime Simulation & Polling Mechanism
+    // ==========================================
+    const RESTAURANT_ID = @(ViewBag.RestaurantId ?? 1);
+    const SIMULATED_DRIVERS = [
+        { name: "Nguyễn Minh Hùng", phone: "0903.112.233" },
+        { name: "Lê Hoàng Khánh", phone: "0918.445.566" },
+        { name: "Trần Thanh Sơn", phone: "0932.778.899" },
+        { name: "Phạm Quốc Bảo", phone: "0976.224.466" }
+    ];
+
+    const knownOrderIds = new Set();
+
+    // Init existing orders
+    document.querySelectorAll("tr[data-order-id]").forEach(tr => {
+        const id = parseInt(tr.getAttribute("data-order-id"));
+        if (!isNaN(id)) knownOrderIds.add(id);
+    });
+
+    // Audio helpers using Web Audio API (Double Ring Bell & Chime sound)
+    window.playBellSound = function() {
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const playChime = (delay) => {
+                const osc1 = audioCtx.createOscillator();
+                const osc2 = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(880, audioCtx.currentTime + delay);
+                
+                osc2.type = 'triangle';
+                osc2.frequency.setValueAtTime(1200, audioCtx.currentTime + delay);
+                
+                gainNode.gain.setValueAtTime(0, audioCtx.currentTime + delay);
+                gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + delay + 0.05);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + 1.2);
+                
+                osc1.connect(gainNode);
+                osc2.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                osc1.start(audioCtx.currentTime + delay);
+                osc2.start(audioCtx.currentTime + delay);
+                
+                osc1.stop(audioCtx.currentTime + delay + 1.2);
+                osc2.stop(audioCtx.currentTime + delay + 1.2);
+            };
+            playChime(0);
+            playChime(0.25);
+        } catch (e) {
+            console.warn("Blocked playBellSound:", e);
+        }
+    };
+
+    window.playChimeSound = function() {
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15);
+            
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.05);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.4);
+        } catch (e) {
+            console.warn("Blocked playChimeSound:", e);
+        }
+    };
+
+    window.submitStatusUpdate = function(orderId, status) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '@Url.Action("UpdateOrderStatus", "Restaurant", new { area = "Restaurant" })';
+        
+        const idInput = document.createElement('input');
+        idInput.type = 'hidden';
+        idInput.name = 'orderId';
+        idInput.value = orderId;
+        form.appendChild(idInput);
+        
+        const statusInput = document.createElement('input');
+        statusInput.type = 'hidden';
+        statusInput.name = 'status';
+        statusInput.value = status;
+        form.appendChild(statusInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    };
+
+    // Polling function
+    async function checkNewOrders() {
+        try {
+            const response = await fetch(`http://localhost:8000/api/Orders/restaurant/${RESTAURANT_ID}`);
+            if (response.ok) {
+                const data = await response.json();
+                const orders = data.results || [];
+                
+                orders.forEach(order => {
+                    if (order.status === 'pending' && !knownOrderIds.has(order.idOrder)) {
+                        knownOrderIds.add(order.idOrder);
+                        showNewOrderToast(order);
+                    }
+                });
+            }
+        } catch (err) {
+            console.error("Polling error:", err);
+        }
+    }
+
+    function showNewOrderToast(order) {
+        playBellSound();
+
+        const container = document.getElementById("new-orders-toast-container");
+        if (!container) return;
+
+        let foodsHtml = '';
+        if (order.orderFoods && order.orderFoods.length > 0) {
+            order.orderFoods.forEach(f => {
+                const foodName = f.food ? f.food.name : 'Món ăn';
+                foodsHtml += `
+                    <div class="d-flex justify-content-between align-items-center mb-1 small text-dark">
+                        <span><i class="fas fa-utensils me-2 text-success"></i>${foodName}</span>
+                        <span class="fw-bold">x${f.quantity}</span>
+                    </div>
+                `;
+            });
+        } else {
+            foodsHtml = '<div class="text-muted small italic">Không có chi tiết món ăn</div>';
+        }
+
+        const toast = document.createElement("div");
+        toast.className = "card border-0 shadow-lg mb-3 new-order-card slide-in-right";
+        toast.style.cssText = "border-radius: 16px; overflow: hidden; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.5);";
+        toast.id = `toast-${order.idOrder}`;
+        toast.innerHTML = `
+            <div class="card-header bg-dark text-white p-3 d-flex justify-content-between align-items-center">
+                <span class="fw-bold fs-6"><i class="fas fa-bell me-2 text-warning animate-bounce"></i>Đơn Hàng Mới Nhận!</span>
+                <button type="button" class="btn-close btn-close-white btn-sm" onclick="this.closest('.card').remove()"></button>
+            </div>
+            <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                    <span class="fw-bold text-primary fs-5">#${order.idOrder}</span>
+                    <span class="text-muted small">${new Date(order.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+                
+                <div class="mb-2">
+                    <small class="text-muted fw-bold d-block" style="font-size: 0.75rem;">Khách hàng</small>
+                    <div class="fw-bold text-dark" style="font-size: 0.9rem;">${order.user ? order.user.fullName : 'Khách hàng ẩn danh'}</div>
+                </div>
+                
+                <div class="mb-2">
+                    <small class="text-muted fw-bold d-block" style="font-size: 0.75rem;">Chi tiết món</small>
+                    ${foodsHtml}
+                </div>
+                
+                ${order.note ? `
+                <div class="mb-2 p-2 bg-light rounded-3">
+                    <small class="text-danger fw-bold d-block" style="font-size: 0.7rem;"><i class="fas fa-comment-alt me-1"></i>Ghi chú</small>
+                    <div class="small text-danger italic" style="font-size: 0.8rem;">"${order.note}"</div>
+                </div>` : ''}
+                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <small class="text-muted fw-bold d-block" style="font-size: 0.75rem;">Thanh toán</small>
+                        <span class="badge bg-secondary rounded-pill">${order.paymentMethod || 'COD'}</span>
+                    </div>
+                    <div class="text-end">
+                        <small class="text-muted fw-bold d-block" style="font-size: 0.75rem;">Tổng cộng</small>
+                        <span class="fw-bold text-success fs-5">${parseFloat(order.finalTotal).toLocaleString('vi-VN')} đ</span>
+                    </div>
+                </div>
+                
+                <!-- Driver Status Section -->
+                <div class="mb-3 p-3 bg-light rounded-3 border-start border-4 border-warning shadow-sm" id="driver-status-box-${order.idOrder}">
+                    <div class="d-flex align-items-center">
+                        <div class="spinner-grow spinner-grow-sm text-warning me-2" role="status"></div>
+                        <span class="fw-bold text-warning small" id="driver-status-text-${order.idOrder}">🔍 Đang tìm tài xế gần nhất...</span>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="d-flex gap-2" id="action-buttons-box-${order.idOrder}" style="display: none !important;">
+                    <button class="btn btn-success flex-grow-1 fw-bold rounded-pill shadow-sm py-2" onclick="submitStatusUpdate(${order.idOrder}, 'preparing')">
+                        <i class="fas fa-check me-1"></i>Xác nhận đơn
+                    </button>
+                    <button class="btn btn-danger flex-grow-1 fw-bold rounded-pill shadow-sm py-2" onclick="if(confirm('Bạn có chắc chắn muốn hủy và từ chối đơn hàng này?')) submitStatusUpdate(${order.idOrder}, 'canceled')">
+                        <i class="fas fa-times me-1"></i>Từ chối
+                    </button>
+                </div>
+            </div>
+        `;
+
+        container.appendChild(toast);
+
+        // Driver found simulation timer after 4 seconds
+        setTimeout(() => {
+            const statusBox = document.getElementById(`driver-status-box-${order.idOrder}`);
+            const actionBox = document.getElementById(`action-buttons-box-${order.idOrder}`);
+            
+            if (statusBox && actionBox) {
+                playChimeSound();
+                
+                const driver = SIMULATED_DRIVERS[Math.floor(Math.random() * SIMULATED_DRIVERS.length)];
+                
+                statusBox.classList.remove('border-warning');
+                statusBox.classList.add('border-success');
+                statusBox.innerHTML = `
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="text-success me-2 fs-5"><i class="fas fa-check-circle"></i></div>
+                            <div>
+                                <span class="fw-bold text-success small d-block">✅ Đã tìm thấy tài xế!</span>
+                                <span class="fw-bold text-dark" style="font-size: 0.85rem;">${driver.name}</span>
+                            </div>
+                        </div>
+                        <div class="text-end text-muted small" style="font-size: 0.75rem;">
+                            <i class="fas fa-phone me-1"></i>${driver.phone}
+                        </div>
+                    </div>
+                `;
+                
+                actionBox.style.setProperty('display', 'flex', 'important');
+                actionBox.classList.add('fade-in');
+            }
+        }, 4000);
+    }
+
+    // Start polling every 3 seconds
+    setInterval(checkNewOrders, 3000);
 });
 </script>
+
+<!-- Modal Bàn Giao Shipper -->
+<div class="modal fade" id="handoverOrderModal" tabindex="-1" aria-labelledby="handoverOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-header bg-dark text-white p-4 border-0">
+                <h5 class="modal-title fw-bold" id="handoverOrderModalLabel">
+                    <i class="fas fa-motorcycle me-2 text-info"></i>Xác nhận Bàn giao Shipper
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="@Url.Action("UpdateOrderStatusWithVerify", "Restaurant", new { area = "Restaurant" })" method="post">
+                <div class="modal-body p-4">
+                    <input type="hidden" name="orderId" id="handoverOrderId" />
+                    <input type="hidden" name="status" value="delivering" />
+                    
+                    <div class="text-center mb-4">
+                        <div class="display-6 text-info mb-2"><i class="fas fa-truck-loading"></i></div>
+                        <p class="fw-semibold text-muted">Vui lòng yêu cầu tài xế cung cấp Mã đơn hàng hoặc nhập mã đơn hàng hiển thị trên ứng dụng của họ để xác thực bàn giao chính xác.</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="verifyCode" class="form-label fw-bold text-dark">Nhập mã xác nhận (Mã ID đơn hàng hoặc mã Code ORD)</label>
+                        <input type="text" class="form-control text-center fw-bold fs-4 text-primary bg-light border-2" 
+                               name="verifyCode" id="verifyCode" required placeholder="Ví dụ: 12 hoặc DH-..." 
+                               style="border-radius: 12px; padding: 12px; border-color: #38bdf8 !important;">
+                        <div class="form-text text-center mt-2 text-muted">
+                            Mẹo: Có thể nhập số ID đơn hàng (Ví dụ: <span class="fw-bold text-dark" id="tipOrderId">12</span>) hoặc mã hóa đơn đầy đủ.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light p-3 border-0">
+                    <button type="button" class="btn btn-outline-secondary fw-bold rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-info text-white fw-bold rounded-pill px-4">Xác nhận & Bàn giao</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Notification Container for New Orders -->
+<div id="new-orders-toast-container" class="position-fixed bottom-0 end-0 p-4" style="z-index: 1080; max-width: 420px; width: 100%;">
+</div>
 
 <style>
 .admin-header {
@@ -541,5 +904,44 @@ document.addEventListener("DOMContentLoaded", function () {
     padding: 2px 6px;
     font-size: 0.75rem;
     border-radius: 4px;
+}
+
+/* Premium Animations for Real-time Simulator */
+@@keyframes slideInRight {
+    from {
+        transform: translateX(120%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+.slide-in-right {
+    animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+@@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+.animate-bounce {
+    animation: bounce 1s infinite;
+}
+
+.new-order-card {
+    transition: all 0.3s ease;
+}
+.new-order-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2) !important;
 }
 </style>

@@ -17,6 +17,7 @@ namespace _225DAPM32.Models
         public decimal? Discount { get; set; }
         public int? CookCount { get; set; }
         public int? PrepTime { get; set; }
+        public int DailyQuantity { get; set; }
 
         [ForeignKey("IdCategory")]
         public Category Category { get; set; }

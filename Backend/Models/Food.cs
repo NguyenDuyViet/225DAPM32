@@ -12,6 +12,7 @@ namespace Backend.Models
         public decimal? Discount { get; set; }
         public int? CookCount { get; set; }
         public int? PrepTime { get; set; }
+        public int DailyQuantity { get; set; }
 
         public Category Category { get; set; }
         public Restaurant Restaurant { get; set; }

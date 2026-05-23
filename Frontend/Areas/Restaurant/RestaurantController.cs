@@ -168,6 +168,7 @@ namespace _225DAPM32.Areas.Restaurant
                         {
                             IdOrder = bo.IdOrder,
                             IdUser = bo.IdUser,
+                            OrderCode = bo.OrderCode,
                             Total = bo.FoodAmount,
                             ShippingFee = bo.ShippingFee,
                             Discount = bo.Discount,
@@ -198,6 +199,7 @@ namespace _225DAPM32.Areas.Restaurant
                 TempData["Error"] = $"Lỗi tải đơn hàng: {ex.Message}";
             }
 
+            ViewBag.RestaurantId = restaurantId;
             return View(orders);
         }
 
@@ -274,6 +276,108 @@ namespace _225DAPM32.Areas.Restaurant
                 else
                 {
                     TempData["Error"] = "Xóa đơn hàng thất bại!";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Lỗi: {ex.Message}";
+            }
+
+            return RedirectToAction("Orders", new { area = "Restaurant" });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateOrderStatusWithVerify(int orderId, string status, string verifyCode)
+        {
+            var client = GetApiClient();
+            try
+            {
+                // Fetch order details first to verify code
+                var getResponse = await client.GetAsync($"Orders/restaurant/{GetRestaurantId()}");
+                if (getResponse.IsSuccessStatusCode)
+                {
+                    var content = await getResponse.Content.ReadAsStringAsync();
+                    var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<BackendOrder>>>(content, _jsonOptions);
+                    var order = apiResponse?.Results?.FirstOrDefault(o => o.IdOrder == orderId);
+
+                    if (order != null)
+                    {
+                        var expectedCode = order.IdOrder.ToString();
+                        var expectedCode2 = order.OrderCode ?? "";
+                        
+                        var isCodeValid = verifyCode == expectedCode || 
+                                          (!string.IsNullOrEmpty(expectedCode2) && expectedCode2.EndsWith(verifyCode, StringComparison.OrdinalIgnoreCase)) ||
+                                          (!string.IsNullOrEmpty(expectedCode2) && expectedCode2.Equals(verifyCode, StringComparison.OrdinalIgnoreCase));
+
+                        if (!isCodeValid)
+                        {
+                            TempData["Error"] = "Mã xác nhận đơn hàng không chính xác! Vui lòng kiểm tra lại.";
+                            return RedirectToAction("Orders", new { area = "Restaurant" });
+                        }
+                    }
+                }
+
+                // Code verified! Call backend to update status
+                var jsonContent = new StringContent(JsonSerializer.Serialize(status), Encoding.UTF8, "application/json");
+                var response = await client.PutAsync($"Orders/{orderId}/status", jsonContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    TempData["Success"] = "Xác nhận mã đơn hàng thành công! Đã bàn giao cho tài xế.";
+                }
+                else
+                {
+                    TempData["Error"] = "Bàn giao thất bại!";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Lỗi: {ex.Message}";
+            }
+
+            return RedirectToAction("Orders", new { area = "Restaurant" });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SimulateDelivery(int orderId)
+        {
+            var client = GetApiClient();
+            try
+            {
+                var response = await client.PostAsync($"Orders/{orderId}/simulate-delivery-and-review", null);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    TempData["Success"] = "Mô phỏng Shipper giao hàng thành công & khách hàng đã gửi đánh giá!";
+                }
+                else
+                {
+                    TempData["Error"] = "Mô phỏng thất bại!";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Lỗi: {ex.Message}";
+            }
+
+            return RedirectToAction("Orders", new { area = "Restaurant" });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SimulateOrder()
+        {
+            var client = GetApiClient();
+            try
+            {
+                var response = await client.PostAsync("Orders/seed", null);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    TempData["Success"] = "Tạo đơn hàng giả lập thành công!";
+                }
+                else
+                {
+                    TempData["Error"] = "Tạo đơn hàng giả lập thất bại!";
                 }
             }
             catch (Exception ex)
@@ -365,6 +469,17 @@ namespace _225DAPM32.Areas.Restaurant
                     promotions = promoApiResponse?.Results ?? new List<Promotion>();
                 }
                 ViewBag.Promotions = promotions;
+
+                // 5. Fetch Reviews
+                var reviewResponse = await client.GetAsync($"Restaurants/{restaurantId}/reviews");
+                var reviews = new List<ReviewViewModel>();
+                if (reviewResponse.IsSuccessStatusCode)
+                {
+                    var reviewContent = await reviewResponse.Content.ReadAsStringAsync();
+                    var reviewApiResponse = JsonSerializer.Deserialize<ApiResponse<List<ReviewViewModel>>>(reviewContent, _jsonOptions);
+                    reviews = reviewApiResponse?.Results ?? new List<ReviewViewModel>();
+                }
+                ViewBag.Reviews = reviews;
             }
             catch (Exception ex)
             {
@@ -375,7 +490,7 @@ namespace _225DAPM32.Areas.Restaurant
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateFood(int idCategory, string name, string description, string image, string video, decimal price, decimal? discount, int? prepTime)
+        public async Task<IActionResult> CreateFood(int idCategory, string name, string description, string image, string video, decimal price, decimal? discount, int? prepTime, int dailyQuantity)
         {
             int restaurantId = GetRestaurantId();
             var client = GetApiClient();
@@ -392,7 +507,8 @@ namespace _225DAPM32.Areas.Restaurant
                     Video = video ?? "",
                     Price = price,
                     Discount = discount ?? 0,
-                    PrepTime = prepTime ?? 15
+                    PrepTime = prepTime ?? 15,
+                    DailyQuantity = dailyQuantity
                 };
 
                 var jsonContent = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
@@ -416,7 +532,7 @@ namespace _225DAPM32.Areas.Restaurant
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateFood(int idFood, int idCategory, string name, string description, string image, string video, decimal price, decimal? discount, int? prepTime)
+        public async Task<IActionResult> UpdateFood(int idFood, int idCategory, string name, string description, string image, string video, decimal price, decimal? discount, int? prepTime, int dailyQuantity)
         {
             int restaurantId = GetRestaurantId();
             var client = GetApiClient();
@@ -433,7 +549,8 @@ namespace _225DAPM32.Areas.Restaurant
                     Video = video ?? "",
                     Price = price,
                     Discount = discount ?? 0,
-                    PrepTime = prepTime ?? 15
+                    PrepTime = prepTime ?? 15,
+                    DailyQuantity = dailyQuantity
                 };
 
                 var jsonContent = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
@@ -472,6 +589,32 @@ namespace _225DAPM32.Areas.Restaurant
                 else
                 {
                     TempData["Error"] = "Xóa món ăn thất bại!";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Lỗi: {ex.Message}";
+            }
+
+            return RedirectToAction("Profile", new { area = "Restaurant" });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateDailyQuantity(int idFood, int dailyQuantity)
+        {
+            var client = GetApiClient();
+            try
+            {
+                var jsonContent = new StringContent(JsonSerializer.Serialize(dailyQuantity), Encoding.UTF8, "application/json");
+                var response = await client.PutAsync($"Food/{idFood}/daily-quantity", jsonContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    TempData["Success"] = "Cập nhật số lượng bán trong ngày thành công!";
+                }
+                else
+                {
+                    TempData["Error"] = "Cập nhật số lượng thất bại!";
                 }
             }
             catch (Exception ex)
@@ -770,6 +913,30 @@ namespace _225DAPM32.Areas.Restaurant
             public string Status { get; set; } = string.Empty;
             public string LastMessage { get; set; } = string.Empty;
             public DateTime LastTime { get; set; }
+        }
+
+        public class ReviewViewModel
+        {
+            public int IdReview { get; set; }
+            public int IdOrder { get; set; }
+            public string? OrderCode { get; set; }
+            public float FoodRating { get; set; }
+            public float DriverRating { get; set; }
+            public string? CommentForRes { get; set; }
+            public string? CommentForShipper { get; set; }
+            public DateTime CreatedAt { get; set; }
+            public string? CustomerName { get; set; }
+            public string? CustomerAvatar { get; set; }
+            public List<ReviewFoodViewModel>? ReviewFoods { get; set; }
+        }
+
+        public class ReviewFoodViewModel
+        {
+            public int IdReviewFood { get; set; }
+            public float Rating { get; set; }
+            public string? Comment { get; set; }
+            public string? Image { get; set; }
+            public string? FoodName { get; set; }
         }
     }
 }

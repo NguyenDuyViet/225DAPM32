@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Backend.DTOs.Request;
 using Backend.DTOs.Response;
 using Backend.Models;
@@ -74,6 +74,19 @@ namespace Backend.Services
         {
             var foods = await _foodRepository.FindAsync(f => f.IdCategory == categoryId);
             return _mapper.Map<IEnumerable<FoodResponse>>(foods);
+        }
+
+        public async Task<FoodResponse?> UpdateDailyQuantityAsync(int foodId, int quantity)
+        {
+            var existingFood = await _foodRepository.GetByIdAsync(foodId);
+            if (existingFood == null)
+                return null;
+
+            existingFood.DailyQuantity = quantity;
+            _foodRepository.Update(existingFood);
+            await _foodRepository.SaveChangesAsync();
+
+            return _mapper.Map<FoodResponse>(existingFood);
         }
     }
 }

@@ -109,5 +109,18 @@ namespace Backend.Controllers
                 Results = result
             });
         }
+
+        // GET: api/Restaurants/{id}/reviews
+        [HttpGet("{id}/reviews")]
+        public async Task<ActionResult<ApiResponse<IEnumerable<object>>>> GetRestaurantReviews(int id)
+        {
+            var reviews = await _orderService.GetRestaurantReviewsAsync(id);
+            return Ok(new ApiResponse<IEnumerable<object>>
+            {
+                Code = 200,
+                Message = "Success",
+                Results = reviews
+            });
+        }
     }
 }

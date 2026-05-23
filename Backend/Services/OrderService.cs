@@ -26,12 +26,15 @@ namespace Backend.Services
 
         public async Task<bool> UpdateOrderStatusAsync(int orderId, string status)
         {
-            var order = await _context.Orders.FindAsync(orderId);
+            var order = await _context.Orders
+                .Include(o => o.OrderFoods)
+                .FirstOrDefaultAsync(o => o.IdOrder == orderId);
             if (order == null)
             {
                 return false;
             }
 
+            string oldStatus = order.Status;
             order.Status = status;
             if (status == "completed")
             {
@@ -52,6 +55,7 @@ namespace Backend.Services
 
             order.UpdatedAt = DateTime.Now;
             
+            await AdjustFoodDailyQuantityAsync(order, oldStatus, status);
             _context.Orders.Update(order);
             await _context.SaveChangesAsync();
             return true;
@@ -173,7 +177,9 @@ namespace Backend.Services
 
         public async Task<bool> UpdateOrderAsync(int orderId, Backend.DTOs.Request.OrderRequest dto)
         {
-            var order = await _context.Orders.FindAsync(orderId);
+            var order = await _context.Orders
+                .Include(o => o.OrderFoods)
+                .FirstOrDefaultAsync(o => o.IdOrder == orderId);
             if (order == null)
             {
                 return false;
@@ -189,6 +195,7 @@ namespace Backend.Services
             }
             if (dto.Status != null)
             {
+                string oldStatus = order.Status;
                 order.Status = dto.Status;
                 if (dto.Status == "completed")
                 {
@@ -206,6 +213,8 @@ namespace Backend.Services
                 {
                     order.IdDriver = null; // Hủy gán tài xế khi trả lại hành động trước đó
                 }
+                
+                await AdjustFoodDailyQuantityAsync(order, oldStatus, dto.Status);
             }
 
             order.UpdatedAt = DateTime.Now;
@@ -221,6 +230,7 @@ namespace Backend.Services
                 .Include(o => o.OrderFoods)
                 .Include(o => o.OrderPromotions)
                 .Include(o => o.Review)
+                    .ThenInclude(r => r.ReviewFoods)
                 .Include(o => o.PaymentMethodEntity)
                 .Include(o => o.Complaint)
                 .FirstOrDefaultAsync(o => o.IdOrder == orderId);
@@ -241,6 +251,10 @@ namespace Backend.Services
             }
             if (order.Review != null)
             {
+                if (order.Review.ReviewFoods != null && order.Review.ReviewFoods.Any())
+                {
+                    _context.ReviewFoods.RemoveRange(order.Review.ReviewFoods);
+                }
                 _context.Reviews.Remove(order.Review);
             }
             if (order.PaymentMethodEntity != null)
@@ -420,6 +434,144 @@ namespace Backend.Services
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
             return order;
+        }
+
+        private async Task AdjustFoodDailyQuantityAsync(Order order, string oldStatus, string newStatus)
+        {
+            if (newStatus == "delivering" && oldStatus != "delivering")
+            {
+                if (order.OrderFoods != null)
+                {
+                    foreach (var of in order.OrderFoods)
+                    {
+                        var food = await _context.Foods.FindAsync(of.IdFood);
+                        if (food != null)
+                        {
+                            food.DailyQuantity = Math.Max(0, food.DailyQuantity - of.Quantity);
+                            _context.Foods.Update(food);
+                        }
+                    }
+                }
+            }
+            else if ((newStatus == "canceled" || newStatus == "cancelled") && (oldStatus == "delivering" || oldStatus == "completed"))
+            {
+                if (order.OrderFoods != null)
+                {
+                    foreach (var of in order.OrderFoods)
+                    {
+                        var food = await _context.Foods.FindAsync(of.IdFood);
+                        if (food != null)
+                        {
+                            food.DailyQuantity += of.Quantity;
+                            _context.Foods.Update(food);
+                        }
+                    }
+                }
+            }
+        }
+
+        public async Task<List<object>> GetRestaurantReviewsAsync(int restaurantId)
+        {
+            var reviews = await _context.Reviews
+                .Where(r => r.IdRestaurant == restaurantId)
+                .Include(r => r.User)
+                .Include(r => r.Order)
+                .Include(r => r.ReviewFoods)
+                    .ThenInclude(rf => rf.Food)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
+
+            return reviews.Select(r => (object)new
+            {
+                r.IdReview,
+                r.IdOrder,
+                OrderCode = r.Order != null ? r.Order.OrderCode : "",
+                r.FoodRating,
+                r.DriverRating,
+                r.CommentForRes,
+                r.CommentForShipper,
+                r.CreatedAt,
+                CustomerName = r.User?.FullName ?? "Khách hàng ẩn danh",
+                CustomerAvatar = r.User?.Avatar ?? "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271401/DAPM_32/users/default-user.jpg",
+                ReviewFoods = r.ReviewFoods?.Select(rf => new
+                {
+                    rf.IdReviewFood,
+                    rf.Rating,
+                    rf.Comment,
+                    rf.Image,
+                    FoodName = rf.Food?.Name ?? "Món ăn"
+                }).ToList()
+            }).ToList();
+        }
+
+        public async Task<bool> SimulateDeliveryAndReviewAsync(int orderId)
+        {
+            var order = await _context.Orders
+                .Include(o => o.OrderFoods)
+                .FirstOrDefaultAsync(o => o.IdOrder == orderId);
+            if (order == null)
+            {
+                return false;
+            }
+
+            // 1. Update status to completed
+            string oldStatus = order.Status;
+            order.Status = "completed";
+            order.UpdatedAt = DateTime.Now;
+            
+            // Set driver if none
+            if (order.IdDriver == null)
+            {
+                var driver = await _context.Drivers.FirstOrDefaultAsync();
+                if (driver != null)
+                {
+                    order.IdDriver = driver.IdDriver;
+                }
+            }
+
+            _context.Orders.Update(order);
+            await _context.SaveChangesAsync();
+
+            // 2. Add a review if it doesn't exist
+            var existingReview = await _context.Reviews.FirstOrDefaultAsync(r => r.IdOrder == orderId);
+            if (existingReview == null)
+            {
+                int nextReviewId = await _context.Reviews.AnyAsync() ? await _context.Reviews.MaxAsync(r => r.IdReview) + 1 : 1;
+                var review = new Review
+                {
+                    IdReview = nextReviewId,
+                    IdUser = order.IdUser,
+                    IdOrder = order.IdOrder,
+                    IdRestaurant = order.IdRestaurant,
+                    FoodRating = 5.0f,
+                    DriverRating = 4.8f,
+                    CommentForRes = "Giao hàng nhanh, đồ ăn nóng hổi và rất ngon! Sẽ tiếp tục ủng hộ nhà hàng lần sau.",
+                    CommentForShipper = "Tài xế thân thiện, giao hàng nhanh chóng và lịch sự.",
+                    CreatedAt = DateTime.Now
+                };
+                _context.Reviews.Add(review);
+                await _context.SaveChangesAsync();
+
+                // Add ReviewFoods
+                int nextReviewFoodId = await _context.ReviewFoods.AnyAsync() ? await _context.ReviewFoods.MaxAsync(rf => rf.IdReviewFood) + 1 : 1;
+                foreach (var of in order.OrderFoods)
+                {
+                    var reviewFood = new ReviewFood
+                    {
+                        IdReviewFood = nextReviewFoodId++,
+                        IdReview = nextReviewId,
+                        IdFood = of.IdFood,
+                        Rating = 5.0f,
+                        Comment = "Ngon tuyệt hảo, chuẩn vị nhà làm!",
+                        Image = "",
+                        Video = ""
+                    };
+                    _context.ReviewFoods.Add(reviewFood);
+                }
+                await _context.SaveChangesAsync();
+            }
+
+            return true;
         }
     }
 }

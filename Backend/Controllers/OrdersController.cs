@@ -141,5 +141,40 @@ namespace Backend.Controllers
                 });
             }
         }
+
+        // POST: api/Orders/{id}/simulate-delivery-and-review
+        [HttpPost("{id}/simulate-delivery-and-review")]
+        public async Task<ActionResult<ApiResponse<object>>> SimulateDeliveryAndReview(int id)
+        {
+            try
+            {
+                var result = await _orderService.SimulateDeliveryAndReviewAsync(id);
+                if (!result)
+                {
+                    return NotFound(new ApiResponse<object>
+                    {
+                        Code = 404,
+                        Message = "Order not found or simulation failed",
+                        Results = null
+                    });
+                }
+
+                return Ok(new ApiResponse<object>
+                {
+                    Code = 200,
+                    Message = "Success",
+                    Results = true
+                });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<object>
+                {
+                    Code = 500,
+                    Message = $"Simulation error: {ex.Message}",
+                    Results = ex.ToString()
+                });
+            }
+        }
     }
 }

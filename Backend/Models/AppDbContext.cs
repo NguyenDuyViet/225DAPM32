@@ -126,6 +126,7 @@ namespace Backend.Models
                 entity.Property(f => f.Discount).HasColumnName("discount").HasPrecision(10, 2);
                 entity.Property(f => f.CookCount).HasColumnName("cook_Count");
                 entity.Property(f => f.PrepTime).HasColumnName("prep_Time");
+                entity.Property(f => f.DailyQuantity).HasColumnName("daily_Quantity");
                 entity.HasOne(f => f.Category).WithMany(c => c.Foods).HasForeignKey(f => f.IdCategory);
                 entity.HasOne(f => f.Restaurant).WithMany(r => r.Foods).HasForeignKey(f => f.IdRestaurant);
             });

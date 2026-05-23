@@ -24,6 +24,7 @@ namespace _225DAPM32.Models
         public DateTime? CanceledAt { get; set; }
 
         // Additional frontend properties
+        public string? OrderCode { get; set; }
         public string? TrackingNumber { get; set; }
         public string? DriverName { get; set; }
         public string? DriverPhone { get; set; }
