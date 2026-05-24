@@ -4,6 +4,6 @@ namespace _225DAPM32.Models
     {
         public int Code { get; set; }
         public string Message { get; set; }
-        public T? Results { get; set; }
+        public T Results { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Backend.DTOs.Request;
 using Backend.DTOs.Response;
 using Backend.Models;
@@ -19,13 +19,13 @@ namespace Backend.Services
 
         public async Task<IEnumerable<FoodResponse>> GetAllFoodsAsync()
         {
-            var foods = await _foodRepository.GetAllAsync();
+            var foods = await _foodRepository.GetAllWithDetailsAsync();
             return _mapper.Map<IEnumerable<FoodResponse>>(foods);
         }
 
         public async Task<FoodResponse?> GetFoodByIdAsync(int id)
         {
-            var food = await _foodRepository.GetByIdAsync(id);
+            var food = await _foodRepository.GetByIdWithDetailsAsync(id);
             if (food == null)
                 return null;
 
@@ -35,10 +35,12 @@ namespace Backend.Services
         public async Task<FoodResponse> CreateFoodAsync(FoodRequest request)
         {
             var food = _mapper.Map<Food>(request);
+            food.IdFood = await _foodRepository.GetNextIdAsync();
             await _foodRepository.AddAsync(food);
             await _foodRepository.SaveChangesAsync();
 
-            return _mapper.Map<FoodResponse>(food);
+            var createdFood = await _foodRepository.GetByIdWithDetailsAsync(food.IdFood) ?? food;
+            return _mapper.Map<FoodResponse>(createdFood);
         }
 
         public async Task<FoodResponse?> UpdateFoodAsync(int id, FoodRequest request)
@@ -51,7 +53,8 @@ namespace Backend.Services
             _foodRepository.Update(existingFood);
             await _foodRepository.SaveChangesAsync();
 
-            return _mapper.Map<FoodResponse>(existingFood);
+            var updatedFood = await _foodRepository.GetByIdWithDetailsAsync(existingFood.IdFood) ?? existingFood;
+            return _mapper.Map<FoodResponse>(updatedFood);
         }
 
         public async Task<bool> DeleteFoodAsync(int id)

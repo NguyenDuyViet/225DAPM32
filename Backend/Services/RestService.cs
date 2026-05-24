@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Backend.DTOs.Request;
 using Backend.DTOs.Response;
 using Backend.Models;
@@ -23,21 +23,10 @@ namespace Backend.Services
             return restaurants.ToList();
         }
 
-        public async Task<PagedResult<Restaurant>> GetPagedRestaurantsAsync(int page, int pageSize, int? categoryId = null)
+        public async Task<PagedResult<Restaurant>> GetPagedRestaurantsAsync(int page, int pageSize, int? categoryId = null, string? search = null, string? district = null, decimal? minPrice = null, decimal? maxPrice = null)
         {
-            int totalItems;
-            List<Restaurant> items;
-
-            if (categoryId.HasValue && categoryId.Value > 0)
-            {
-                totalItems = await _restRepository.CountByCategoryAsync(categoryId.Value);
-                items = await _restRepository.GetPagedByCategoryAsync(categoryId.Value, page, pageSize);
-            }
-            else
-            {
-                totalItems = await _restRepository.CountAsync();
-                items = await _restRepository.GetPagedAsync(page, pageSize);
-            }
+            int totalItems = await _restRepository.CountAsync(categoryId, search, district, minPrice, maxPrice);
+            List<Restaurant> items = await _restRepository.GetPagedAsync(page, pageSize, categoryId, search, district, minPrice, maxPrice);
 
             return new PagedResult<Restaurant>
             {
@@ -52,6 +41,20 @@ namespace Backend.Services
         {
             var data = await _restRepository.GetByIdAsync(id);
             return data;
+        }
+
+        public async Task<Restaurant> CreateRestaurantAsync(RestRequestDTO rest)
+        {
+            var restaurants = await _restRepository.GetAllAsync();
+            var restaurant = _mapper.Map<Restaurant>(rest);
+            restaurant.IdRestaurant = restaurants.Any()
+                ? restaurants.Max(r => r.IdRestaurant) + 1
+                : 1;
+
+            await _restRepository.AddAsync(restaurant);
+            await _restRepository.SaveChangesAsync();
+
+            return restaurant;
         }
 
         public async Task<bool> DeleteAsync(int id)

@@ -691,7 +691,6 @@ namespace Backend.Migrations
                         .HasColumnName("id_ReviewFood");
 
                     b.Property<string>("Comment")
-                        .IsRequired()
                         .HasColumnType("longtext")
                         .HasColumnName("comment");
 
@@ -704,7 +703,6 @@ namespace Backend.Migrations
                         .HasColumnName("id_Review");
 
                     b.Property<string>("Image")
-                        .IsRequired()
                         .HasColumnType("longtext")
                         .HasColumnName("image");
 
@@ -713,7 +711,6 @@ namespace Backend.Migrations
                         .HasColumnName("rating");
 
                     b.Property<string>("Video")
-                        .IsRequired()
                         .HasColumnType("longtext")
                         .HasColumnName("video");
 

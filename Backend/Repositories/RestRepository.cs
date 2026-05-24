@@ -1,4 +1,4 @@
-﻿using Backend.Models;
+using Backend.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Repositories
@@ -8,14 +8,68 @@ namespace Backend.Repositories
         public RestRepository(AppDbContext context) : base(context)
         { }
 
-        public async Task<int> CountAsync()
+        public async Task<int> CountAsync(int? categoryId = null, string? search = null, string? district = null, decimal? minPrice = null, decimal? maxPrice = null)
         {
-            return await _dbSet.CountAsync();
+            IQueryable<Restaurant> query = _dbSet;
+
+            if (categoryId.HasValue && categoryId.Value > 0)
+            {
+                query = query.Where(r => r.Foods.Any(f => f.IdCategory == categoryId));
+            }
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var lowerSearch = search.Trim().ToLower();
+                query = query.Where(r => r.NameRestaurant.ToLower().Contains(lowerSearch) || 
+                                         r.Foods.Any(f => f.Name.ToLower().Contains(lowerSearch)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(district))
+            {
+                query = query.Where(r => r.Address.Contains(district));
+            }
+
+            if (minPrice.HasValue || maxPrice.HasValue)
+            {
+                query = query.Where(r => r.Foods.Any(f => 
+                    (!minPrice.HasValue || f.Price >= minPrice.Value) && 
+                    (!maxPrice.HasValue || f.Price <= maxPrice.Value)
+                ));
+            }
+
+            return await query.CountAsync();
         }
 
-        public async Task<List<Restaurant>> GetPagedAsync(int page, int pageSize)
+        public async Task<List<Restaurant>> GetPagedAsync(int page, int pageSize, int? categoryId = null, string? search = null, string? district = null, decimal? minPrice = null, decimal? maxPrice = null)
         {
-            return await _dbSet
+            IQueryable<Restaurant> query = _dbSet;
+
+            if (categoryId.HasValue && categoryId.Value > 0)
+            {
+                query = query.Where(r => r.Foods.Any(f => f.IdCategory == categoryId));
+            }
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var lowerSearch = search.Trim().ToLower();
+                query = query.Where(r => r.NameRestaurant.ToLower().Contains(lowerSearch) || 
+                                         r.Foods.Any(f => f.Name.ToLower().Contains(lowerSearch)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(district))
+            {
+                query = query.Where(r => r.Address.Contains(district));
+            }
+
+            if (minPrice.HasValue || maxPrice.HasValue)
+            {
+                query = query.Where(r => r.Foods.Any(f => 
+                    (!minPrice.HasValue || f.Price >= minPrice.Value) && 
+                    (!maxPrice.HasValue || f.Price <= maxPrice.Value)
+                ));
+            }
+
+            return await query
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -23,18 +77,12 @@ namespace Backend.Repositories
 
         public async Task<int> CountByCategoryAsync(int categoryId)
         {
-            return await _dbSet
-                .Where(r => r.Foods.Any(f => f.IdCategory == categoryId))
-                .CountAsync();
+            return await CountAsync(categoryId);
         }
 
         public async Task<List<Restaurant>> GetPagedByCategoryAsync(int categoryId, int page, int pageSize)
         {
-            return await _dbSet
-                .Where(r => r.Foods.Any(f => f.IdCategory == categoryId))
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            return await GetPagedAsync(page, pageSize, categoryId);
         }
     }
 }
