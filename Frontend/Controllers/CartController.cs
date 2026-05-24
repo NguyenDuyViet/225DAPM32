@@ -1,86 +1,109 @@
 using Microsoft.AspNetCore.Mvc;
 using _225DAPM32.Models;
-using System.Collections.Generic;
+using _225DAPM32.Services;
 
 namespace _225DAPM32.Controllers
 {
     public class CartController : Controller
     {
-        // Giả lập giỏ hàng
-        private static List<CartFood> cartItems = new List<CartFood>
-        {
-            new CartFood { IdCartFood = 1, IdCart = 1, IdFood = 1, Quantity = 2, Note = "Ít cay" },
-            new CartFood { IdCartFood = 2, IdCart = 1, IdFood = 3, Quantity = 1, Note = "" }
-        };
+        private readonly ApiClient _apiClient;
 
-        public IActionResult Index()
+        public CartController(ApiClient apiClient)
         {
-            // Giả lập join với Food
-            var cartWithFoods = cartItems.Select(cf => new
-            {
-                CartFood = cf,
-                Food = new Food { IdFood = cf.IdFood, Name = cf.IdFood == 1 ? "Phở Bò" : "Gà Rán", Price = cf.IdFood == 1 ? 30000m : 50000m, Image = cf.IdFood == 1 ? "/images/pho.jpg" : "/images/garan.jpg" }
-            }).ToList();
+            _apiClient = apiClient;
+        }
 
-            return View(cartWithFoods);
+        public async Task<IActionResult> Index()
+        {
+            if (!IsLoggedIn())
+                return RedirectToAction("Index", "Home", new { area = "", loginRequired = true });
+
+            var cart = await _apiClient.GetResultAsync<CartResponse>("Cart") ?? new CartResponse();
+            ViewBag.User = await GetCurrentUserAsync();
+            return View(cart);
         }
 
         [HttpPost]
-        public IActionResult AddToCart(int foodId, int quantity, string note)
+        public async Task<IActionResult> AddToCart(int foodId, int quantity = 1, string? note = null, string? returnUrl = null)
         {
-            // Thêm vào giỏ hàng
-            var newItem = new CartFood
+            if (!IsLoggedIn())
+                return RedirectToAction("Index", "Home", new { area = "", loginRequired = true });
+
+            var (success, _, message) = await _apiClient.PostResultAsync<CartResponse>("Cart/items", new CartItemRequest
             {
-                IdCartFood = cartItems.Count + 1,
-                IdCart = 1, // Giả lập user 1
                 IdFood = foodId,
-                Quantity = quantity,
+                Quantity = Math.Max(1, quantity),
                 Note = note
-            };
-            cartItems.Add(newItem);
+            });
 
-            return RedirectToAction("Index");
+            TempData[success ? "Success" : "Error"] = success ? "Đã thêm món vào giỏ hàng." : (message ?? "Không thể thêm món vào giỏ hàng.");
+
+            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+                return Redirect(returnUrl);
+
+            return RedirectToAction("Index", "Cart", new { area = "" });
         }
 
         [HttpPost]
-        public IActionResult Checkout()
+        public async Task<IActionResult> UpdateItem(int idCartFood, int quantity, string? note)
         {
-            if (!cartItems.Any())
+            if (!IsLoggedIn())
+                return RedirectToAction("Index", "Home", new { area = "", loginRequired = true });
+
+            await _apiClient.PutResultAsync<CartResponse>($"Cart/items/{idCartFood}", new UpdateCartItemRequest
             {
-                TempData["Error"] = "Giỏ hàng trống!";
-                return RedirectToAction("Index");
-            }
+                Quantity = Math.Max(1, quantity),
+                Note = note
+            });
 
-            // Tạo đơn hàng mới
-            var newOrder = new Order
-            {
-                IdOrder = ProfileController.GetNextOrderId(),
-                IdUser = 1, // Giả lập user 1
-                Status = "pending",
-                Total = cartItems.Sum(cf => (cf.IdFood == 1 ? 30000m : 50000m) * cf.Quantity), // Giả lập giá
-                ShippingFee = 25000,
-                CreatedAt = DateTime.Now,
-                DeliveredAt = null
-            };
-
-            // Thêm đơn hàng vào danh sách của ProfileController
-            ProfileController.AddOrder(newOrder);
-
-            // Xóa giỏ hàng sau khi đặt hàng
-            cartItems.Clear();
-
-            TempData["Success"] = $"Đặt hàng thành công! Mã đơn hàng: #{newOrder.IdOrder}";
-            return RedirectToAction("OrderSuccess", new { orderId = newOrder.IdOrder });
+            return RedirectToAction("Index", "Cart", new { area = "" });
         }
 
-        public IActionResult OrderSuccess(int orderId)
+        [HttpPost]
+        public async Task<IActionResult> RemoveItem(int idCartFood)
         {
-            var order = ProfileController.GetOrderById(orderId);
-            if (order == null)
+            if (!IsLoggedIn())
+                return RedirectToAction("Index", "Home", new { area = "", loginRequired = true });
+
+            await _apiClient.DeleteAsync($"Cart/items/{idCartFood}");
+            return RedirectToAction("Index", "Cart", new { area = "" });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Checkout(string deliveryAddress, string paymentMethod = "cash", string? note = null)
+        {
+            if (!IsLoggedIn())
+                return RedirectToAction("Index", "Home", new { area = "", loginRequired = true });
+
+            var (success, order, message) = await _apiClient.PostResultAsync<Order>("Orders/checkout", new CreateOrderRequest
             {
-                return NotFound();
+                DeliveryAddress = deliveryAddress,
+                PaymentMethod = paymentMethod,
+                ShippingFee = 15000m,
+                Note = note
+            });
+
+            if (!success || order == null)
+            {
+                TempData["Error"] = message ?? "Không thể đặt hàng. Vui lòng kiểm tra giỏ hàng.";
+                return RedirectToAction("Index", "Cart", new { area = "" });
             }
-            return View(order);
+
+            TempData["Success"] = $"Đặt hàng thành công! Mã đơn hàng: {order.OrderCode}";
+            return RedirectToAction("Orders", "Profile", new { area = "" });
+        }
+
+        private bool IsLoggedIn()
+        {
+            return !string.IsNullOrWhiteSpace(HttpContext.Session.GetString("Token"));
+        }
+
+        private async Task<User?> GetCurrentUserAsync()
+        {
+            var userId = HttpContext.Session.GetString("UserId");
+            return int.TryParse(userId, out var id)
+                ? await _apiClient.GetResultAsync<User>($"Users/{id}")
+                : null;
         }
     }
 }

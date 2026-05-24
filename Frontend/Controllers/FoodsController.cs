@@ -1,32 +1,34 @@
 using Microsoft.AspNetCore.Mvc;
 using _225DAPM32.Models;
-using System.Collections.Generic;
+using _225DAPM32.Services;
 
 namespace _225DAPM32.Controllers
 {
     public class FoodsController : Controller
     {
-        // Giả lập dữ liệu vì chưa có DB context
-        private static List<Food> foods = new List<Food>
-        {
-            new Food { IdFood = 1, IdCategory = 1, IdRestaurant = 1, Name = "Phở Bò", Description = "Món phở truyền thống", Image = "/images/pho.jpg", Price = 30000, Discount = 0, CookCount = 100, PrepTime = 15 },
-            new Food { IdFood = 2, IdCategory = 1, IdRestaurant = 1, Name = "Bún Bò Huế", Description = "Bún bò cay ngon", Image = "/images/bunbo.jpg", Price = 35000, Discount = 5000, CookCount = 80, PrepTime = 20 },
-            new Food { IdFood = 3, IdCategory = 2, IdRestaurant = 2, Name = "Gà Rán", Description = "Gà rán giòn tan", Image = "/images/garan.jpg", Price = 50000, Discount = 0, CookCount = 150, PrepTime = 10 }
-        };
+        private readonly ApiClient _apiClient;
 
-        public IActionResult Index()
+        public FoodsController(ApiClient apiClient)
         {
-            return View(foods);
+            _apiClient = apiClient;
         }
 
-        public IActionResult Details(int id)
+        public async Task<IActionResult> Index(int? categoryId = null)
         {
-            var food = foods.FirstOrDefault(f => f.IdFood == id);
-            if (food == null)
-            {
-                return NotFound();
-            }
-            return View(food);
+            var foods = categoryId.HasValue
+                ? await _apiClient.GetResultAsync<List<Food>>($"Food/category/{categoryId.Value}", false)
+                : await _apiClient.GetResultAsync<List<Food>>("Food", false);
+
+            ViewBag.Categories = await _apiClient.GetResultAsync<List<Category>>("Category", false) ?? new List<Category>();
+            ViewBag.SelectedCategoryId = categoryId;
+
+            return View(foods ?? new List<Food>());
+        }
+
+        public async Task<IActionResult> Details(int id)
+        {
+            var food = await _apiClient.GetResultAsync<Food>($"Food/{id}", false);
+            return food == null ? NotFound() : View(food);
         }
     }
 }

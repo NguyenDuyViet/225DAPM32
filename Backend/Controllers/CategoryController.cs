@@ -16,7 +16,6 @@ namespace Backend.Controllers
             _categoryService = categoryService;
         }
 
-        // GET: api/Category
         [HttpGet]
         public async Task<ActionResult<ApiResponse<IEnumerable<CategoryResponse>>>> GetAllCategories()
         {
@@ -37,12 +36,11 @@ namespace Backend.Controllers
                 {
                     Code = 9999,
                     Message = $"Lỗi server: {ex.Message}",
-                    Results = null
+                    Results = default!
                 });
             }
         }
 
-        // GET: api/Category/5
         [HttpGet("{id}")]
         public async Task<ActionResult<ApiResponse<CategoryResponse>>> GetCategory(int id)
         {
@@ -56,7 +54,7 @@ namespace Backend.Controllers
                     {
                         Code = 1002,
                         Message = "Không tìm thấy danh mục",
-                        Results = null
+                        Results = default!
                     });
                 }
 
@@ -73,12 +71,11 @@ namespace Backend.Controllers
                 {
                     Code = 9999,
                     Message = $"Lỗi server: {ex.Message}",
-                    Results = null
+                    Results = default!
                 });
             }
         }
 
-        // POST: api/Category
         [HttpPost]
         public async Task<ActionResult<ApiResponse<CategoryResponse>>> CreateCategory([FromBody] CategoryRequest categoryRequest)
         {
@@ -90,7 +87,7 @@ namespace Backend.Controllers
                     {
                         Code = 1003,
                         Message = "Dữ liệu không hợp lệ",
-                        Results = null
+                        Results = default!
                     });
                 }
 
@@ -109,12 +106,11 @@ namespace Backend.Controllers
                 {
                     Code = 9999,
                     Message = $"Lỗi server: {ex.Message}",
-                    Results = null
+                    Results = default!
                 });
             }
         }
 
-        // PUT: api/Category/5
         [HttpPut("{id}")]
         public async Task<ActionResult<ApiResponse<CategoryResponse>>> UpdateCategory(int id, [FromBody] CategoryRequest categoryRequest)
         {
@@ -126,7 +122,7 @@ namespace Backend.Controllers
                     {
                         Code = 1003,
                         Message = "Dữ liệu không hợp lệ",
-                        Results = null
+                        Results = default!
                     });
                 }
 
@@ -138,7 +134,7 @@ namespace Backend.Controllers
                     {
                         Code = 1002,
                         Message = "Không tìm thấy danh mục",
-                        Results = null
+                        Results = default!
                     });
                 }
 
@@ -155,12 +151,11 @@ namespace Backend.Controllers
                 {
                     Code = 9999,
                     Message = $"Lỗi server: {ex.Message}",
-                    Results = null
+                    Results = default!
                 });
             }
         }
 
-        // DELETE: api/Category/5
         [HttpDelete("{id}")]
         public async Task<ActionResult<ApiResponse<object>>> DeleteCategory(int id)
         {
@@ -174,7 +169,7 @@ namespace Backend.Controllers
                     {
                         Code = 1002,
                         Message = "Không tìm thấy danh mục",
-                        Results = null
+                        Results = default!
                     });
                 }
 
@@ -182,7 +177,7 @@ namespace Backend.Controllers
                 {
                     Code = 1000,
                     Message = "Xóa danh mục thành công",
-                    Results = null
+                    Results = default!
                 });
             }
             catch (Exception ex)
@@ -191,12 +186,11 @@ namespace Backend.Controllers
                 {
                     Code = 9999,
                     Message = $"Lỗi server: {ex.Message}",
-                    Results = null
+                    Results = default!
                 });
             }
         }
 
-        // GET: api/Category/5/foods
         [HttpGet("{id}/foods")]
         public async Task<ActionResult<ApiResponse<IEnumerable<FoodResponse>>>> GetCategoryWithFoods(int id)
         {
@@ -210,7 +204,7 @@ namespace Backend.Controllers
                     {
                         Code = 1002,
                         Message = "Không tìm thấy danh mục",
-                        Results = null
+                        Results = default!
                     });
                 }
 
@@ -227,7 +221,7 @@ namespace Backend.Controllers
                 {
                     Code = 9999,
                     Message = $"Lỗi server: {ex.Message}",
-                    Results = null
+                    Results = default!
                 });
             }
         }

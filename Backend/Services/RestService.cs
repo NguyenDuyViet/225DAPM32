@@ -54,6 +54,20 @@ namespace Backend.Services
             return data;
         }
 
+        public async Task<Restaurant> CreateRestaurantAsync(RestRequestDTO rest)
+        {
+            var restaurants = await _restRepository.GetAllAsync();
+            var restaurant = _mapper.Map<Restaurant>(rest);
+            restaurant.IdRestaurant = restaurants.Any()
+                ? restaurants.Max(r => r.IdRestaurant) + 1
+                : 1;
+
+            await _restRepository.AddAsync(restaurant);
+            await _restRepository.SaveChangesAsync();
+
+            return restaurant;
+        }
+
         public async Task<bool> DeleteAsync(int id)
         {
             var restaurant = await _restRepository.GetByIdAsync(id);

@@ -1,24 +1,17 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
     <script type="importmap"></script>
     <link rel="icon" href="@Url.Content("~/LoGo_MNTN.png")" />
-    
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Material Symbols Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
-    
-    <!-- Bootstrap (for existing pages) -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/_225DAPM32.styles.css" asp-append-version="true" />
-    
     <style>
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
@@ -29,9 +22,30 @@
 </head>
 <body>
     <partial name="_Header" />
+
     @{
         var isRestaurantPage = ViewContext.RouteData.Values["controller"]?.ToString()?.ToLower() == "restaurants";
     }
+
+    @if (TempData["Success"] is string success)
+    {
+        <div class="container mt-3">
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @success
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    }
+    @if (TempData["Error"] is string error)
+    {
+        <div class="container mt-3">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @error
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    }
+
     @if (isRestaurantPage)
     {
         <main role="main" class="pb-3">
@@ -47,314 +61,10 @@
         </div>
     }
 
-    <footer class="bg-gray-900 text-gray-300 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 py-12">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-                <!-- Company Info -->
-                <div>
-                    <div class="flex items-center mb-4">
-                        <img src="/LoGo_MNTN.png" alt="Logo" class="h-10 brightness-0 invert" />
-                    </div>
-                    <p class="text-sm mb-4 text-gray-400">Đặt món ăn yêu thích từ hàng nghìn nhà hàng trên toàn quốc. Giao hàng nhanh chóng và tiện lợi.</p>
-                    <div class="flex gap-3">
-                        <a href="#" class="w-9 h-9 rounded-full bg-gray-800 hover:bg-orange-600 flex items-center justify-center transition-colors" title="Facebook">
-                            <i class="fab fa-facebook-f"></i>
-                        </a>
-                        <a href="#" class="w-9 h-9 rounded-full bg-gray-800 hover:bg-orange-600 flex items-center justify-center transition-colors" title="Instagram">
-                            <i class="fab fa-instagram"></i>
-                        </a>
-                        <a href="#" class="w-9 h-9 rounded-full bg-gray-800 hover:bg-orange-600 flex items-center justify-center transition-colors" title="Twitter">
-                            <i class="fab fa-twitter"></i>
-                        </a>
-                        <a href="#" class="w-9 h-9 rounded-full bg-gray-800 hover:bg-orange-600 flex items-center justify-center transition-colors" title="YouTube">
-                            <i class="fab fa-youtube"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Support Links -->
-                <div>
-                    <h6 class="text-white font-semibold mb-4">Hỗ trợ khách hàng</h6>
-                    <ul class="space-y-2">
-                        <li><a href="#" class="text-sm hover:text-orange-500 transition-colors">Trung tâm trợ giúp</a></li>
-                        <li><a href="#" class="text-sm hover:text-orange-500 transition-colors">Liên hệ chúng tôi</a></li>
-                        <li><a href="#" class="text-sm hover:text-orange-500 transition-colors">Câu hỏi thường gặp</a></li>
-                        <li><a href="#" class="text-sm hover:text-orange-500 transition-colors">Báo cáo vấn đề</a></li>
-                        <li><a href="#" class="text-sm hover:text-orange-500 transition-colors">Gửi phản hồi</a></li>
-                    </ul>
-                </div>
-
-                <!-- Business Links -->
-                <div>
-                    <h6 class="text-white font-semibold mb-4">Đối tác</h6>
-                    <ul class="space-y-2">
-                        <li><a href="#" class="text-sm hover:text-orange-500 transition-colors">Đăng ký nhà hàng</a></li>
-                        <li><a href="#" class="text-sm hover:text-orange-500 transition-colors">Trở thành tài xế</a></li>
-                        <li><a href="#" class="text-sm hover:text-orange-500 transition-colors">Quảng cáo với chúng tôi</a></li>
-                        <li><a href="#" class="text-sm hover:text-orange-500 transition-colors">API cho doanh nghiệp</a></li>
-                    </ul>
-                </div>
-
-                <!-- Download App -->
-                <div>
-                    <h6 class="text-white font-semibold mb-4">Tải ứng dụng</h6>
-                    <p class="text-sm text-gray-400 mb-4">Tải app để trải nghiệm tốt hơn</p>
-                    <div class="space-y-2">
-                        <a href="#" class="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors">
-                            <i class="fab fa-apple text-xl"></i>
-                            <div class="text-left">
-                                <div class="text-[10px] text-gray-400">Tải trên</div>
-                                <div class="text-sm font-semibold text-white">App Store</div>
-                            </div>
-                        </a>
-                        <a href="#" class="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors">
-                            <i class="fab fa-google-play text-xl"></i>
-                            <div class="text-left">
-                                <div class="text-[10px] text-gray-400">Tải trên</div>
-                                <div class="text-sm font-semibold text-white">Google Play</div>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Bottom Section -->
-            <div class="border-t border-gray-800 pt-8">
-                <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-                    <p class="text-sm text-gray-400">&copy; 2026 Món Ngon Tại Nhà. Tất cả quyền được bảo lưu.</p>
-                    <div class="flex gap-6">
-                        <a href="#" class="text-sm hover:text-orange-500 transition-colors">Điều khoản sử dụng</a>
-                        <a href="#" class="text-sm hover:text-orange-500 transition-colors">Chính sách bảo mật</a>
-                        <a href="#" class="text-sm hover:text-orange-500 transition-colors">Chính sách cookie</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
+    <partial name="_Footer" />
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-
-    <div class="modal fade" id="authModal" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-md">
-            <div class="modal-content">
-                <div class="modal-header border-bottom-0">
-                    <h5 class="modal-title" id="authModalLabel">Đăng nhập hoặc đăng ký</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <ul class="nav nav-tabs mb-4" id="authTab" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="loginTab" data-bs-toggle="tab" data-bs-target="#loginPane" type="button" role="tab" aria-controls="loginPane" aria-selected="true">Đăng nhập</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="registerTab" data-bs-toggle="tab" data-bs-target="#registerPane" type="button" role="tab" aria-controls="registerPane" aria-selected="false">Đăng ký</button>
-                        </li>
-                    </ul>
-                    <div class="tab-content">
-                        <div class="tab-pane fade show active" id="loginPane" role="tabpanel" aria-labelledby="loginTab">
-                            <form id="loginForm">
-                                <div class="mb-3">
-                                    <label for="loginEmail" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="loginEmail" placeholder="Email của bạn" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="loginPassword" class="form-label">Mật khẩu</label>
-                                    <input type="password" class="form-control" id="loginPassword" placeholder="Mật khẩu" required>
-                                </div>
-                                <button type="button" class="btn btn-primary w-100" onclick="submitAuth('login')">Đăng nhập</button>
-                            </form>
-                        </div>
-                        <div class="tab-pane fade" id="registerPane" role="tabpanel" aria-labelledby="registerTab">
-                            <form id="registerForm">
-                                <div class="mb-3">
-                                    <label for="registerName" class="form-label">Họ tên</label>
-                                    <input type="text" class="form-control" id="registerName" placeholder="Họ tên" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="registerEmail" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="registerEmail" placeholder="Email của bạn" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="registerPassword" class="form-label">Mật khẩu</label>
-                                    <input type="password" class="form-control" id="registerPassword" placeholder="Mật khẩu" required>
-                                </div>
-                                <button type="button" class="btn btn-success w-100" onclick="submitAuth('register')">Đăng ký</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        function updateAccountButton() {
-            const loggedIn = localStorage.getItem('mgtn_loggedIn') === 'true';
-            const accountIcon = document.getElementById('accountIcon');
-            const accountButton = document.getElementById('accountButton');
-            if (!accountIcon || !accountButton) return;
-            accountIcon.className = loggedIn ? 'fas fa-user' : 'fas fa-user-plus';
-            accountButton.title = loggedIn ? 'Trang cá nhân' : 'Đăng nhập / Đăng ký';
-        }
-
-        function handleAccountClick(event) {
-            event.preventDefault();
-            const loggedIn = localStorage.getItem('mgtn_loggedIn') === 'true';
-            if (loggedIn) {
-                window.location.href = '@Url.Action("Index", "Profile")';
-                return;
-            }
-            const authModal = new bootstrap.Modal(document.getElementById('authModal'));
-            authModal.show();
-        }
-
-        function submitAuth(action) {
-            localStorage.setItem('mgtn_loggedIn', 'true');
-            updateAccountButton();
-            const authModalEl = document.getElementById('authModal');
-            const modal = bootstrap.Modal.getInstance(authModalEl);
-            if (modal) modal.hide();
-            if (action === 'login' || action === 'register') {
-                window.location.href = '@Url.Action("Index", "Profile")';
-            }
-        }
-
-        // Notification functions
-        function updateNotificationBadge() {
-            const badge = document.getElementById('notificationBadge');
-            if (!badge) return;
-
-            // Simulate notification count (in real app, this would come from API)
-            const notificationCount = localStorage.getItem('mgtn_notificationCount') || '3';
-
-            if (notificationCount === '0') {
-                badge.style.display = 'none';
-            } else {
-                badge.style.display = 'inline-block';
-                badge.textContent = notificationCount;
-            }
-        }
-
-        function markNotificationAsRead(notificationId) {
-            // In real app, this would call API to mark as read
-            const badge = document.getElementById('notificationBadge');
-            if (badge) {
-                const currentCount = parseInt(badge.textContent) || 0;
-                if (currentCount > 0) {
-                    const newCount = currentCount - 1;
-                    localStorage.setItem('mgtn_notificationCount', newCount.toString());
-                    updateNotificationBadge();
-                }
-            }
-        }
-
-        // Cart functions
-        function updateCartBadge() {
-            const badge = document.getElementById('cartBadge');
-            if (!badge) return;
-
-            // Get cart items from localStorage (in real app, this would come from API/session)
-            const cartItems = JSON.parse(localStorage.getItem('mgtn_cart') || '[]');
-            const totalItems = cartItems.length;
-
-            if (totalItems === 0) {
-                badge.style.display = 'none';
-            } else {
-                badge.style.display = 'inline-block';
-                badge.textContent = totalItems.toString();
-            }
-        }
-
-        function addToCart(foodId, foodName, price, quantity = 1) {
-            // Get current cart
-            const cartItems = JSON.parse(localStorage.getItem('mgtn_cart') || '[]');
-
-            // Check if item already exists
-            const existingItem = cartItems.find(item => item.id === foodId);
-
-            if (existingItem) {
-                existingItem.quantity += quantity;
-            } else {
-                cartItems.push({
-                    id: foodId,
-                    name: foodName,
-                    price: price,
-                    quantity: quantity
-                });
-            }
-
-            // Save updated cart
-            localStorage.setItem('mgtn_cart', JSON.stringify(cartItems));
-
-            // Update badge
-            updateCartBadge();
-
-            // Show success message (optional)
-            showToast('Đã thêm vào giỏ hàng!', 'success');
-        }
-
-        // Expose global alias for menu page add button
-        window.mgtnAddToCart = addToCart;
-
-        function removeFromCart(foodId) {
-            const cartItems = JSON.parse(localStorage.getItem('mgtn_cart') || '[]');
-            const updatedCart = cartItems.filter(item => item.id !== foodId);
-
-            localStorage.setItem('mgtn_cart', JSON.stringify(updatedCart));
-            updateCartBadge();
-        }
-
-        function clearCart() {
-            localStorage.removeItem('mgtn_cart');
-            updateCartBadge();
-        }
-
-        function showToast(message, type = 'info') {
-            // Simple toast implementation
-            const toast = document.createElement('div');
-            toast.className = `alert alert-${type} position-fixed`;
-            toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-            toast.innerHTML = `
-                <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'} me-2"></i>
-                ${message}
-                <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
-            `;
-            document.body.appendChild(toast);
-
-            // Auto remove after 3 seconds
-            setTimeout(() => {
-                if (toast.parentElement) {
-                    toast.remove();
-                }
-            }, 3000);
-        }
-
-        // Handle notification dropdown clicks
-        document.addEventListener('click', function(e) {
-            if (e.target.closest('.dropdown-item') && e.target.closest('#notificationDropdown + .dropdown-menu')) {
-                // Mark notification as read when clicked
-                markNotificationAsRead(e.target.closest('.dropdown-item').dataset.notificationId);
-            }
-        });
-
-        document.addEventListener('DOMContentLoaded', function () {
-            updateAccountButton();
-            updateNotificationBadge();
-
-            // Initialize cart with sample items if empty
-            if (!localStorage.getItem('mgtn_cart')) {
-                const sampleCart = [
-                    { id: 1, name: 'Phở Bò', price: 45000, quantity: 2 },
-                    { id: 2, name: 'Cơm Tấm', price: 35000, quantity: 1 },
-                    { id: 3, name: 'Bún Bò Huế', price: 40000, quantity: 1 }
-                ];
-                localStorage.setItem('mgtn_cart', JSON.stringify(sampleCart));
-            }
-
-            updateCartBadge();
-        });
-    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

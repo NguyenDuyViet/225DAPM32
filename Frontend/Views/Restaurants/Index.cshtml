@@ -2,9 +2,9 @@
 
 @{
     ViewData["Title"] = "Nhà hàng";
-    int currentPage = ViewBag.CurrentPage;
-    int totalPages = ViewBag.TotalPages;
-    int totalItems = ViewBag.TotalItems;
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 0;
+    int totalItems = ViewBag.TotalItems ?? 0;
     var categories = ViewBag.Categories as List<_225DAPM32.Models.Category> ?? new List<_225DAPM32.Models.Category>();
     int? selectedCategoryId = ViewBag.SelectedCategoryId;
 }
@@ -12,9 +12,7 @@
 <div class="bg-gray-50 min-h-screen">
     <div class="max-w-7xl mx-auto px-4 py-6">
         <div class="flex gap-6">
-            <!-- Sidebar Filters -->
             <aside class="w-64 flex-shrink-0">
-                <!-- Khu vực -->
                 <div class="bg-white rounded-lg p-4 mb-4 shadow-sm">
                     <h3 class="flex items-center gap-2 text-gray-700 font-semibold mb-3">
                         <span class="material-symbols-outlined text-orange-600">location_on</span>
@@ -23,24 +21,27 @@
                     <div class="space-y-2">
                         <label class="flex items-center gap-2 cursor-pointer hover:text-orange-600 transition-colors">
                             <input type="checkbox" checked class="w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500" />
-                            <span class="text-sm text-gray-700">Quận 1</span>
+                            <span class="text-sm text-gray-700">Hải Châu</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer hover:text-orange-600 transition-colors">
                             <input type="checkbox" class="w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500" />
-                            <span class="text-sm text-gray-700">Quận 3</span>
+                            <span class="text-sm text-gray-700">Thanh Khê</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer hover:text-orange-600 transition-colors">
                             <input type="checkbox" class="w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500" />
-                            <span class="text-sm text-gray-700">Quận Bình Thạnh</span>
+                            <span class="text-sm text-gray-700">Sơn Trà</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer hover:text-orange-600 transition-colors">
                             <input type="checkbox" class="w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500" />
-                            <span class="text-sm text-gray-700">Quận 7</span>
+                            <span class="text-sm text-gray-700">Ngũ Hành Sơn</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-orange-600 transition-colors">
+                            <input type="checkbox" class="w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500" />
+                            <span class="text-sm text-gray-700">Cẩm Lệ</span>
                         </label>
                     </div>
                 </div>
 
-                <!-- Phân loại -->
                 <div class="bg-white rounded-lg p-4 mb-4 shadow-sm">
                     <h3 class="flex items-center gap-2 text-gray-700 font-semibold mb-3">
                         <span class="material-symbols-outlined text-orange-600">restaurant</span>
@@ -63,7 +64,6 @@
                     </div>
                 </div>
 
-                <!-- Giá cả -->
                 <div class="bg-white rounded-lg p-4 shadow-sm">
                     <h3 class="flex items-center gap-2 text-gray-700 font-semibold mb-3">
                         <span class="material-symbols-outlined text-orange-600">payments</span>
@@ -81,7 +81,6 @@
                 </div>
             </aside>
 
-            <!-- Main Content -->
             <main class="flex-1">
                 <div id="restaurant-grid">
                     @await Html.PartialAsync("_RestaurantGrid", Model)
@@ -115,7 +114,6 @@
             url += '&categoryId=' + categoryId;
         }
 
-        // Show loading
         const grid = document.getElementById('restaurant-grid');
         grid.style.opacity = '0.5';
 
@@ -131,19 +129,13 @@
     }
 
     function updateCategoryUI(categoryId) {
-        const items = document.querySelectorAll('.category-item');
-        items.forEach(item => {
+        document.querySelectorAll('.category-item').forEach(item => {
             const itemCatId = item.getAttribute('data-category-id');
             const isSelected = (categoryId === null && itemCatId === '') ||
-                               (categoryId !== null && itemCatId === String(categoryId));
+                (categoryId !== null && itemCatId === String(categoryId));
 
             item.classList.remove('bg-orange-600', 'text-white', 'hover:bg-gray-100', 'text-gray-700');
-
-            if (isSelected) {
-                item.classList.add('bg-orange-600', 'text-white');
-            } else {
-                item.classList.add('hover:bg-gray-100', 'text-gray-700');
-            }
+            item.classList.add(...(isSelected ? ['bg-orange-600', 'text-white'] : ['hover:bg-gray-100', 'text-gray-700']));
         });
     }
 </script>

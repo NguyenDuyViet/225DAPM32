@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
 using _225DAPM32.Areas.Admin.Models;
 using _225DAPM32.Models;
+using _225DAPM32.Services;
 using RestaurantEntity = _225DAPM32.Models.Restaurant;
 
 namespace _225DAPM32.Areas.Admin
@@ -9,79 +9,69 @@ namespace _225DAPM32.Areas.Admin
     [Area("Admin")]
     public class AdminController : Controller
     {
-        private static readonly List<RestaurantEntity> SampleRestaurants = new()
-        {
-            new RestaurantEntity { IdRestaurant = 1, NameRestaurant = "Nhà hàng Phở 24h", Description = "Phở gà, phở bò đặc biệt", Image = "/images/restaurant1.jpg", Address = "123 Đường ABC, Q.1", OpenTime = new TimeSpan(6,0,0), CloseTime = new TimeSpan(22,0,0), Lat = 10.762622m, Lng = 106.660172m },
-            new RestaurantEntity { IdRestaurant = 2, NameRestaurant = "Gà rán Crispy", Description = "Gà rán giòn tan", Image = "/images/restaurant2.jpg", Address = "456 Đường XYZ, Q.3", OpenTime = new TimeSpan(10,0,0), CloseTime = new TimeSpan(23,0,0), Lat = 10.762700m, Lng = 106.682000m }
-        };
+        private readonly ApiClient _apiClient;
 
-        private static readonly List<User> SampleUsers = new()
+        public AdminController(ApiClient apiClient)
         {
-            new User { IdUser = 1, Username = "nguyenvana", Email = "nguyenvana@example.com", Phone = "0912345678", Status = "active", CreatedAt = DateTime.Now.AddMonths(-5), LastOnline = DateTime.Now.AddMinutes(-12), Avatar = "/images/user1.jpg", IdRole = 1 },
-            new User { IdUser = 2, Username = "tranthib", Email = "tranthib@example.com", Phone = "0987654321", Status = "active", CreatedAt = DateTime.Now.AddMonths(-2), LastOnline = DateTime.Now.AddHours(-1), Avatar = "/images/user2.jpg", IdRole = 1 }
-        };
+            _apiClient = apiClient;
+        }
 
-        private static readonly List<Order> SampleOrders = new()
+        public async Task<IActionResult> Index()
         {
-            new Order { IdOrder = 1001, IdUser = 1, Total = 185000m, ShippingFee = 15000m, Discount = 0m, FinalTotal = 200000m, Status = "delivering", CreatedAt = DateTime.Now.AddMinutes(-40), DriverName = "Trần Văn C", DriverPhone = "0911222333", EstimatedDelivery = DateTime.Now.AddMinutes(20) },
-            new Order { IdOrder = 1002, IdUser = 2, Total = 255000m, ShippingFee = 15000m, Discount = 0m, FinalTotal = 270000m, Status = "completed", CreatedAt = DateTime.Now.AddHours(-2), DriverName = "Lê Thị D", DriverPhone = "0909988776", EstimatedDelivery = DateTime.Now.AddHours(-1) }
-        };
+            if (!RequireAdmin())
+                return RedirectToAction("Index", "Home", new { area = "" });
 
-        private static readonly List<SecurityPolicyViewModel> SamplePolicies = new()
-        {
-            new SecurityPolicyViewModel { Id = 1, Title = "Xác thực 2 yếu tố", Description = "Yêu cầu tất cả admin bật xác thực hai yếu tố cho tài khoản.", EffectiveDate = DateTime.Now.AddMonths(-3), IsActive = true },
-            new SecurityPolicyViewModel { Id = 2, Title = "Mật khẩu mạnh", Description = "Bắt buộc mật khẩu phải có ít nhất 12 ký tự, chữ hoa, chữ thường và số.", EffectiveDate = DateTime.Now.AddMonths(-6), IsActive = true },
-            new SecurityPolicyViewModel { Id = 3, Title = "Đăng xuất tự động", Description = "Tự động đăng xuất sau 15 phút không hoạt động.", EffectiveDate = DateTime.Now.AddMonths(-4), IsActive = true }
-        };
+            var restaurants = await GetRestaurantsAsync();
+            var users = await _apiClient.GetResultAsync<List<User>>("Users") ?? new List<User>();
+            var orders = await _apiClient.GetResultAsync<List<Order>>("Orders/admin") ?? new List<Order>();
 
-        private static readonly List<ViolationAlert> ViolationAlerts = new()
-        {
-            new ViolationAlert { Id = 1, Title = "Đăng nhập khả nghi", Description = "Phát hiện đăng nhập từ IP mới tại Hà Nội.", Severity = "High", CreatedAt = DateTime.Now.AddHours(-1), Status = "Pending" },
-            new ViolationAlert { Id = 2, Title = "Thay đổi chính sách chưa xác thực", Description = "Cố gắng truy cập trang quản lý chính sách từ tài khoản chưa xác thực.", Severity = "Medium", CreatedAt = DateTime.Now.AddHours(-3), Status = "Reviewed" },
-            new ViolationAlert { Id = 3, Title = "Thực thi API bị từ chối", Description = "API quản lý người dùng trả lỗi 403 khi truy xuất từ IP lạ.", Severity = "High", CreatedAt = DateTime.Now.AddDays(-1), Status = "Pending" }
-        };
-
-        public IActionResult Index()
-        {
             ViewData["Title"] = "Admin Dashboard";
-            var model = new AdminDashboardViewModel
+            return View(new AdminDashboardViewModel
             {
-                RestaurantsCount = SampleRestaurants.Count,
-                UsersCount = SampleUsers.Count,
-                OrdersToday = SampleOrders.Count,
-                RevenueToday = SampleOrders.Sum(o => o.FinalTotal)
-            };
-            return View(model);
+                RestaurantsCount = restaurants.Count,
+                UsersCount = users.Count,
+                OrdersToday = orders.Count(o => o.CreatedAt.Date == DateTime.Today),
+                RevenueToday = orders.Where(o => o.CreatedAt.Date == DateTime.Today).Sum(o => o.FinalTotal)
+            });
         }
 
-        public IActionResult Restaurants()
+        public async Task<IActionResult> Restaurants()
         {
+            if (!RequireAdmin())
+                return RedirectToAction("Index", "Home", new { area = "" });
+
             ViewData["Title"] = "Quản lý Nhà hàng";
-            return View(SampleRestaurants);
+            return View(await GetRestaurantsAsync());
         }
 
-        public IActionResult Users()
+        public async Task<IActionResult> Users()
         {
+            if (!RequireAdmin())
+                return RedirectToAction("Index", "Home", new { area = "" });
+
             ViewData["Title"] = "Quản lý Người dùng";
-            return View(SampleUsers);
+            return View(await _apiClient.GetResultAsync<List<User>>("Users") ?? new List<User>());
         }
 
-        public IActionResult Orders()
+        public async Task<IActionResult> Orders()
         {
+            if (!RequireAdmin())
+                return RedirectToAction("Index", "Home", new { area = "" });
+
             ViewData["Title"] = "Quản lý Đơn hàng";
-            return View(SampleOrders);
+            return View(await _apiClient.GetResultAsync<List<Order>>("Orders/admin") ?? new List<Order>());
         }
 
         public IActionResult Policies()
         {
             ViewData["Title"] = "Chính sách bảo mật";
-            return View(SamplePolicies);
+            return View(new List<SecurityPolicyViewModel>());
         }
 
         public IActionResult Violations()
         {
             ViewData["Title"] = "Cảnh báo vi phạm";
-            return View(ViolationAlerts);
+            return View(new List<ViolationAlert>());
         }
 
         public IActionResult Reports()
@@ -94,6 +84,16 @@ namespace _225DAPM32.Areas.Admin
         {
             ViewData["Title"] = "Cài đặt Hệ thống";
             return View();
+        }
+
+        private async Task<List<RestaurantEntity>> GetRestaurantsAsync()
+        {
+            return await _apiClient.GetResultAsync<List<RestaurantEntity>>("Restaurants/all", false) ?? new List<RestaurantEntity>();
+        }
+
+        private bool RequireAdmin()
+        {
+            return HttpContext.Session.GetString("Role") == "admin";
         }
     }
 }

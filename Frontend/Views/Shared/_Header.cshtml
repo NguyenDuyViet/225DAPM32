@@ -1,6 +1,24 @@
+@inject _225DAPM32.Services.ApiClient ApiClient
 @{
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString()?.ToLower();
-    var currentAction = ViewContext.RouteData.Values["action"]?.ToString()?.ToLower();
+    var token = Context.Session.GetString("Token");
+    var role = Context.Session.GetString("Role");
+    var username = Context.Session.GetString("Username");
+    var isLoggedIn = !string.IsNullOrWhiteSpace(token);
+    var cartCount = 0;
+
+    if (isLoggedIn)
+    {
+        try
+        {
+            var cart = await ApiClient.GetResultAsync<_225DAPM32.Models.CartResponse>("Cart");
+            cartCount = cart?.Items.Count ?? 0;
+        }
+        catch
+        {
+            cartCount = 0;
+        }
+    }
 }
 
 <header>
@@ -9,37 +27,55 @@
             <a class="flex items-center flex-shrink-0" asp-area="" asp-controller="Home" asp-action="Index">
                 <img src="/LoGo_MNTN.png" alt="Logo" class="h-12" />
             </a>
-            
-            <div class="flex-grow max-w-xl">
+
+            <form class="flex-grow max-w-xl" asp-area="" asp-controller="Foods" asp-action="Index" method="get">
                 <div class="relative">
                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
-                    <input 
-                        type="text" 
-                        placeholder="Tìm kiếm món ăn, nhà hàng..." 
-                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
-                    />
+                    <input name="q" type="text" placeholder="Tìm kiếm món ăn, nhà hàng..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm" />
                 </div>
-            </div>
-            
+            </form>
+
             <div class="flex items-center gap-6 flex-shrink-0">
-                <a class="text-gray-700 font-medium hover:text-orange-600 transition-colors @(currentController == "home" ? "text-orange-600" : "")" asp-area="" asp-controller="Home" asp-action="Index">
-                    Trang chủ
-                </a>
-                <a class="text-gray-700 font-medium hover:text-orange-600 transition-colors @(currentController == "restaurants" ? "text-orange-600" : "")" asp-area="" asp-controller="Restaurants" asp-action="Index">
-                    Nhà hàng
-                </a>
+                <a class="text-gray-700 font-medium hover:text-orange-600 transition-colors @(currentController == "home" ? "text-orange-600" : "")" asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a>
+                <a class="text-gray-700 font-medium hover:text-orange-600 transition-colors @(currentController == "foods" ? "text-orange-600" : "")" asp-area="" asp-controller="Foods" asp-action="Index">Món ăn</a>
+                <a class="text-gray-700 font-medium hover:text-orange-600 transition-colors @(currentController == "restaurants" ? "text-orange-600" : "")" asp-area="" asp-controller="Restaurants" asp-action="Index">Nhà hàng</a>
                 <a class="text-gray-700 font-medium hover:text-orange-600 transition-colors relative @(currentController == "cart" ? "text-orange-600" : "")" asp-area="" asp-controller="Cart" asp-action="Index">
                     <span class="material-symbols-outlined">shopping_cart</span>
-                    <span class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center font-bold" id="cartBadge" style="line-height: 1;">0</span>
+                    <span class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center font-bold" id="cartBadge">@cartCount</span>
                 </a>
-                
-                <button 
-                    type="button" 
-                    class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-                    data-bs-toggle="modal" 
-                    data-bs-target="#authModal">
-                    Đăng nhập
-                </button>
+
+                @if (isLoggedIn)
+                {
+                    <div class="dropdown">
+                        <button class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            @(string.IsNullOrWhiteSpace(username) ? "Tài khoản" : username)
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            @if (role == "admin")
+                            {
+                                <li><a class="dropdown-item" asp-area="Admin" asp-controller="Admin" asp-action="Index">Trang admin</a></li>
+                            }
+                            @if (role == "restaurant")
+                            {
+                                <li><a class="dropdown-item" asp-area="Restaurant" asp-controller="Restaurant" asp-action="Index">Trang nhà hàng</a></li>
+                            }
+                            <li><a class="dropdown-item" asp-area="" asp-controller="Profile" asp-action="Index">Trang cá nhân</a></li>
+                            <li><a class="dropdown-item" asp-area="" asp-controller="Profile" asp-action="Orders">Đơn hàng</a></li>
+                            <li><hr class="dropdown-divider" /></li>
+                            <li>
+                                <form asp-area="" asp-controller="Auth" asp-action="Logout" method="post">
+                                    <button class="dropdown-item text-danger" type="submit">Đăng xuất</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                }
+                else
+                {
+                    <button type="button" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors" data-bs-toggle="modal" data-bs-target="#authModal">
+                        Đăng nhập
+                    </button>
+                }
             </div>
         </div>
     </nav>
@@ -53,62 +89,54 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <ul class="nav nav-tabs mb-4" id="authTab" role="tablist">
+                <ul class="nav nav-tabs mb-4" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="loginTab" data-bs-toggle="tab" data-bs-target="#loginPane" type="button" role="tab" aria-controls="loginPane" aria-selected="true">Đăng nhập</button>
+                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#loginPane" type="button">Đăng nhập</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="registerTab" data-bs-toggle="tab" data-bs-target="#registerPane" type="button" role="tab" aria-controls="registerPane" aria-selected="false">Đăng ký</button>
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#registerPane" type="button">Đăng ký</button>
                     </li>
                 </ul>
-                
+
                 <div class="tab-content">
-                    <div class="tab-pane fade show active" id="loginPane" role="tabpanel" aria-labelledby="loginTab">
-                        <form id="loginForm">
+                    <div class="tab-pane fade show active" id="loginPane" role="tabpanel">
+                        <form asp-area="" asp-controller="Auth" asp-action="Login" method="post">
+                            <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
                             <div class="mb-3">
-                                <label for="loginEmail" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="loginEmail" placeholder="Email của bạn" required>
+                                <label class="form-label">Tên đăng nhập</label>
+                                <input type="text" name="username" class="form-control" placeholder="Tên đăng nhập" required />
                             </div>
                             <div class="mb-3">
-                                <label for="loginPassword" class="form-label">Mật khẩu</label>
-                                <input type="password" class="form-control" id="loginPassword" placeholder="Mật khẩu" required>
+                                <label class="form-label">Mật khẩu</label>
+                                <input type="password" name="password" class="form-control" placeholder="Mật khẩu" required />
                             </div>
-                            <button type="button" class="btn btn-primary w-100" onclick="submitAuth('login')">Đăng nhập</button>
+                            <button type="submit" class="btn btn-primary w-100">Đăng nhập</button>
                         </form>
                     </div>
-                    
-                    <div class="tab-pane fade" id="registerPane" role="tabpanel" aria-labelledby="registerTab">
-                        <form id="registerForm">
+
+                    <div class="tab-pane fade" id="registerPane" role="tabpanel">
+                        <form asp-area="" asp-controller="Auth" asp-action="Register" method="post">
                             <div class="mb-3">
-                                <label for="registerFullName" class="form-label">Họ và tên</label>
-                                <input type="text" class="form-control" id="registerFullName" placeholder="Nhập họ tên đầy đủ (không bắt buộc)">
+                                <label class="form-label">Họ và tên</label>
+                                <input type="text" name="fullName" class="form-control" placeholder="Họ tên" />
                             </div>
-
                             <div class="mb-3">
-                                <label for="registerUsername" class="form-label">Tên đăng nhập </label>
-                                <input type="text" class="form-control" id="registerUsername" placeholder="Nhập tên đăng nhập" required>
+                                <label class="form-label">Tên đăng nhập</label>
+                                <input type="text" name="username" class="form-control" placeholder="Tên đăng nhập" required />
                             </div>
-
                             <div class="mb-3">
-                                <label for="registerPassword" class="form-label">Mật khẩu </label>
-                                <input type="password" class="form-control" id="registerPassword" placeholder="Nhập mật khẩu" required>
+                                <label class="form-label">Email</label>
+                                <input type="email" name="email" class="form-control" placeholder="Email" required />
                             </div>
-
                             <div class="mb-3">
-                                <label for="registerEmail" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="registerEmail" placeholder="Nhập địa chỉ Email" required>
+                                <label class="form-label">Số điện thoại</label>
+                                <input type="text" name="phone" class="form-control" placeholder="Số điện thoại" />
                             </div>
-
                             <div class="mb-3">
-                                <label for="registerPhone" class="form-label">Số điện thoại</label>
-                                <input type="text" class="form-control" id="registerPhone" placeholder="Nhập số điện thoại" required>
+                                <label class="form-label">Mật khẩu</label>
+                                <input type="password" name="password" class="form-control" placeholder="Mật khẩu" required />
                             </div>
-
-                            
-
-                            
-
-                            <button type="button" class="btn btn-success w-100" onclick="submitAuth('register')">Đăng ký</button>
+                            <button type="submit" class="btn btn-success w-100">Đăng ký</button>
                         </form>
                     </div>
                 </div>
@@ -116,17 +144,3 @@
         </div>
     </div>
 </div>
-
-<script>
-    function submitAuth(type) {
-        if (type === 'login') {
-            // Chuyển hướng thẳng sang trang Profile luôn, bỏ qua bước đóng Modal
-            window.location.href = '/Profile/Index'; 
-            
-            // (Nếu gõ /Profile/Index bị lỗi 404, bạn thử đổi thành: window.location.href = '/Profile'; nhé)
-        } 
-        else if (type === 'register') {
-            alert("Nút đăng ký đã được bấm! (Chưa có chuyển trang)");
-        }
-    }
-</script>

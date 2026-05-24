@@ -5,6 +5,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddSession();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<_225DAPM32.Services.ApiClient>();
 
 // Configure Razor view engine to find views in feature folders
 // builder.Services.Configure<RazorViewEngineOptions>(options =>
@@ -38,6 +40,21 @@ app.UseSession();
 app.UseAuthorization();
 
 app.MapStaticAssets();
+
+app.MapControllerRoute(
+    name: "legacy-admin-foods",
+    pattern: "admin/Foods/{action=Index}/{id?}",
+    defaults: new { area = "", controller = "Foods" });
+
+app.MapControllerRoute(
+    name: "legacy-admin-profile",
+    pattern: "admin/Profile/{action=Index}/{id?}",
+    defaults: new { area = "", controller = "Profile" });
+
+app.MapControllerRoute(
+    name: "legacy-admin-cart",
+    pattern: "admin/Cart/{action=Index}/{id?}",
+    defaults: new { area = "", controller = "Cart" });
 
 app.MapControllerRoute(
     name: "admin",
