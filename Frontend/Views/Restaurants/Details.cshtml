@@ -55,7 +55,10 @@
 
             <!-- Tab: Đồ ăn -->
             <div id="content-food" class="tab-content space-y-3">
-                @if (!foods.Any())
+                @{
+                    var regularFoods = foods.Where(f => f.IdCategory != 2 && !f.Name.Contains("Combo")).ToList();
+                }
+                @if (!regularFoods.Any())
                 {
                     <div class="text-center py-10 text-gray-400">
                         <span class="material-symbols-outlined text-5xl mb-2">restaurant</span>
@@ -64,7 +67,7 @@
                 }
                 else
                 {
-                    @foreach (var food in foods)
+                    @foreach (var food in regularFoods)
                     {
                         @await Html.PartialAsync("_FoodCard", food)
                     }
@@ -73,18 +76,44 @@
 
             <!-- Tab: Thức uống -->
             <div id="content-drink" class="tab-content hidden space-y-3">
-                <div class="text-center py-10 text-gray-400">
-                    <span class="material-symbols-outlined text-5xl mb-2">local_cafe</span>
-                    <p>Chưa có thức uống nào</p>
-                </div>
+                @{
+                    var drinks = foods.Where(f => f.IdCategory == 2).ToList();
+                }
+                @if (!drinks.Any())
+                {
+                    <div class="text-center py-10 text-gray-400">
+                        <span class="material-symbols-outlined text-5xl mb-2">local_cafe</span>
+                        <p>Chưa có thức uống nào</p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var drink in drinks)
+                    {
+                        @await Html.PartialAsync("_FoodCard", drink)
+                    }
+                }
             </div>
 
             <!-- Tab: Combo món ăn -->
             <div id="content-combo" class="tab-content hidden space-y-3">
-                <div class="text-center py-10 text-gray-400">
-                    <span class="material-symbols-outlined text-5xl mb-2">local_offer</span>
-                    <p>Chưa có combo nào</p>
-                </div>
+                @{
+                    var combos = foods.Where(f => f.Name.Contains("Combo")).ToList();
+                }
+                @if (!combos.Any())
+                {
+                    <div class="text-center py-10 text-gray-400">
+                        <span class="material-symbols-outlined text-5xl mb-2">local_offer</span>
+                        <p>Chưa có combo nào</p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var combo in combos)
+                    {
+                        @await Html.PartialAsync("_FoodCard", combo)
+                    }
+                }
             </div>
 
             <!-- Nút quay lại -->

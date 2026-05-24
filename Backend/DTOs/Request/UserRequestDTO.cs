@@ -7,9 +7,6 @@ namespace Backend.DTOs.Request
         public string Password { get; set; }
         public string? FullName { get; set; }
         public string? Phone { get; set; }
-        public string? Address { get; set; }
-        public string? Avatar { get; set; }
-        public int? IdRole { get; set; }
     }
 
     public class UpdateUserDto

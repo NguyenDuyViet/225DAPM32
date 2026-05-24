@@ -9,8 +9,7 @@ namespace Backend.Mapper
     {
         public UserMapper()
         {
-            CreateMap<CreateUserDto, User>()
-                .ForMember(dest => dest.IdRole, opt => opt.MapFrom(src => src.IdRole ?? 2));
+            CreateMap<CreateUserDto, User>();
             CreateMap<UpdateUserDto, User>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<User, UserResponse>()

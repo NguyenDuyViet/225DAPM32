@@ -18,10 +18,13 @@ namespace _225DAPM32.Models
         public int? CookCount { get; set; }
         public int? PrepTime { get; set; }
         public int DailyQuantity { get; set; }
+        public string? CategoryName { get; set; }
+        public string? RestaurantName { get; set; }
+        public decimal FinalPrice => Price - (Discount ?? 0);
 
         [ForeignKey("IdCategory")]
-        public Category Category { get; set; }
+        public Category? Category { get; set; }
         [ForeignKey("IdRestaurant")]
-        public Restaurant Restaurant { get; set; }
+        public Restaurant? Restaurant { get; set; }
     }
 }

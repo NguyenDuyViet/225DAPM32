@@ -16,7 +16,6 @@ namespace Backend.Controllers
             _foodService = foodService;
         }
 
-        // GET: api/Food
         [HttpGet]
         public async Task<ActionResult<ApiResponse<IEnumerable<FoodResponse>>>> GetAllFoods()
         {
@@ -37,12 +36,11 @@ namespace Backend.Controllers
                 {
                     Code = 9999,
                     Message = $"Lỗi server: {ex.Message}",
-                    Results = null
+                    Results = default!
                 });
             }
         }
 
-        // GET: api/Food/5
         [HttpGet("{id}")]
         public async Task<ActionResult<ApiResponse<FoodResponse>>> GetFood(int id)
         {
@@ -56,7 +54,7 @@ namespace Backend.Controllers
                     {
                         Code = 1002,
                         Message = "Không tìm thấy món ăn",
-                        Results = null
+                        Results = default!
                     });
                 }
 
@@ -73,12 +71,11 @@ namespace Backend.Controllers
                 {
                     Code = 9999,
                     Message = $"Lỗi server: {ex.Message}",
-                    Results = null
+                    Results = default!
                 });
             }
         }
 
-        // POST: api/Food
         [HttpPost]
         public async Task<ActionResult<ApiResponse<FoodResponse>>> CreateFood([FromBody] FoodRequest foodRequest)
         {
@@ -90,7 +87,7 @@ namespace Backend.Controllers
                     {
                         Code = 1003,
                         Message = "Dữ liệu không hợp lệ",
-                        Results = null
+                        Results = default!
                     });
                 }
 
@@ -109,12 +106,11 @@ namespace Backend.Controllers
                 {
                     Code = 9999,
                     Message = $"Lỗi server: {ex.Message}",
-                    Results = null
+                    Results = default!
                 });
             }
         }
 
-        // PUT: api/Food/5
         [HttpPut("{id}")]
         public async Task<ActionResult<ApiResponse<FoodResponse>>> UpdateFood(int id, [FromBody] FoodRequest foodRequest)
         {
@@ -126,7 +122,7 @@ namespace Backend.Controllers
                     {
                         Code = 1003,
                         Message = "Dữ liệu không hợp lệ",
-                        Results = null
+                        Results = default!
                     });
                 }
 
@@ -138,7 +134,7 @@ namespace Backend.Controllers
                     {
                         Code = 1002,
                         Message = "Không tìm thấy món ăn",
-                        Results = null
+                        Results = default!
                     });
                 }
 
@@ -155,12 +151,11 @@ namespace Backend.Controllers
                 {
                     Code = 9999,
                     Message = $"Lỗi server: {ex.Message}",
-                    Results = null
+                    Results = default!
                 });
             }
         }
 
-        // DELETE: api/Food/5
         [HttpDelete("{id}")]
         public async Task<ActionResult<ApiResponse<object>>> DeleteFood(int id)
         {
@@ -174,7 +169,7 @@ namespace Backend.Controllers
                     {
                         Code = 1002,
                         Message = "Không tìm thấy món ăn",
-                        Results = null
+                        Results = default!
                     });
                 }
 
@@ -182,7 +177,7 @@ namespace Backend.Controllers
                 {
                     Code = 1000,
                     Message = "Xóa món ăn thành công",
-                    Results = null
+                    Results = default!
                 });
             }
             catch (Exception ex)
@@ -191,12 +186,11 @@ namespace Backend.Controllers
                 {
                     Code = 9999,
                     Message = $"Lỗi server: {ex.Message}",
-                    Results = null
+                    Results = default!
                 });
             }
         }
 
-        // GET: api/Food/restaurant/5
         [HttpGet("restaurant/{restaurantId}")]
         public async Task<ActionResult<ApiResponse<IEnumerable<FoodResponse>>>> GetFoodsByRestaurant(int restaurantId)
         {
@@ -217,12 +211,11 @@ namespace Backend.Controllers
                 {
                     Code = 9999,
                     Message = $"Lỗi server: {ex.Message}",
-                    Results = null
+                    Results = default!
                 });
             }
         }
 
-        // GET: api/Food/category/5
         [HttpGet("category/{categoryId}")]
         public async Task<ActionResult<ApiResponse<IEnumerable<FoodResponse>>>> GetFoodsByCategory(int categoryId)
         {
@@ -243,7 +236,7 @@ namespace Backend.Controllers
                 {
                     Code = 9999,
                     Message = $"Lỗi server: {ex.Message}",
-                    Results = null
+                    Results = default!
                 });
             }
         }

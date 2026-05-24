@@ -15,6 +15,20 @@ namespace Backend.Repositories
                 .FirstOrDefaultAsync(u => u.Username == username);
         }
 
+        public async Task<List<User>> GetAllWithRoleAsync()
+        {
+            return await _context.Users
+                .Include(u => u.Role)
+                .ToListAsync();
+        }
+
+        public async Task<User?> GetByIdWithRoleAsync(int id)
+        {
+            return await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.IdUser == id);
+        }
+
         internal async Task<User?> GetUserByEmailAsync(string email)
         {
             return await _dbSet.FirstOrDefaultAsync(u => u.Email == email);

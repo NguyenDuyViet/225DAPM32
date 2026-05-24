@@ -1,11 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
+<<<<<<< HEAD
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+=======
+>>>>>>> 0046400d0711806a8ed86b03458f2aae1128e39b
 using _225DAPM32.Areas.Restaurant.Models;
 using _225DAPM32.Models;
+using _225DAPM32.Services;
 using RestaurantEntity = _225DAPM32.Models.Restaurant;
 
 namespace _225DAPM32.Areas.Restaurant
@@ -13,6 +17,7 @@ namespace _225DAPM32.Areas.Restaurant
     [Area("Restaurant")]
     public class RestaurantController : Controller
     {
+<<<<<<< HEAD
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly JsonSerializerOptions _jsonOptions;
 
@@ -148,8 +153,46 @@ namespace _225DAPM32.Areas.Restaurant
         }
 
         public async Task<IActionResult> Orders()
+=======
+        private readonly ApiClient _apiClient;
+
+        public RestaurantController(ApiClient apiClient)
         {
+            _apiClient = apiClient;
+        }
+
+        public async Task<IActionResult> Index()
+>>>>>>> 0046400d0711806a8ed86b03458f2aae1128e39b
+        {
+            if (!RequireRestaurant())
+                return RedirectToAction("Index", "Home", new { area = "" });
+
+            var restaurant = await GetManagedRestaurantAsync();
+            var foods = restaurant == null
+                ? new List<Food>()
+                : await _apiClient.GetResultAsync<List<Food>>($"Food/restaurant/{restaurant.IdRestaurant}", false) ?? new List<Food>();
+            var orders = restaurant == null
+                ? new List<Order>()
+                : await _apiClient.GetResultAsync<List<Order>>($"Orders/restaurant/{restaurant.IdRestaurant}") ?? new List<Order>();
+
+            ViewData["Title"] = "Dashboard Nhà hàng";
+            return View(new RestaurantDashboardViewModel
+            {
+                ActiveOrders = orders.Count(o => o.Status != "completed" && o.Status != "canceled"),
+                RevenueToday = orders.Where(o => o.CreatedAt.Date == DateTime.Today).Sum(o => o.FinalTotal),
+                MenuItems = foods.Count,
+                Rating = 4.7m
+            });
+        }
+
+        public async Task<IActionResult> Orders()
+        {
+            if (!RequireRestaurant())
+                return RedirectToAction("Index", "Home", new { area = "" });
+
+            var restaurant = await GetManagedRestaurantAsync();
             ViewData["Title"] = "Đơn hàng";
+<<<<<<< HEAD
             int restaurantId = GetRestaurantId();
             var client = GetApiClient();
             var orders = new List<Order>();
@@ -201,6 +244,13 @@ namespace _225DAPM32.Areas.Restaurant
 
             ViewBag.RestaurantId = restaurantId;
             return View(orders);
+=======
+
+            if (restaurant == null)
+                return View(new List<Order>());
+
+            return View(await _apiClient.GetResultAsync<List<Order>>($"Orders/restaurant/{restaurant.IdRestaurant}") ?? new List<Order>());
+>>>>>>> 0046400d0711806a8ed86b03458f2aae1128e39b
         }
 
         [HttpPost]
@@ -421,6 +471,7 @@ namespace _225DAPM32.Areas.Restaurant
 
         public async Task<IActionResult> Profile()
         {
+<<<<<<< HEAD
             ViewData["Title"] = "Quản lý Nhà hàng";
             int restaurantId = GetRestaurantId();
             var client = GetApiClient();
@@ -487,6 +538,13 @@ namespace _225DAPM32.Areas.Restaurant
             }
 
             return View(model);
+=======
+            if (!RequireRestaurant())
+                return RedirectToAction("Index", "Home", new { area = "" });
+
+            ViewData["Title"] = "Thông tin Nhà hàng";
+            return View(await GetManagedRestaurantAsync() ?? new RestaurantEntity());
+>>>>>>> 0046400d0711806a8ed86b03458f2aae1128e39b
         }
 
         [HttpPost]
@@ -937,6 +995,18 @@ namespace _225DAPM32.Areas.Restaurant
             public string? Comment { get; set; }
             public string? Image { get; set; }
             public string? FoodName { get; set; }
+        }
+
+        private async Task<RestaurantEntity?> GetManagedRestaurantAsync()
+        {
+            var restaurants = await _apiClient.GetResultAsync<List<RestaurantEntity>>("Restaurants/all", false) ?? new List<RestaurantEntity>();
+            return restaurants.FirstOrDefault();
+        }
+
+        private bool RequireRestaurant()
+        {
+            var role = HttpContext.Session.GetString("Role");
+            return role == "restaurant" || role == "admin";
         }
     }
 }

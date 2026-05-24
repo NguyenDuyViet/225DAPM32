@@ -1,14 +1,15 @@
-using Backend.DTOs.Response;
+using System.Text.Json;
 using Backend.DTOs.Request;
-using Backend.Models;
+using Backend.DTOs.Response;
 using Backend.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Security.Claims;
 
 namespace Backend.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class OrdersController : ControllerBase
     {
@@ -19,24 +20,156 @@ namespace Backend.Controllers
             _orderService = orderService;
         }
 
-        // GET: api/Orders/restaurant/{restaurantId}
-        [HttpGet("restaurant/{restaurantId}")]
-        public async Task<ActionResult<ApiResponse<IEnumerable<Order>>>> GetOrdersByRestaurant(int restaurantId)
+        [HttpGet]
+        public async Task<ActionResult<ApiResponse<List<OrderResponse>>>> GetMyOrders()
         {
-            var orders = await _orderService.GetOrdersByRestaurantAsync(restaurantId);
-            return Ok(new ApiResponse<IEnumerable<Order>>
+            var orders = await _orderService.GetOrdersByUserIdAsync(GetUserId());
+
+            return Ok(new ApiResponse<List<OrderResponse>>
             {
-                Code = 200,
-                Message = "Success",
+                Code = 1000,
+                Message = "Lay danh sach don hang thanh cong",
                 Results = orders
             });
         }
 
-        // PUT: api/Orders/{id}/status
-        [HttpPut("{id}/status")]
-        public async Task<ActionResult<ApiResponse<bool>>> UpdateOrderStatus(int id, [FromBody] string status)
+        [HttpGet("admin")]
+        [Authorize(Roles = "admin")]
+        public async Task<ActionResult<ApiResponse<List<OrderResponse>>>> GetAllOrders()
         {
-            var result = await _orderService.UpdateOrderStatusAsync(id, status);
+            var orders = await _orderService.GetAllOrdersAsync();
+
+            return Ok(new ApiResponse<List<OrderResponse>>
+            {
+                Code = 1000,
+                Message = "Lay danh sach don hang thanh cong",
+                Results = orders
+            });
+        }
+
+        [HttpGet("restaurant/{idRestaurant}")]
+        [Authorize(Roles = "admin,restaurant")]
+        public async Task<ActionResult<ApiResponse<List<OrderResponse>>>> GetOrdersByRestaurant(int idRestaurant)
+        {
+            var orders = await _orderService.GetOrdersByRestaurantAsync(idRestaurant);
+
+            return Ok(new ApiResponse<List<OrderResponse>>
+            {
+                Code = 1000,
+                Message = "Lay don hang theo nha hang thanh cong",
+                Results = orders
+            });
+        }
+
+        [HttpGet("shipper/{idDriver}")]
+        [Authorize(Roles = "admin,shipper")]
+        public async Task<ActionResult<ApiResponse<List<OrderResponse>>>> GetOrdersByShipper(int idDriver, [FromQuery] bool history = false)
+        {
+            var orders = await _orderService.GetOrdersByDriverAsync(idDriver, history);
+
+            return Ok(new ApiResponse<List<OrderResponse>>
+            {
+                Code = 1000,
+                Message = "Lay don hang theo shipper thanh cong",
+                Results = orders
+            });
+        }
+
+        [HttpGet("{idOrder}")]
+        public async Task<ActionResult<ApiResponse<OrderResponse>>> GetOrder(int idOrder)
+        {
+            try
+            {
+                var order = await _orderService.GetOrderByIdAsync(GetUserId(), idOrder);
+
+                return Ok(new ApiResponse<OrderResponse>
+                {
+                    Code = 1000,
+                    Message = "Lay thong tin don hang thanh cong",
+                    Results = order
+                });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ToError<OrderResponse>(1002, ex.Message));
+            }
+        }
+
+        [HttpPost("checkout")]
+        public async Task<ActionResult<ApiResponse<OrderResponse>>> Checkout([FromBody] CreateOrderRequest request)
+        {
+            try
+            {
+                var order = await _orderService.CreateOrderFromCartAsync(GetUserId(), request);
+
+                return CreatedAtAction(nameof(GetOrder), new { idOrder = order.IdOrder }, new ApiResponse<OrderResponse>
+                {
+                    Code = 1000,
+                    Message = "Tao don hang thanh cong",
+                    Results = order
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ToError<OrderResponse>(1003, ex.Message));
+            }
+        }
+
+        [HttpPut("{idOrder}/cancel")]
+        public async Task<ActionResult<ApiResponse<OrderResponse>>> CancelOrder(int idOrder, [FromBody] CancelOrderRequest request)
+        {
+            try
+            {
+                var order = await _orderService.CancelOrderAsync(GetUserId(), idOrder, request);
+
+                return Ok(new ApiResponse<OrderResponse>
+                {
+                    Code = 1000,
+                    Message = "Huy don hang thanh cong",
+                    Results = order
+                });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ToError<OrderResponse>(1002, ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ToError<OrderResponse>(1003, ex.Message));
+            }
+        }
+
+        [HttpPut("{idOrder}/status")]
+        [Authorize(Roles = "admin,restaurant,shipper")]
+        public async Task<ActionResult<ApiResponse<OrderResponse>>> UpdateOrderStatus(int idOrder, [FromBody] JsonElement body)
+        {
+            try
+            {
+                var request = ParseStatusRequest(body);
+                var order = await _orderService.UpdateOrderStatusAsync(idOrder, request);
+
+                return Ok(new ApiResponse<OrderResponse>
+                {
+                    Code = 1000,
+                    Message = "Cap nhat trang thai don hang thanh cong",
+                    Results = order
+                });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ToError<OrderResponse>(1002, ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ToError<OrderResponse>(1003, ex.Message));
+            }
+        }
+
+        [HttpPut("{idOrder}")]
+        [Authorize(Roles = "admin,restaurant")]
+        public async Task<ActionResult<ApiResponse<bool>>> UpdateOrder(int idOrder, [FromBody] OrderRequest dto)
+        {
+            var result = await _orderService.UpdateOrderAsync(idOrder, dto);
             if (!result)
             {
                 return NotFound(new ApiResponse<bool>
@@ -55,34 +188,11 @@ namespace Backend.Controllers
             });
         }
 
-        // PUT: api/Orders/{id}
-        [HttpPut("{id}")]
-        public async Task<ActionResult<ApiResponse<bool>>> UpdateOrder(int id, [FromBody] OrderRequest dto)
+        [HttpDelete("{idOrder}")]
+        [Authorize(Roles = "admin,restaurant")]
+        public async Task<ActionResult<ApiResponse<bool>>> DeleteOrder(int idOrder)
         {
-            var result = await _orderService.UpdateOrderAsync(id, dto);
-            if (!result)
-            {
-                return NotFound(new ApiResponse<bool>
-                {
-                    Code = 404,
-                    Message = "Order not found or update failed",
-                    Results = false
-                });
-            }
-
-            return Ok(new ApiResponse<bool>
-            {
-                Code = 200,
-                Message = "Success",
-                Results = true
-            });
-        }
-
-        // DELETE: api/Orders/{id}
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<ApiResponse<bool>>> DeleteOrder(int id)
-        {
-            var result = await _orderService.DeleteOrderAsync(id);
+            var result = await _orderService.DeleteOrderAsync(idOrder);
             if (!result)
             {
                 return NotFound(new ApiResponse<bool>
@@ -101,8 +211,8 @@ namespace Backend.Controllers
             });
         }
 
-        // POST: api/Orders/seed
         [HttpPost("seed")]
+        [Authorize(Roles = "admin,restaurant")]
         public async Task<ActionResult<ApiResponse<object>>> SeedOrder()
         {
             try
@@ -121,8 +231,9 @@ namespace Backend.Controllers
                 return Ok(new ApiResponse<object>
                 {
                     Code = 200,
-                    Message = "Successfully seeded a new order for Bếp Nhà Việt (Restaurant ID 1)",
-                    Results = new {
+                    Message = "Successfully seeded a new order for restaurant",
+                    Results = new
+                    {
                         order.IdOrder,
                         order.OrderCode,
                         order.FinalTotal,
@@ -131,7 +242,7 @@ namespace Backend.Controllers
                     }
                 });
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 return StatusCode(500, new ApiResponse<object>
                 {
@@ -142,13 +253,13 @@ namespace Backend.Controllers
             }
         }
 
-        // POST: api/Orders/{id}/simulate-delivery-and-review
-        [HttpPost("{id}/simulate-delivery-and-review")]
-        public async Task<ActionResult<ApiResponse<object>>> SimulateDeliveryAndReview(int id)
+        [HttpPost("{idOrder}/simulate-delivery-and-review")]
+        [Authorize(Roles = "admin,restaurant")]
+        public async Task<ActionResult<ApiResponse<object>>> SimulateDeliveryAndReview(int idOrder)
         {
             try
             {
-                var result = await _orderService.SimulateDeliveryAndReviewAsync(id);
+                var result = await _orderService.SimulateDeliveryAndReviewAsync(idOrder);
                 if (!result)
                 {
                     return NotFound(new ApiResponse<object>
@@ -166,7 +277,7 @@ namespace Backend.Controllers
                     Results = true
                 });
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 return StatusCode(500, new ApiResponse<object>
                 {
@@ -175,6 +286,43 @@ namespace Backend.Controllers
                     Results = ex.ToString()
                 });
             }
+        }
+
+        private int GetUserId()
+        {
+            var userIdValue = User.FindFirstValue("UserId");
+            if (!int.TryParse(userIdValue, out var userId))
+                throw new UnauthorizedAccessException("Token khong hop le.");
+
+            return userId;
+        }
+
+        private static UpdateOrderStatusRequest ParseStatusRequest(JsonElement body)
+        {
+            if (body.ValueKind == JsonValueKind.String)
+            {
+                return new UpdateOrderStatusRequest
+                {
+                    Status = body.GetString() ?? string.Empty
+                };
+            }
+
+            var request = body.Deserialize<UpdateOrderStatusRequest>(new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            return request ?? new UpdateOrderStatusRequest();
+        }
+
+        private static ApiResponse<T> ToError<T>(int code, string message)
+        {
+            return new ApiResponse<T>
+            {
+                Code = code,
+                Message = message,
+                Results = default!
+            };
         }
     }
 }

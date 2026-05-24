@@ -5,24 +5,18 @@
     int totalPages = ViewBag.TotalPages ?? 0;
     int totalItems = ViewBag.TotalItems ?? 0;
     int? selectedCategoryId = ViewBag.SelectedCategoryId;
+    string imageUrl(string? image) => string.IsNullOrWhiteSpace(image)
+        ? "/images/placeholder-restaurant.svg"
+        : (image.StartsWith("http", StringComparison.OrdinalIgnoreCase) || image.StartsWith("/") ? image : "/" + image);
 }
 
-<!-- Sort Bar -->
 <div class="bg-white rounded-lg p-4 mb-6 shadow-sm flex items-center justify-between">
     <div class="flex items-center gap-3">
         <span class="text-gray-600 text-sm">Sắp xếp theo:</span>
-        <button class="px-4 py-2 bg-orange-600 text-white rounded-full text-sm font-medium shadow-md">
-            Liên quan
-        </button>
-        <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-200 transition-colors">
-            Gần đây
-        </button>
-        <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-200 transition-colors">
-            Bán chạy
-        </button>
-        <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-200 transition-colors">
-            Giá thấp
-        </button>
+        <button class="px-4 py-2 bg-orange-600 text-white rounded-full text-sm font-medium shadow-md">Liên quan</button>
+        <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-200 transition-colors">Gần đây</button>
+        <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-200 transition-colors">Bán chạy</button>
+        <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-200 transition-colors">Giá thấp</button>
     </div>
     <div class="text-sm text-gray-600">
         <span class="font-bold text-gray-900">@totalItems</span> kết quả
@@ -39,13 +33,12 @@
 }
 else
 {
-    <!-- Restaurant Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         @foreach (var restaurant in Model)
         {
             <div class="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1">
                 <div class="relative">
-                    <img src="@restaurant.Image" alt="@restaurant.NameRestaurant" class="w-full h-48 object-cover" />
+                    <img src="@imageUrl(restaurant.Image)" alt="@restaurant.NameRestaurant" class="w-full h-48 object-cover" onerror="this.onerror=null;this.src='/images/placeholder-restaurant.svg';" />
                     <div class="absolute bottom-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md flex items-center gap-1">
                         <span class="material-symbols-outlined text-gray-700 text-sm">schedule</span>
                         <span class="text-xs font-semibold text-gray-700">
@@ -76,7 +69,6 @@ else
         }
     </div>
 
-    <!-- Pagination -->
     @if (totalPages >= 1)
     {
         <div class="mt-8 flex justify-center items-center gap-2">
@@ -101,9 +93,7 @@ else
                 if (startPage > 1)
                 {
                     <a href="javascript:void(0)" onclick="loadRestaurants(1, @(selectedCategoryId.HasValue ? selectedCategoryId.Value.ToString() : "null"))"
-                       class="w-9 h-9 rounded-md border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors text-gray-700">
-                        1
-                    </a>
+                       class="w-9 h-9 rounded-md border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors text-gray-700">1</a>
                     if (startPage > 2)
                     {
                         <span class="text-gray-500">...</span>
@@ -114,16 +104,12 @@ else
                 {
                     if (i == currentPage)
                     {
-                        <span class="w-9 h-9 rounded-md bg-orange-600 text-white font-semibold flex items-center justify-center">
-                            @i
-                        </span>
+                        <span class="w-9 h-9 rounded-md bg-orange-600 text-white font-semibold flex items-center justify-center">@i</span>
                     }
                     else
                     {
                         <a href="javascript:void(0)" onclick="loadRestaurants(@i, @(selectedCategoryId.HasValue ? selectedCategoryId.Value.ToString() : "null"))"
-                           class="w-9 h-9 rounded-md border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors text-gray-700">
-                            @i
-                        </a>
+                           class="w-9 h-9 rounded-md border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors text-gray-700">@i</a>
                     }
                 }
 
@@ -134,9 +120,7 @@ else
                         <span class="text-gray-500">...</span>
                     }
                     <a href="javascript:void(0)" onclick="loadRestaurants(@totalPages, @(selectedCategoryId.HasValue ? selectedCategoryId.Value.ToString() : "null"))"
-                       class="w-9 h-9 rounded-md border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors text-gray-700">
-                        @totalPages
-                    </a>
+                       class="w-9 h-9 rounded-md border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors text-gray-700">@totalPages</a>
                 }
             }
 

@@ -2,9 +2,9 @@
 
 @{
     ViewData["Title"] = "Nhà hàng";
-    int currentPage = ViewBag.CurrentPage;
-    int totalPages = ViewBag.TotalPages;
-    int totalItems = ViewBag.TotalItems;
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 0;
+    int totalItems = ViewBag.TotalItems ?? 0;
     var categories = ViewBag.Categories as List<_225DAPM32.Models.Category> ?? new List<_225DAPM32.Models.Category>();
     int? selectedCategoryId = ViewBag.SelectedCategoryId;
 }
@@ -12,35 +12,52 @@
 <div class="bg-gray-50 min-h-screen">
     <div class="max-w-7xl mx-auto px-4 py-6">
         <div class="flex gap-6">
-            <!-- Sidebar Filters -->
             <aside class="w-64 flex-shrink-0">
-                <!-- Khu vực -->
                 <div class="bg-white rounded-lg p-4 mb-4 shadow-sm">
                     <h3 class="flex items-center gap-2 text-gray-700 font-semibold mb-3">
                         <span class="material-symbols-outlined text-orange-600">location_on</span>
                         Khu vực
                     </h3>
-                    <div class="space-y-2">
+                    <div id="district-list" class="space-y-2 max-h-60 overflow-y-auto pr-1">
                         <label class="flex items-center gap-2 cursor-pointer hover:text-orange-600 transition-colors">
-                            <input type="checkbox" checked class="w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500" />
-                            <span class="text-sm text-gray-700">Quận 1</span>
+                            <input type="checkbox" onchange="filterByDistrict(this, '')" class="district-checkbox w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500" @(string.IsNullOrEmpty(ViewBag.SelectedDistrict) ? "checked" : "") />
+                            <span class="text-sm text-gray-700">Tất cả</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer hover:text-orange-600 transition-colors">
-                            <input type="checkbox" class="w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500" />
-                            <span class="text-sm text-gray-700">Quận 3</span>
+                            <input type="checkbox" onchange="filterByDistrict(this, 'Quận Cẩm Lệ')" class="district-checkbox w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500" @(ViewBag.SelectedDistrict == "Quận Cẩm Lệ" ? "checked" : "") />
+                            <span class="text-sm text-gray-700">Quận Cẩm Lệ</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer hover:text-orange-600 transition-colors">
-                            <input type="checkbox" class="w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500" />
-                            <span class="text-sm text-gray-700">Quận Bình Thạnh</span>
+                            <input type="checkbox" onchange="filterByDistrict(this, 'Quận Hải Châu')" class="district-checkbox w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500" @(ViewBag.SelectedDistrict == "Quận Hải Châu" ? "checked" : "") />
+                            <span class="text-sm text-gray-700">Quận Hải Châu</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer hover:text-orange-600 transition-colors">
-                            <input type="checkbox" class="w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500" />
-                            <span class="text-sm text-gray-700">Quận 7</span>
+                            <input type="checkbox" onchange="filterByDistrict(this, 'Quận Liên Chiểu')" class="district-checkbox w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500" @(ViewBag.SelectedDistrict == "Quận Liên Chiểu" ? "checked" : "") />
+                            <span class="text-sm text-gray-700">Quận Liên Chiểu</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-orange-600 transition-colors">
+                            <input type="checkbox" onchange="filterByDistrict(this, 'Quận Ngũ Hành Sơn')" class="district-checkbox w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500" @(ViewBag.SelectedDistrict == "Quận Ngũ Hành Sơn" ? "checked" : "") />
+                            <span class="text-sm text-gray-700">Quận Ngũ Hành Sơn</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-orange-600 transition-colors">
+                            <input type="checkbox" onchange="filterByDistrict(this, 'Quận Sơn Trà')" class="district-checkbox w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500" @(ViewBag.SelectedDistrict == "Quận Sơn Trà" ? "checked" : "") />
+                            <span class="text-sm text-gray-700">Quận Sơn Trà</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-orange-600 transition-colors">
+                            <input type="checkbox" onchange="filterByDistrict(this, 'Quận Thanh Khê')" class="district-checkbox w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500" @(ViewBag.SelectedDistrict == "Quận Thanh Khê" ? "checked" : "") />
+                            <span class="text-sm text-gray-700">Quận Thanh Khê</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-orange-600 transition-colors">
+                            <input type="checkbox" onchange="filterByDistrict(this, 'Huyện Hòa Vang')" class="district-checkbox w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500" @(ViewBag.SelectedDistrict == "Huyện Hòa Vang" ? "checked" : "") />
+                            <span class="text-sm text-gray-700">Huyện Hòa Vang</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-orange-600 transition-colors">
+                            <input type="checkbox" onchange="filterByDistrict(this, 'Huyện Hoàng Sa')" class="district-checkbox w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500" @(ViewBag.SelectedDistrict == "Huyện Hoàng Sa" ? "checked" : "") />
+                            <span class="text-sm text-gray-700">Huyện Hoàng Sa</span>
                         </label>
                     </div>
                 </div>
 
-                <!-- Phân loại -->
                 <div class="bg-white rounded-lg p-4 mb-4 shadow-sm">
                     <h3 class="flex items-center gap-2 text-gray-700 font-semibold mb-3">
                         <span class="material-symbols-outlined text-orange-600">restaurant</span>
@@ -63,26 +80,40 @@
                     </div>
                 </div>
 
-                <!-- Giá cả -->
                 <div class="bg-white rounded-lg p-4 shadow-sm">
                     <h3 class="flex items-center gap-2 text-gray-700 font-semibold mb-3">
                         <span class="material-symbols-outlined text-orange-600">payments</span>
-                        Giá cả
+                        Giá cả (VND)
                     </h3>
                     <div class="space-y-3">
                         <div class="flex gap-2">
-                            <input type="text" placeholder="Từ" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
-                            <input type="text" placeholder="Đến" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
+                            <input id="min-price" type="number" value="@ViewBag.MinPrice" placeholder="Từ" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
+                            <input id="max-price" type="number" value="@ViewBag.MaxPrice" placeholder="Đến" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
                         </div>
-                        <button class="w-full py-2 bg-orange-600 text-white rounded-md font-medium text-sm hover:bg-orange-700 transition-colors">
-                            Áp dụng
-                        </button>
+                        <div class="flex gap-2">
+                            <button onclick="applyPriceFilter()" class="w-full py-2 bg-orange-600 text-white rounded-md font-medium text-sm hover:bg-orange-700 transition-colors">
+                                Áp dụng
+                            </button>
+                            <button onclick="clearPriceFilter()" class="w-full py-2 bg-gray-200 text-gray-700 rounded-md font-medium text-sm hover:bg-gray-300 transition-colors">
+                                Xóa
+                            </button>
+                        </div>
                     </div>
                 </div>
             </aside>
 
-            <!-- Main Content -->
             <main class="flex-1">
+                @if (!string.IsNullOrEmpty(ViewBag.SearchQuery))
+                {
+                    <div class="mb-4 bg-white p-4 rounded-lg shadow-sm flex items-center justify-between">
+                        <div class="text-gray-700">
+                            Kết quả tìm kiếm cho: <span class="font-semibold text-orange-600">"@ViewBag.SearchQuery"</span>
+                        </div>
+                        <a asp-area="" asp-controller="Restaurants" asp-action="Index" class="text-sm text-gray-500 hover:text-orange-600 transition-colors flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">close</span> Xóa bộ lọc tìm kiếm
+                        </a>
+                    </div>
+                }
                 <div id="restaurant-grid">
                     @await Html.PartialAsync("_RestaurantGrid", Model)
                 </div>
@@ -102,6 +133,10 @@
 
 <script>
     let currentCategoryId = @(selectedCategoryId.HasValue ? selectedCategoryId.Value.ToString() : "null");
+    let searchQuery = '@Html.Raw(ViewBag.SearchQuery ?? "")';
+    let currentDistrict = '@Html.Raw(ViewBag.SelectedDistrict ?? "")';
+    let minPrice = @(ViewBag.MinPrice != null ? ViewBag.MinPrice.ToString() : "null");
+    let maxPrice = @(ViewBag.MaxPrice != null ? ViewBag.MaxPrice.ToString() : "null");
 
     function filterByCategory(categoryId) {
         currentCategoryId = categoryId;
@@ -109,13 +144,57 @@
         updateCategoryUI(categoryId);
     }
 
+    function filterByDistrict(checkbox, districtValue) {
+        if (checkbox.checked) {
+            // Uncheck all other district checkboxes
+            document.querySelectorAll('.district-checkbox').forEach(cb => {
+                if (cb !== checkbox) cb.checked = false;
+            });
+            currentDistrict = districtValue;
+        } else {
+            // If unchecked, reset district to empty (all) and check the "Tất cả" checkbox
+            currentDistrict = '';
+            document.querySelector('.district-checkbox[onchange*="\'\'"]').checked = true;
+        }
+        loadRestaurants(1, currentCategoryId);
+    }
+
+    function applyPriceFilter() {
+        const minVal = document.getElementById('min-price').value;
+        const maxVal = document.getElementById('max-price').value;
+        
+        minPrice = minVal ? parseFloat(minVal) : null;
+        maxPrice = maxVal ? parseFloat(maxVal) : null;
+        
+        loadRestaurants(1, currentCategoryId);
+    }
+
+    function clearPriceFilter() {
+        document.getElementById('min-price').value = '';
+        document.getElementById('max-price').value = '';
+        minPrice = null;
+        maxPrice = null;
+        loadRestaurants(1, currentCategoryId);
+    }
+
     function loadRestaurants(page, categoryId) {
         let url = '/Restaurants/Filter?page=' + page;
         if (categoryId !== null && categoryId !== undefined) {
             url += '&categoryId=' + categoryId;
         }
+        if (searchQuery) {
+            url += '&q=' + encodeURIComponent(searchQuery);
+        }
+        if (currentDistrict) {
+            url += '&district=' + encodeURIComponent(currentDistrict);
+        }
+        if (minPrice !== null && minPrice !== undefined) {
+            url += '&minPrice=' + minPrice;
+        }
+        if (maxPrice !== null && maxPrice !== undefined) {
+            url += '&maxPrice=' + maxPrice;
+        }
 
-        // Show loading
         const grid = document.getElementById('restaurant-grid');
         grid.style.opacity = '0.5';
 
@@ -131,19 +210,13 @@
     }
 
     function updateCategoryUI(categoryId) {
-        const items = document.querySelectorAll('.category-item');
-        items.forEach(item => {
+        document.querySelectorAll('.category-item').forEach(item => {
             const itemCatId = item.getAttribute('data-category-id');
             const isSelected = (categoryId === null && itemCatId === '') ||
-                               (categoryId !== null && itemCatId === String(categoryId));
+                (categoryId !== null && itemCatId === String(categoryId));
 
             item.classList.remove('bg-orange-600', 'text-white', 'hover:bg-gray-100', 'text-gray-700');
-
-            if (isSelected) {
-                item.classList.add('bg-orange-600', 'text-white');
-            } else {
-                item.classList.add('hover:bg-gray-100', 'text-gray-700');
-            }
+            item.classList.add(...(isSelected ? ['bg-orange-600', 'text-white'] : ['hover:bg-gray-100', 'text-gray-700']));
         });
     }
 </script>

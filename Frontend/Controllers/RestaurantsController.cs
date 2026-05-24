@@ -18,7 +18,7 @@ namespace _225DAPM32.Controllers
             };
         }
 
-        public async Task<IActionResult> Index(int page = 1, int pageSize = 6, int? categoryId = null)
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 6, int? categoryId = null, string? q = null, string? district = null, decimal? minPrice = null, decimal? maxPrice = null)
         {
             try
             {
@@ -36,6 +36,22 @@ namespace _225DAPM32.Controllers
                 if (categoryId.HasValue && categoryId.Value > 0)
                 {
                     query += $"&categoryId={categoryId.Value}";
+                }
+                if (!string.IsNullOrEmpty(q))
+                {
+                    query += $"&search={Uri.EscapeDataString(q)}";
+                }
+                if (!string.IsNullOrEmpty(district))
+                {
+                    query += $"&district={Uri.EscapeDataString(district)}";
+                }
+                if (minPrice.HasValue)
+                {
+                    query += $"&minPrice={minPrice.Value}";
+                }
+                if (maxPrice.HasValue)
+                {
+                    query += $"&maxPrice={maxPrice.Value}";
                 }
 
                 // Fetch restaurants
@@ -79,6 +95,10 @@ namespace _225DAPM32.Controllers
                 }
 
                 ViewBag.SelectedCategoryId = categoryId;
+                ViewBag.SearchQuery = q;
+                ViewBag.SelectedDistrict = district;
+                ViewBag.MinPrice = minPrice;
+                ViewBag.MaxPrice = maxPrice;
                 return View(restaurants);
             }
             catch (Exception)
@@ -86,12 +106,16 @@ namespace _225DAPM32.Controllers
                 SetEmptyPagination();
                 ViewBag.Categories = new List<Category>();
                 ViewBag.SelectedCategoryId = categoryId;
+                ViewBag.SearchQuery = q;
+                ViewBag.SelectedDistrict = district;
+                ViewBag.MinPrice = minPrice;
+                ViewBag.MaxPrice = maxPrice;
                 return View(new List<Restaurant>());
             }
         }
 
         [HttpGet]
-        public async Task<IActionResult> Filter(int page = 1, int pageSize = 6, int? categoryId = null)
+        public async Task<IActionResult> Filter(int page = 1, int pageSize = 6, int? categoryId = null, string? q = null, string? district = null, decimal? minPrice = null, decimal? maxPrice = null)
         {
             try
             {
@@ -108,6 +132,22 @@ namespace _225DAPM32.Controllers
                 if (categoryId.HasValue && categoryId.Value > 0)
                 {
                     query += $"&categoryId={categoryId.Value}";
+                }
+                if (!string.IsNullOrEmpty(q))
+                {
+                    query += $"&search={Uri.EscapeDataString(q)}";
+                }
+                if (!string.IsNullOrEmpty(district))
+                {
+                    query += $"&district={Uri.EscapeDataString(district)}";
+                }
+                if (minPrice.HasValue)
+                {
+                    query += $"&minPrice={minPrice.Value}";
+                }
+                if (maxPrice.HasValue)
+                {
+                    query += $"&maxPrice={maxPrice.Value}";
                 }
 
                 var response = await client.GetAsync(query);
@@ -137,12 +177,20 @@ namespace _225DAPM32.Controllers
                 }
 
                 ViewBag.SelectedCategoryId = categoryId;
+                ViewBag.SearchQuery = q;
+                ViewBag.SelectedDistrict = district;
+                ViewBag.MinPrice = minPrice;
+                ViewBag.MaxPrice = maxPrice;
                 return PartialView("_RestaurantGrid", restaurants);
             }
             catch (Exception)
             {
                 SetEmptyPagination();
                 ViewBag.SelectedCategoryId = categoryId;
+                ViewBag.SearchQuery = q;
+                ViewBag.SelectedDistrict = district;
+                ViewBag.MinPrice = minPrice;
+                ViewBag.MaxPrice = maxPrice;
                 return PartialView("_RestaurantGrid", new List<Restaurant>());
             }
         }

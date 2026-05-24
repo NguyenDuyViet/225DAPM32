@@ -35,6 +35,7 @@ namespace Backend.Services
         public async Task<CategoryResponse> CreateCategoryAsync(CategoryRequest request)
         {
             var category = _mapper.Map<Category>(request);
+            category.IdCategory = await _categoryRepository.GetNextIdAsync();
             await _categoryRepository.AddAsync(category);
             await _categoryRepository.SaveChangesAsync();
 

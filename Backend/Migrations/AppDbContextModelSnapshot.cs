@@ -743,8 +743,7 @@ namespace Backend.Migrations
                         .HasColumnName("id_ReviewFood");
 
                     b.Property<string>("Comment")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
+                        .HasColumnType("longtext")
                         .HasColumnName("comment");
 
                     b.Property<int>("IdFood")
@@ -756,8 +755,7 @@ namespace Backend.Migrations
                         .HasColumnName("id_Review");
 
                     b.Property<string>("Image")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
+                        .HasColumnType("longtext")
                         .HasColumnName("image");
 
                     b.Property<float>("Rating")
@@ -765,8 +763,7 @@ namespace Backend.Migrations
                         .HasColumnName("rating");
 
                     b.Property<string>("Video")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
+                        .HasColumnType("longtext")
                         .HasColumnName("video");
 
                     b.HasKey("IdReviewFood");
