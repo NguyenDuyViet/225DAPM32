@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Backend.DTOs.Request;
 using Backend.DTOs.Response;
 using Backend.Services;
@@ -27,7 +28,7 @@ namespace Backend.Controllers
             return Ok(new ApiResponse<List<OrderResponse>>
             {
                 Code = 1000,
-                Message = "Lấy danh sách đơn hàng thành công",
+                Message = "Lay danh sach don hang thanh cong",
                 Results = orders
             });
         }
@@ -41,7 +42,7 @@ namespace Backend.Controllers
             return Ok(new ApiResponse<List<OrderResponse>>
             {
                 Code = 1000,
-                Message = "Lấy danh sách đơn hàng thành công",
+                Message = "Lay danh sach don hang thanh cong",
                 Results = orders
             });
         }
@@ -55,7 +56,7 @@ namespace Backend.Controllers
             return Ok(new ApiResponse<List<OrderResponse>>
             {
                 Code = 1000,
-                Message = "Lấy đơn hàng theo nhà hàng thành công",
+                Message = "Lay don hang theo nha hang thanh cong",
                 Results = orders
             });
         }
@@ -69,7 +70,7 @@ namespace Backend.Controllers
             return Ok(new ApiResponse<List<OrderResponse>>
             {
                 Code = 1000,
-                Message = "Lấy đơn hàng theo shipper thành công",
+                Message = "Lay don hang theo shipper thanh cong",
                 Results = orders
             });
         }
@@ -84,7 +85,7 @@ namespace Backend.Controllers
                 return Ok(new ApiResponse<OrderResponse>
                 {
                     Code = 1000,
-                    Message = "Lấy thông tin đơn hàng thành công",
+                    Message = "Lay thong tin don hang thanh cong",
                     Results = order
                 });
             }
@@ -104,7 +105,7 @@ namespace Backend.Controllers
                 return CreatedAtAction(nameof(GetOrder), new { idOrder = order.IdOrder }, new ApiResponse<OrderResponse>
                 {
                     Code = 1000,
-                    Message = "Tạo đơn hàng thành công",
+                    Message = "Tao don hang thanh cong",
                     Results = order
                 });
             }
@@ -124,7 +125,7 @@ namespace Backend.Controllers
                 return Ok(new ApiResponse<OrderResponse>
                 {
                     Code = 1000,
-                    Message = "Hủy đơn hàng thành công",
+                    Message = "Huy don hang thanh cong",
                     Results = order
                 });
             }
@@ -140,16 +141,17 @@ namespace Backend.Controllers
 
         [HttpPut("{idOrder}/status")]
         [Authorize(Roles = "admin,restaurant,shipper")]
-        public async Task<ActionResult<ApiResponse<OrderResponse>>> UpdateOrderStatus(int idOrder, [FromBody] UpdateOrderStatusRequest request)
+        public async Task<ActionResult<ApiResponse<OrderResponse>>> UpdateOrderStatus(int idOrder, [FromBody] JsonElement body)
         {
             try
             {
+                var request = ParseStatusRequest(body);
                 var order = await _orderService.UpdateOrderStatusAsync(idOrder, request);
 
                 return Ok(new ApiResponse<OrderResponse>
                 {
                     Code = 1000,
-                    Message = "Cập nhật trạng thái đơn hàng thành công",
+                    Message = "Cap nhat trang thai don hang thanh cong",
                     Results = order
                 });
             }
@@ -163,13 +165,154 @@ namespace Backend.Controllers
             }
         }
 
+        [HttpPut("{idOrder}")]
+        [Authorize(Roles = "admin,restaurant")]
+        public async Task<ActionResult<ApiResponse<bool>>> UpdateOrder(int idOrder, [FromBody] OrderRequest dto)
+        {
+            var result = await _orderService.UpdateOrderAsync(idOrder, dto);
+            if (!result)
+            {
+                return NotFound(new ApiResponse<bool>
+                {
+                    Code = 404,
+                    Message = "Order not found or update failed",
+                    Results = false
+                });
+            }
+
+            return Ok(new ApiResponse<bool>
+            {
+                Code = 200,
+                Message = "Success",
+                Results = true
+            });
+        }
+
+        [HttpDelete("{idOrder}")]
+        [Authorize(Roles = "admin,restaurant")]
+        public async Task<ActionResult<ApiResponse<bool>>> DeleteOrder(int idOrder)
+        {
+            var result = await _orderService.DeleteOrderAsync(idOrder);
+            if (!result)
+            {
+                return NotFound(new ApiResponse<bool>
+                {
+                    Code = 404,
+                    Message = "Order not found or delete failed",
+                    Results = false
+                });
+            }
+
+            return Ok(new ApiResponse<bool>
+            {
+                Code = 200,
+                Message = "Success",
+                Results = true
+            });
+        }
+
+        [HttpPost("seed")]
+        [Authorize(Roles = "admin,restaurant")]
+        public async Task<ActionResult<ApiResponse<object>>> SeedOrder()
+        {
+            try
+            {
+                var order = await _orderService.SeedOrderAsync();
+                if (order == null)
+                {
+                    return BadRequest(new ApiResponse<object>
+                    {
+                        Code = 400,
+                        Message = "Failed to seed order",
+                        Results = null
+                    });
+                }
+
+                return Ok(new ApiResponse<object>
+                {
+                    Code = 200,
+                    Message = "Successfully seeded a new order for restaurant",
+                    Results = new
+                    {
+                        order.IdOrder,
+                        order.OrderCode,
+                        order.FinalTotal,
+                        order.Status,
+                        order.CreatedAt
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<object>
+                {
+                    Code = 500,
+                    Message = $"Error seeding order: {ex.Message}",
+                    Results = ex.ToString()
+                });
+            }
+        }
+
+        [HttpPost("{idOrder}/simulate-delivery-and-review")]
+        [Authorize(Roles = "admin,restaurant")]
+        public async Task<ActionResult<ApiResponse<object>>> SimulateDeliveryAndReview(int idOrder)
+        {
+            try
+            {
+                var result = await _orderService.SimulateDeliveryAndReviewAsync(idOrder);
+                if (!result)
+                {
+                    return NotFound(new ApiResponse<object>
+                    {
+                        Code = 404,
+                        Message = "Order not found or simulation failed",
+                        Results = null
+                    });
+                }
+
+                return Ok(new ApiResponse<object>
+                {
+                    Code = 200,
+                    Message = "Success",
+                    Results = true
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<object>
+                {
+                    Code = 500,
+                    Message = $"Simulation error: {ex.Message}",
+                    Results = ex.ToString()
+                });
+            }
+        }
+
         private int GetUserId()
         {
             var userIdValue = User.FindFirstValue("UserId");
             if (!int.TryParse(userIdValue, out var userId))
-                throw new UnauthorizedAccessException("Token không hợp lệ.");
+                throw new UnauthorizedAccessException("Token khong hop le.");
 
             return userId;
+        }
+
+        private static UpdateOrderStatusRequest ParseStatusRequest(JsonElement body)
+        {
+            if (body.ValueKind == JsonValueKind.String)
+            {
+                return new UpdateOrderStatusRequest
+                {
+                    Status = body.GetString() ?? string.Empty
+                };
+            }
+
+            var request = body.Deserialize<UpdateOrderStatusRequest>(new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            return request ?? new UpdateOrderStatusRequest();
         }
 
         private static ApiResponse<T> ToError<T>(int code, string message)

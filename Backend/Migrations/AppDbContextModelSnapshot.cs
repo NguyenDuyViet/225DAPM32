@@ -18,9 +18,9 @@ namespace Backend.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "9.0.0")
-                .HasAnnotation("Relational:MaxIdentifierLength", 64);
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
-            MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("Backend.Models.Cart", b =>
                 {
@@ -29,7 +29,7 @@ namespace Backend.Migrations
                         .HasColumnName("id_Cart");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("datetime2")
                         .HasColumnName("created_At");
 
                     b.Property<int>("IdUser")
@@ -41,7 +41,7 @@ namespace Backend.Migrations
                         .HasColumnName("total");
 
                     b.Property<DateTime>("UpdateAt")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("datetime2")
                         .HasColumnName("update_At");
 
                     b.HasKey("IdCart");
@@ -67,7 +67,7 @@ namespace Backend.Migrations
 
                     b.Property<string>("Note")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("note");
 
                     b.Property<decimal>("Price")
@@ -101,17 +101,69 @@ namespace Backend.Migrations
 
                     b.Property<string>("Icon")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("icon");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("name");
 
                     b.HasKey("IdCategory");
 
                     b.ToTable("Category", (string)null);
+                });
+
+            modelBuilder.Entity("Backend.Models.ChatMessage", b =>
+                {
+                    b.Property<int>("IdMessage")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id_Message");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdMessage"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("content");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit")
+                        .HasColumnName("is_Read");
+
+                    b.Property<int?>("OrderId")
+                        .HasColumnType("int")
+                        .HasColumnName("order_Id");
+
+                    b.Property<string>("RoomId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("room_Id");
+
+                    b.Property<int>("SenderId")
+                        .HasColumnType("int")
+                        .HasColumnName("sender_Id");
+
+                    b.Property<string>("SenderName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("sender_Name");
+
+                    b.Property<string>("SenderRole")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("sender_Role");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("sent_At");
+
+                    b.HasKey("IdMessage");
+
+                    b.ToTable("ChatMessages", (string)null);
                 });
 
             modelBuilder.Entity("Backend.Models.Complaint", b =>
@@ -122,12 +174,12 @@ namespace Backend.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("description");
 
                     b.Property<string>("HandledBy")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("handled_By");
 
                     b.Property<int>("IdOrder")
@@ -140,25 +192,25 @@ namespace Backend.Migrations
 
                     b.Property<string>("Image")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("image");
 
                     b.Property<DateTime>("ReceivedAt")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("datetime2")
                         .HasColumnName("received_At");
 
                     b.Property<DateTime?>("ResolvedAt")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("datetime2")
                         .HasColumnName("resolved_At");
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("status");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("type");
 
                     b.HasKey("IdComplaint");
@@ -179,7 +231,7 @@ namespace Backend.Migrations
 
                     b.Property<string>("Address")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("address");
 
                     b.Property<decimal>("CurrentLat")
@@ -194,12 +246,12 @@ namespace Backend.Migrations
 
                     b.Property<string>("DescStatus")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("desc_Status");
 
                     b.Property<string>("ExpRank")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("expRank");
 
                     b.Property<int>("IdUser")
@@ -207,12 +259,12 @@ namespace Backend.Migrations
                         .HasColumnName("id_User");
 
                     b.Property<bool>("IsBusy")
-                        .HasColumnType("tinyint(1)")
+                        .HasColumnType("bit")
                         .HasColumnName("is_Busy");
 
                     b.Property<string>("LicensePlate")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("license_plate");
 
                     b.Property<decimal>("RateAvg")
@@ -244,7 +296,7 @@ namespace Backend.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("description");
 
                     b.Property<decimal?>("Discount")
@@ -262,12 +314,12 @@ namespace Backend.Migrations
 
                     b.Property<string>("Image")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("image");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("name");
 
                     b.Property<int?>("PrepTime")
@@ -296,11 +348,11 @@ namespace Backend.Migrations
 
                     b.Property<string>("Body")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("body");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("datetime2")
                         .HasColumnName("created_At");
 
                     b.Property<int>("IdUser")
@@ -308,7 +360,7 @@ namespace Backend.Migrations
                         .HasColumnName("id_User");
 
                     b.Property<bool>("IsRead")
-                        .HasColumnType("tinyint(1)")
+                        .HasColumnType("bit")
                         .HasColumnName("is_Read");
 
                     b.Property<int?>("OrderId")
@@ -317,7 +369,7 @@ namespace Backend.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("title");
 
                     b.HasKey("IdNoti");
@@ -334,16 +386,16 @@ namespace Backend.Migrations
                         .HasColumnName("id_Order");
 
                     b.Property<string>("CancelReason")
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("cancel_Reason");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("datetime2")
                         .HasColumnName("created_At");
 
                     b.Property<string>("DeliveryAddress")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("delivery_Address");
 
                     b.Property<decimal?>("DeliveryLat")
@@ -388,22 +440,22 @@ namespace Backend.Migrations
                         .HasColumnName("id_Voucher");
 
                     b.Property<string>("Note")
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("note");
 
                     b.Property<string>("OrderCode")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("order_Code");
 
                     b.Property<string>("PaymentMethod")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("paymentMethod");
 
                     b.Property<string>("PaymentStatus")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("paymentStatus");
 
                     b.Property<decimal>("ShippingFee")
@@ -413,11 +465,11 @@ namespace Backend.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("status");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("datetime2")
                         .HasColumnName("updated_At");
 
                     b.HasKey("IdOrder");
@@ -448,7 +500,7 @@ namespace Backend.Migrations
                         .HasColumnName("id_Order");
 
                     b.Property<string>("Note")
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("note");
 
                     b.Property<int>("Quantity")
@@ -517,7 +569,7 @@ namespace Backend.Migrations
 
                     b.Property<string>("Method")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("method");
 
                     b.HasKey("IdTransaction");
@@ -537,7 +589,7 @@ namespace Backend.Migrations
                         .HasColumnName("id_Promo");
 
                     b.Property<DateTime>("EndDate")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("datetime2")
                         .HasColumnName("end_Date");
 
                     b.Property<int>("IdRestaurant")
@@ -555,12 +607,12 @@ namespace Backend.Migrations
                         .HasColumnName("min_OrderValue");
 
                     b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("datetime2")
                         .HasColumnName("start_Date");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("type");
 
                     b.Property<int>("UsageLimit")
@@ -591,21 +643,21 @@ namespace Backend.Migrations
 
                     b.Property<string>("Address")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("address");
 
                     b.Property<TimeSpan>("CloseTime")
-                        .HasColumnType("time(6)")
+                        .HasColumnType("time")
                         .HasColumnName("closeTime");
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("description");
 
                     b.Property<string>("Image")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("image");
 
                     b.Property<decimal>("Lat")
@@ -620,11 +672,11 @@ namespace Backend.Migrations
 
                     b.Property<string>("NameRestaurant")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("name_Restaurant");
 
                     b.Property<TimeSpan>("OpenTime")
-                        .HasColumnType("time(6)")
+                        .HasColumnType("time")
                         .HasColumnName("openTime");
 
                     b.HasKey("IdRestaurant");
@@ -640,24 +692,24 @@ namespace Backend.Migrations
 
                     b.Property<string>("CommentForRes")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("comment_ForRes");
 
                     b.Property<string>("CommentForShipper")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("comment_ForShipper");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("datetime2")
                         .HasColumnName("created_At");
 
                     b.Property<float>("DriverRating")
-                        .HasColumnType("float")
+                        .HasColumnType("real")
                         .HasColumnName("driver_rating");
 
                     b.Property<float>("FoodRating")
-                        .HasColumnType("float")
+                        .HasColumnType("real")
                         .HasColumnName("food_rating");
 
                     b.Property<int>("IdOrder")
@@ -707,7 +759,7 @@ namespace Backend.Migrations
                         .HasColumnName("image");
 
                     b.Property<float>("Rating")
-                        .HasColumnType("float")
+                        .HasColumnType("real")
                         .HasColumnName("rating");
 
                     b.Property<string>("Video")
@@ -731,7 +783,7 @@ namespace Backend.Migrations
 
                     b.Property<string>("RoleName")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("role_Name");
 
                     b.HasKey("IdRole");
@@ -747,16 +799,16 @@ namespace Backend.Migrations
 
                     b.Property<string>("Action")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("action");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("datetime2")
                         .HasColumnName("created_At");
 
                     b.Property<string>("Entity")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("entity");
 
                     b.Property<int>("EntityId")
@@ -769,17 +821,17 @@ namespace Backend.Migrations
 
                     b.Property<string>("IpAddress")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("ip_Address");
 
                     b.Property<string>("NewValue")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("new_Value");
 
                     b.Property<string>("OldValue")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("old_Value");
 
                     b.HasKey("IdLog");
@@ -796,19 +848,19 @@ namespace Backend.Migrations
                         .HasColumnName("id_User");
 
                     b.Property<string>("Address")
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("address");
 
                     b.Property<string>("Avatar")
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("avatar");
 
                     b.Property<float?>("CancelRate")
-                        .HasColumnType("float")
+                        .HasColumnType("real")
                         .HasColumnName("cancel_Rate");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("datetime2")
                         .HasColumnName("created_At");
 
                     b.Property<decimal?>("CurrentLat")
@@ -822,11 +874,11 @@ namespace Backend.Migrations
                         .HasColumnName("current_Lng");
 
                     b.Property<string>("Email")
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("email");
 
                     b.Property<string>("FullName")
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("fullName");
 
                     b.Property<int>("IdRole")
@@ -834,26 +886,26 @@ namespace Backend.Migrations
                         .HasColumnName("id_Role");
 
                     b.Property<DateTime?>("LastOnline")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("datetime2")
                         .HasColumnName("lastOnline");
 
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("password");
 
                     b.Property<string>("Phone")
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("phone");
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("status");
 
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("username");
 
                     b.HasKey("IdUser");
@@ -871,11 +923,11 @@ namespace Backend.Migrations
 
                     b.Property<string>("Code")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("code");
 
                     b.Property<DateTime>("Expiry")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("datetime2")
                         .HasColumnName("expiry");
 
                     b.Property<int>("IdUser")
@@ -883,7 +935,7 @@ namespace Backend.Migrations
                         .HasColumnName("id_User");
 
                     b.Property<bool>("Used")
-                        .HasColumnType("tinyint(1)")
+                        .HasColumnType("bit")
                         .HasColumnName("used");
 
                     b.Property<decimal>("Value")

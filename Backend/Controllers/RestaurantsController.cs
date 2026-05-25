@@ -13,11 +13,13 @@ namespace Backend.Controllers
     {
         private readonly ILogger<RestaurantsController> _logger;
         private readonly RestService _restaurantService;
+        private readonly OrderService _orderService;
 
-        public RestaurantsController(ILogger<RestaurantsController> logger, RestService restaurantService)
+        public RestaurantsController(ILogger<RestaurantsController> logger, RestService restaurantService, OrderService orderService)
         {
             _logger = logger;
             _restaurantService = restaurantService;
+            _orderService = orderService;
         }
 
         [HttpGet]
@@ -86,6 +88,30 @@ namespace Backend.Controllers
             });
         }
 
+        [HttpGet("{id}/dashboard")]
+        public async Task<ActionResult<ApiResponse<object>>> GetDashboardStats(int id)
+        {
+            var stats = await _orderService.GetDashboardStatsAsync(id);
+            return Ok(new ApiResponse<object>
+            {
+                Code = 200,
+                Message = "Success",
+                Results = stats
+            });
+        }
+
+        [HttpGet("{id}/analytics")]
+        public async Task<ActionResult<ApiResponse<object>>> GetAnalyticsStats(int id)
+        {
+            var stats = await _orderService.GetAnalyticsStatsAsync(id);
+            return Ok(new ApiResponse<object>
+            {
+                Code = 200,
+                Message = "Success",
+                Results = stats
+            });
+        }
+
         [HttpDelete("{id}")]
         [Authorize(Roles = "admin")]
         public async Task<ActionResult<ApiResponse<bool>>> DeleteRestaurant(int id)
@@ -115,6 +141,19 @@ namespace Backend.Controllers
                 Code = 1000,
                 Message = "Cập nhật nhà hàng thành công",
                 Results = result
+            });
+        }
+
+        // GET: api/Restaurants/{id}/reviews
+        [HttpGet("{id}/reviews")]
+        public async Task<ActionResult<ApiResponse<IEnumerable<object>>>> GetRestaurantReviews(int id)
+        {
+            var reviews = await _orderService.GetRestaurantReviewsAsync(id);
+            return Ok(new ApiResponse<IEnumerable<object>>
+            {
+                Code = 200,
+                Message = "Success",
+                Results = reviews
             });
         }
     }
