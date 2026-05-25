@@ -22,7 +22,7 @@ namespace Backend.Services
         public async Task<string?> CheckLogin(LoginRequest request)
         {
             var user = await _userRepository.GetUserByUsernameAsync(request.Username);
-            if (user == null)
+            if (user == null || !string.Equals(user.Status, "active", StringComparison.OrdinalIgnoreCase))
                 return null;
 
             return BCrypt.Net.BCrypt.Verify(request.Password, user.Password)

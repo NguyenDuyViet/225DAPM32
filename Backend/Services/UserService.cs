@@ -45,6 +45,13 @@ namespace Backend.Services
             if (user == null)
                 return null;
 
+            if (!string.IsNullOrWhiteSpace(dto.Email) &&
+                await _userRepository.EmailBelongsToAnotherUserAsync(dto.Email.Trim(), id))
+            {
+                throw new InvalidOperationException("Email này đã được sử dụng bởi tài khoản khác.");
+            }
+
+            dto.Email = dto.Email?.Trim();
             _mapper.Map(dto, user);
 
             if (!string.IsNullOrWhiteSpace(dto.Password))
@@ -83,6 +90,23 @@ namespace Backend.Services
         {
             var user = await _userRepository.GetUserByUsernameAsync(username);
             return user == null ? null : _mapper.Map<UserResponse>(user);
+        }
+
+        public async Task<UserResponse?> ToggleStatusAsync(int id)
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user == null)
+                return null;
+
+            user.Status = string.Equals(user.Status, "active", StringComparison.OrdinalIgnoreCase)
+                ? "locked"
+                : "active";
+
+            _userRepository.Update(user);
+            await _userRepository.SaveChangesAsync();
+
+            var updatedUser = await _userRepository.GetByIdWithRoleAsync(id);
+            return _mapper.Map<UserResponse>(updatedUser ?? user);
         }
     }
 }

@@ -6,6 +6,7 @@ namespace _225DAPM32.Models
     {
         [Key]
         public int IdUser { get; set; }
+        public int IdRole { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
         public string? FullName { get; set; }
@@ -16,14 +17,11 @@ namespace _225DAPM32.Models
         public string Status { get; set; } // 'active','inactive'
         public DateTime CreatedAt { get; set; }
         public DateTime? LastOnline { get; set; }
-        public string UpdateBio { get; set; }
-        public string UpdateAvatar { get; set; }
-        public string UpdateBg { get; set; }
         public decimal? CurrentLat { get; set; }
         public decimal? CurrentLng { get; set; }
         public float? CancelRate { get; set; }
-        public int IdRole { get; set; }
         public string? RoleName { get; set; }
+        public string? UpdateBio { get; set; }
 
         // Navigation properties
         public Role? Role { get; set; }

@@ -13,22 +13,17 @@ namespace _225DAPM32.Controllers
             _apiClient = apiClient;
         }
 
-        public async Task<IActionResult> Index(int? categoryId = null)
+        public IActionResult Index(int? categoryId = null)
         {
-            var foods = categoryId.HasValue
-                ? await _apiClient.GetResultAsync<List<Food>>($"Food/category/{categoryId.Value}", false)
-                : await _apiClient.GetResultAsync<List<Food>>("Food", false);
-
-            ViewBag.Categories = await _apiClient.GetResultAsync<List<Category>>("Category", false) ?? new List<Category>();
-            ViewBag.SelectedCategoryId = categoryId;
-
-            return View(foods ?? new List<Food>());
+            return RedirectToAction("Index", "Restaurants", new { area = "", categoryId });
         }
 
         public async Task<IActionResult> Details(int id)
         {
             var food = await _apiClient.GetResultAsync<Food>($"Food/{id}", false);
-            return food == null ? NotFound() : View(food);
+            return food == null
+                ? NotFound()
+                : RedirectToAction("Details", "Restaurants", new { area = "", id = food.IdRestaurant });
         }
     }
 }

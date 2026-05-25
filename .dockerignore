@@ -1,0 +1,13 @@
+.git
+.gitignore
+.vs
+.vscode
+**/bin
+**/obj
+**/publish
+**/*.user
+**/*.suo
+**/*.log
+**/appsettings.json
+**/appsettings.Development.json
+DB.sql

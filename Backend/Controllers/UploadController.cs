@@ -1,5 +1,6 @@
 using Backend.DTOs.Response;
 using Backend.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Controllers
@@ -19,6 +20,7 @@ namespace Backend.Controllers
         /// Upload ảnh nhà hàng
         /// POST /api/Upload/restaurant
         /// </summary>
+        [Authorize(Roles = "admin,restaurant")]
         [HttpPost("restaurant")]
         public async Task<ActionResult<ApiResponse<string>>> UploadRestaurantImage(IFormFile file)
         {
@@ -56,6 +58,7 @@ namespace Backend.Controllers
         /// Upload ảnh món ăn
         /// POST /api/Upload/food
         /// </summary>
+        [Authorize(Roles = "admin,restaurant")]
         [HttpPost("food")]
         public async Task<ActionResult<ApiResponse<string>>> UploadFoodImage(IFormFile file)
         {

@@ -33,5 +33,10 @@ namespace Backend.Repositories
         {
             return await _dbSet.FirstOrDefaultAsync(u => u.Email == email);
         }
+
+        internal async Task<bool> EmailBelongsToAnotherUserAsync(string email, int id)
+        {
+            return await _dbSet.AnyAsync(u => u.Email == email && u.IdUser != id);
+        }
     }
 }

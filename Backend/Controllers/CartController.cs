@@ -77,6 +77,10 @@ namespace Backend.Controllers
             {
                 return NotFound(ToError<CartResponse>(1002, ex.Message));
             }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ToError<CartResponse>(1003, ex.Message));
+            }
         }
 
         [HttpDelete("items/{idCartFood}")]

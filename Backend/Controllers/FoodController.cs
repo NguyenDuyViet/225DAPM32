@@ -1,6 +1,7 @@
 using Backend.DTOs.Request;
 using Backend.DTOs.Response;
 using Backend.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Controllers
@@ -77,6 +78,7 @@ namespace Backend.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "admin,restaurant")]
         public async Task<ActionResult<ApiResponse<FoodResponse>>> CreateFood([FromBody] FoodRequest foodRequest)
         {
             try
@@ -112,6 +114,7 @@ namespace Backend.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "admin,restaurant")]
         public async Task<ActionResult<ApiResponse<FoodResponse>>> UpdateFood(int id, [FromBody] FoodRequest foodRequest)
         {
             try
@@ -157,6 +160,7 @@ namespace Backend.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "admin,restaurant")]
         public async Task<ActionResult<ApiResponse<object>>> DeleteFood(int id)
         {
             try
@@ -237,6 +241,43 @@ namespace Backend.Controllers
                     Code = 9999,
                     Message = $"Lỗi server: {ex.Message}",
                     Results = default!
+                });
+            }
+        }
+
+        // PUT: api/Food/5/daily-quantity
+        [HttpPut("{id}/daily-quantity")]
+        [Authorize(Roles = "admin,restaurant")]
+        public async Task<ActionResult<ApiResponse<FoodResponse>>> UpdateDailyQuantity(int id, [FromBody] int quantity)
+        {
+            try
+            {
+                var foodResponse = await _foodService.UpdateDailyQuantityAsync(id, quantity);
+
+                if (foodResponse == null)
+                {
+                    return NotFound(new ApiResponse<FoodResponse>
+                    {
+                        Code = 1002,
+                        Message = "Không tìm thấy món ăn",
+                        Results = null
+                    });
+                }
+
+                return Ok(new ApiResponse<FoodResponse>
+                {
+                    Code = 1000,
+                    Message = "Cập nhật số lượng món ăn trong ngày thành công",
+                    Results = foodResponse
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<FoodResponse>
+                {
+                    Code = 9999,
+                    Message = $"Lỗi server: {ex.Message}",
+                    Results = null
                 });
             }
         }

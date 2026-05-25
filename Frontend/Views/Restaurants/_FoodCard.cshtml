@@ -1,8 +1,13 @@
 @model _225DAPM32.Models.Food
+@{
+    string imageUrl(string? image) => string.IsNullOrWhiteSpace(image)
+        ? "/images/placeholder-food.svg"
+        : (image.StartsWith("http", StringComparison.OrdinalIgnoreCase) || image.StartsWith("/") ? image : "/" + image);
+}
 
 <div class="bg-white p-3 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-50 flex gap-4 group">
     <div class="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden relative">
-        <img alt="@Model.Name" class="w-full h-full object-cover" src="@Model.Image" />
+        <img alt="@Model.Name" class="w-full h-full object-cover" src="@imageUrl(Model.Image)" onerror="this.onerror=null;this.src='/images/placeholder-food.svg';" />
         @if (Model.Discount.HasValue && Model.Discount > 0)
         {
             <div class="absolute top-1 left-1 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
@@ -35,9 +40,21 @@
                         @Model.PrepTime'
                     </span>
                 }
-                <button class="w-8 h-8 rounded-full bg-orange-600 text-white flex items-center justify-center active:scale-90 transition-transform shadow-sm hover:bg-orange-700">
-                    <span class="material-symbols-outlined text-[20px]">add</span>
-                </button>
+                @if (Model.DailyQuantity > 0)
+                {
+                    <form asp-area="" asp-controller="Cart" asp-action="AddToCart" method="post">
+                        <input type="hidden" name="foodId" value="@Model.IdFood" />
+                        <input type="hidden" name="quantity" value="1" />
+                        <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                        <button type="submit" title="Thêm vào giỏ hàng" class="w-8 h-8 rounded-full bg-orange-600 text-white flex items-center justify-center active:scale-90 transition-transform shadow-sm hover:bg-orange-700">
+                            <span class="material-symbols-outlined text-[20px]">add</span>
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <span class="px-2 py-1 rounded bg-gray-100 text-gray-500 text-xs font-medium">Hết món</span>
+                }
             </div>
         </div>
     </div>

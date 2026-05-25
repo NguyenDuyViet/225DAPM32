@@ -45,41 +45,9 @@ namespace _225DAPM32.Controllers
             }
         }
 
-        public async Task<IActionResult> Foods(int id)
+        public IActionResult Foods(int id)
         {
-            try
-            {
-                var client = _httpClientFactory.CreateClient("API");
-
-                // Lấy thông tin category
-                var catResponse = await client.GetAsync($"Category/{id}");
-                if (catResponse.IsSuccessStatusCode)
-                {
-                    var catContent = await catResponse.Content.ReadAsStringAsync();
-                    var catApiResponse = JsonSerializer.Deserialize<ApiResponse<Category>>(catContent, _jsonOptions);
-                    ViewBag.Category = catApiResponse?.Results;
-                }
-
-                // Lấy danh sách food theo category
-                var foodResponse = await client.GetAsync($"Food/category/{id}");
-
-                if (foodResponse.IsSuccessStatusCode)
-                {
-                    var foodContent = await foodResponse.Content.ReadAsStringAsync();
-                    var foodApiResponse = JsonSerializer.Deserialize<ApiResponse<List<Food>>>(foodContent, _jsonOptions);
-
-                    if (foodApiResponse?.Results != null)
-                    {
-                        return View(foodApiResponse.Results);
-                    }
-                }
-
-                return View(new List<Food>());
-            }
-            catch (Exception)
-            {
-                return View(new List<Food>());
-            }
+            return RedirectToAction("Index", "Restaurants", new { area = "", categoryId = id });
         }
     }
 }

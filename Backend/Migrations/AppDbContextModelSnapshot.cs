@@ -114,6 +114,58 @@ namespace Backend.Migrations
                     b.ToTable("Category", (string)null);
                 });
 
+            modelBuilder.Entity("Backend.Models.ChatMessage", b =>
+                {
+                    b.Property<int>("IdMessage")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id_Message");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdMessage"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("longtext")
+                        .HasColumnName("content");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("is_Read");
+
+                    b.Property<int?>("OrderId")
+                        .HasColumnType("int")
+                        .HasColumnName("order_Id");
+
+                    b.Property<string>("RoomId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("room_Id");
+
+                    b.Property<int>("SenderId")
+                        .HasColumnType("int")
+                        .HasColumnName("sender_Id");
+
+                    b.Property<string>("SenderName")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("sender_Name");
+
+                    b.Property<string>("SenderRole")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("sender_Role");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("sent_At");
+
+                    b.HasKey("IdMessage");
+
+                    b.ToTable("ChatMessages", (string)null);
+                });
+
             modelBuilder.Entity("Backend.Models.Complaint", b =>
                 {
                     b.Property<int>("IdComplaint")
@@ -241,6 +293,10 @@ namespace Backend.Migrations
                     b.Property<int?>("CookCount")
                         .HasColumnType("int")
                         .HasColumnName("cook_Count");
+
+                    b.Property<int>("DailyQuantity")
+                        .HasColumnType("int")
+                        .HasColumnName("daily_Quantity");
 
                     b.Property<string>("Description")
                         .IsRequired()
