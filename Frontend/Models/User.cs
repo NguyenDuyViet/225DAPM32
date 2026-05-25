@@ -21,6 +21,7 @@ namespace _225DAPM32.Models
         public decimal? CurrentLng { get; set; }
         public float? CancelRate { get; set; }
         public string? RoleName { get; set; }
+        public string? UpdateBio { get; set; }
 
         // Navigation properties
         public Role? Role { get; set; }

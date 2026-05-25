@@ -96,9 +96,12 @@ builder.Services.AddSwaggerGen(options =>
 
 // Change to SQL Server if needed
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-);
-
+{
+    var connectionString = builder.Configuration.GetConnectionString("MySqlConnection");
+    
+    
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+});
 
 // ==============================
 // JWT Authentication
@@ -207,7 +210,7 @@ using (var scope = app.Services.CreateScope())
         var context = services.GetRequiredService<AppDbContext>();
 
         // Auto migrate database
-        context.Database.Migrate();
+        context.Database.EnsureCreated();
 
         // Seed sample data
         SeedData.Initialize(context);

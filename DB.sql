@@ -1,4 +1,4 @@
--- XÃ³a database náº¿u tá»“n táº¡i
+-- Xóa database nếu tồn tại
 USE master;
 GO
 
@@ -15,16 +15,26 @@ GO
 USE MonNgonTaiNha;
 GO
 
---Role
+---------------------------------------------------
+-- 1. TẠO BẢNG ROLES (BẢN CŨ BỊ THIẾU BẢNG NÀY)
+---------------------------------------------------
+CREATE TABLE Roles (
+    id_Role INT PRIMARY KEY,
+    role_Name VARCHAR(50) NOT NULL
+);
+GO
+
+-- THÊM DỮ LIỆU CHO ROLES
 INSERT INTO Roles (id_Role, role_Name)
 VALUES
 (1, 'admin'),
 (2, 'customer'),
 (3, 'restaurant'),
 (4, 'shipper');
+GO
 
--- USER
--- USER
+
+-- 2. USER
 CREATE TABLE Users (
     id_User INT PRIMARY KEY,
     id_Role INT NOT NULL,
@@ -51,8 +61,9 @@ CREATE TABLE Users (
 
     FOREIGN KEY (id_Role) REFERENCES Roles(id_Role)
 );
+GO
 
--- NOTIFICATION
+-- 3. NOTIFICATION
 CREATE TABLE Notification (
     id_Noti INT PRIMARY KEY,
     id_User INT,
@@ -63,6 +74,7 @@ CREATE TABLE Notification (
     created_At DATETIME,
     FOREIGN KEY (id_User) REFERENCES Users(id_User)
 );
+GO
 
 CREATE TABLE User_Notification (
     id_Noti INT,
@@ -71,8 +83,9 @@ CREATE TABLE User_Notification (
     FOREIGN KEY (id_Noti) REFERENCES Notification(id_Noti),
     FOREIGN KEY (id_User) REFERENCES Users(id_User)
 );
+GO
 
--- VOUCHER
+-- 4. VOUCHER
 CREATE TABLE Voucher (
     id_Voucher INT PRIMARY KEY,
     code VARCHAR(20),
@@ -82,6 +95,7 @@ CREATE TABLE Voucher (
     used BIT,
     FOREIGN KEY (id_User) REFERENCES Users(id_User)
 );
+GO
 
 CREATE TABLE User_Voucher (
     id_Voucher INT,
@@ -90,8 +104,9 @@ CREATE TABLE User_Voucher (
     FOREIGN KEY (id_Voucher) REFERENCES Voucher(id_Voucher),
     FOREIGN KEY (id_User) REFERENCES Users(id_User)
 );
+GO
 
--- RESTAURANT
+-- 5. RESTAURANT
 CREATE TABLE Restaurant (
     id_Restaurant INT PRIMARY KEY,
     name_Restaurant NVARCHAR(100),
@@ -103,15 +118,17 @@ CREATE TABLE Restaurant (
     lat DECIMAL(10,7),
     lng DECIMAL(10,7)
 );
+GO
 
--- CATEGORY
+-- 6. CATEGORY
 CREATE TABLE Category (
     id_Category INT PRIMARY KEY,
     name NVARCHAR(100),
     icon NVARCHAR(255)
 );
+GO
 
--- FOOD
+-- 7. FOOD
 CREATE TABLE Food (
     id_Food INT PRIMARY KEY,
     id_Category INT,
@@ -127,6 +144,7 @@ CREATE TABLE Food (
     FOREIGN KEY (id_Category) REFERENCES Category(id_Category),
     FOREIGN KEY (id_Restaurant) REFERENCES Restaurant(id_Restaurant)
 );
+GO
 
 CREATE TABLE Food_Image (
     id_Foodimage INT PRIMARY KEY,
@@ -134,8 +152,9 @@ CREATE TABLE Food_Image (
     image VARCHAR(255),
     FOREIGN KEY (id_Food) REFERENCES Food(id_Food)
 );
+GO
 
--- CART
+-- 8. CART
 CREATE TABLE Cart (
     id_Cart INT PRIMARY KEY,
     id_User INT,
@@ -144,6 +163,7 @@ CREATE TABLE Cart (
     update_At DATETIME,
     FOREIGN KEY (id_User) REFERENCES Users(id_User)
 );
+GO
 
 CREATE TABLE Cart_Food (
     id_CartFood INT PRIMARY KEY,
@@ -154,8 +174,9 @@ CREATE TABLE Cart_Food (
     FOREIGN KEY (id_Cart) REFERENCES Cart(id_Cart),
     FOREIGN KEY (id_Food) REFERENCES Food(id_Food)
 );
+GO
 
--- PROMOTION
+-- 9. PROMOTION
 CREATE TABLE Promotion (
     id_Promo INT PRIMARY KEY,
     type VARCHAR(20),
@@ -169,6 +190,7 @@ CREATE TABLE Promotion (
     id_Restaurant INT,
     FOREIGN KEY (id_Restaurant) REFERENCES Restaurant(id_Restaurant)
 );
+GO
 
 CREATE TABLE Order_Promotion (
     id_Order INT,
@@ -176,8 +198,29 @@ CREATE TABLE Order_Promotion (
     discount_Amount DECIMAL(10,2),
     PRIMARY KEY (id_Order, id_Promo)
 );
+GO
 
--- ORDER
+---------------------------------------------------
+-- 10. DRIVER (Đã được chuyển lên trước Orders để không bị lỗi khóa ngoại)
+---------------------------------------------------
+CREATE TABLE Driver (
+    id_Driver INT PRIMARY KEY,
+    id_User INT,
+    license_plate VARCHAR(20),
+    address VARCHAR(255),
+    expRank VARCHAR(50),
+    desc_Status NVARCHAR(MAX),
+    current_Lat DECIMAL(10,7),
+    current_Lng DECIMAL(10,7),
+    is_Busy BIT,
+    rate_Avg DECIMAL(2,1),
+    total_Orders INT,
+    FOREIGN KEY (id_User) REFERENCES Users(id_User)
+);
+GO
+
+
+-- 11. ORDER
 CREATE TABLE Orders (
     id_Order INT PRIMARY KEY,
 
@@ -230,6 +273,7 @@ CREATE TABLE Orders (
     FOREIGN KEY (id_Driver) REFERENCES Driver(id_Driver),
     FOREIGN KEY (id_Voucher) REFERENCES Voucher(id_Voucher)
 );
+GO
 
 CREATE TABLE Order_Food (
     id_OrderFood INT PRIMARY KEY,
@@ -247,8 +291,9 @@ CREATE TABLE Order_Food (
     FOREIGN KEY (id_Order) REFERENCES Orders(id_Order),
     FOREIGN KEY (id_Food) REFERENCES Food(id_Food)
 );
+GO
 
--- REVIEW
+-- 12. REVIEW
 CREATE TABLE Review (
     id_Review INT PRIMARY KEY,
     id_User INT,
@@ -259,8 +304,11 @@ CREATE TABLE Review (
     comment_ForRes NVARCHAR(255),
     comment_ForShipper NVARCHAR(255),
     created_At DATETIME,
-    FOREIGN KEY (id_User) REFERENCES Users(id_User)
+    FOREIGN KEY (id_User) REFERENCES Users(id_User),
+    FOREIGN KEY (id_Order) REFERENCES Orders(id_Order),
+    FOREIGN KEY (id_Restaurant) REFERENCES Restaurant(id_Restaurant)
 );
+GO
 
 CREATE TABLE Review_Food (
     id_ReviewFood INT PRIMARY KEY,
@@ -273,24 +321,9 @@ CREATE TABLE Review_Food (
     FOREIGN KEY (id_Review) REFERENCES Review(id_Review),
     FOREIGN KEY (id_Food) REFERENCES Food(id_Food)
 );
+GO
 
--- DRIVER
-CREATE TABLE Driver (
-    id_Driver INT PRIMARY KEY,
-    id_User INT,
-    license_plate VARCHAR(20),
-    address VARCHAR(255),
-    expRank VARCHAR(50),
-    desc_Status NVARCHAR(MAX),
-    current_Lat DECIMAL(10,7),
-    current_Lng DECIMAL(10,7),
-    is_Busy BIT,
-    rate_Avg DECIMAL(2,1),
-    total_Orders INT,
-    FOREIGN KEY (id_User) REFERENCES Users(id_User)
-);
-
--- PAYMENT
+-- 13. PAYMENT
 CREATE TABLE PaymentMethod (
     id_Transaction INT PRIMARY KEY,
     id_User INT,
@@ -300,8 +333,9 @@ CREATE TABLE PaymentMethod (
     FOREIGN KEY (id_User) REFERENCES Users(id_User),
     FOREIGN KEY (id_Order) REFERENCES Orders(id_Order)
 );
+GO
 
--- COMPLAINT
+-- 14. COMPLAINT
 CREATE TABLE Complaint (
     id_Complaint INT PRIMARY KEY,
     id_Order INT,
@@ -316,8 +350,9 @@ CREATE TABLE Complaint (
     FOREIGN KEY (id_Order) REFERENCES Orders(id_Order),
     FOREIGN KEY (id_User) REFERENCES Users(id_User)
 );
+GO
 
--- LOG
+-- 15. LOG
 CREATE TABLE SystemLog (
     id_Log INT PRIMARY KEY,
     id_User INT,
@@ -330,3 +365,4 @@ CREATE TABLE SystemLog (
     created_At DATETIME,
     FOREIGN KEY (id_User) REFERENCES Users(id_User)
 );
+GO

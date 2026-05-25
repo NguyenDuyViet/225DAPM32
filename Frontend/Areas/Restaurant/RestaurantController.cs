@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
-<<<<<<< HEAD
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-=======
->>>>>>> 0046400d0711806a8ed86b03458f2aae1128e39b
+using Microsoft.AspNetCore.Http;
 using _225DAPM32.Areas.Restaurant.Models;
 using _225DAPM32.Models;
 using _225DAPM32.Services;
@@ -17,144 +17,8 @@ namespace _225DAPM32.Areas.Restaurant
     [Area("Restaurant")]
     public class RestaurantController : Controller
     {
-<<<<<<< HEAD
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly JsonSerializerOptions _jsonOptions;
-
-        public RestaurantController(IHttpClientFactory httpClientFactory)
-        {
-            _httpClientFactory = httpClientFactory;
-            _jsonOptions = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
-        }
-
-        private HttpClient GetApiClient()
-        {
-            var client = _httpClientFactory.CreateClient("API");
-            var token = HttpContext.Session.GetString("Token");
-            if (!string.IsNullOrEmpty(token))
-            {
-                client.DefaultRequestHeaders.Authorization =
-                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            }
-            return client;
-        }
-
-        private int GetRestaurantId()
-        {
-            // Default to restaurant ID 1 ("Bếp Nhà Việt") for demo/portal access
-            return HttpContext.Session.GetInt32("RestaurantId") ?? 1;
-        }
-
-        public async Task<IActionResult> Index()
-        {
-            ViewData["Title"] = "Dashboard Nhà hàng";
-            int restaurantId = GetRestaurantId();
-            var client = GetApiClient();
-
-            var model = new RestaurantDashboardViewModel
-            {
-                ActiveOrders = 0,
-                RevenueToday = 0,
-                MenuItems = 0,
-                Rating = 5.0m
-            };
-
-            try
-            {
-                // Fetch stats from Backend
-                var response = await client.GetAsync($"Restaurants/{restaurantId}/dashboard");
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var apiResponse = JsonSerializer.Deserialize<ApiResponse<BackendDashboardStats>>(content, _jsonOptions);
-
-                    if (apiResponse?.Results != null)
-                    {
-                        var stats = apiResponse.Results;
-                        model.ActiveOrders = stats.PreparingOrders;
-                        model.RevenueToday = stats.RevenueToday;
-                        model.Rating = stats.Rating;
-
-                        ViewBag.TotalOrdersToday = stats.TotalOrdersToday;
-                        ViewBag.RecentOrders = stats.RecentOrders;
-                        ViewBag.PopularItems = stats.PopularItems;
-                    }
-                }
-
-                // Fetch menu item count (foods count of this restaurant)
-                var foodResponse = await client.GetAsync($"Food/restaurant/{restaurantId}");
-                if (foodResponse.IsSuccessStatusCode)
-                {
-                    var foodContent = await foodResponse.Content.ReadAsStringAsync();
-                    var foodApiResponse = JsonSerializer.Deserialize<ApiResponse<List<Food>>>(foodContent, _jsonOptions);
-                    model.MenuItems = foodApiResponse?.Results?.Count ?? 0;
-                }
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Lỗi kết nối Backend: {ex.Message}";
-            }
-
-            return View(model);
-        }
-
-        public async Task<IActionResult> Chat()
-        {
-            ViewData["Title"] = "Chat";
-            int restaurantId = GetRestaurantId();
-            var client = GetApiClient();
-
-            // Load restaurant orders to build room list (each order = a customer room)
-            var orderRooms = new List<ChatRoomInfo>();
-            try
-            {
-                var response = await client.GetAsync($"Orders/restaurant/{restaurantId}");
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<BackendOrder>>>(content, _jsonOptions);
-                    if (apiResponse?.Results != null)
-                    {
-                        foreach (var order in apiResponse.Results.Take(30))
-                        {
-                            var roomId = $"order_{order.IdOrder}";
-                            var partnerRole = order.Status switch
-                            {
-                                "preparing" or "ready" or "delivering" => "shipper",
-                                _ => "customer"
-                            };
-                            var partnerName = partnerRole == "shipper"
-                                ? (order.Driver?.User?.FullName ?? $"Shipper #{order.IdOrder}")
-                                : (order.User?.FullName ?? $"Khách #{order.IdOrder}");
-
-                            orderRooms.Add(new ChatRoomInfo
-                            {
-                                RoomId = roomId,
-                                OrderId = order.IdOrder,
-                                OrderCode = order.OrderCode ?? $"#{order.IdOrder}",
-                                PartnerName = partnerName,
-                                PartnerRole = partnerRole,
-                                Status = order.Status,
-                                LastMessage = "",
-                                LastTime = order.CreatedAt
-                            });
-                        }
-                    }
-                }
-            }
-            catch { }
-
-            ViewBag.RestaurantId = restaurantId;
-            ViewBag.ChatRooms = orderRooms;
-            return View();
-        }
-
-        public async Task<IActionResult> Orders()
-=======
         private readonly ApiClient _apiClient;
+        private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
         public RestaurantController(ApiClient apiClient)
         {
@@ -162,7 +26,6 @@ namespace _225DAPM32.Areas.Restaurant
         }
 
         public async Task<IActionResult> Index()
->>>>>>> 0046400d0711806a8ed86b03458f2aae1128e39b
         {
             if (!RequireRestaurant())
                 return RedirectToAction("Index", "Home", new { area = "" });
@@ -171,6 +34,7 @@ namespace _225DAPM32.Areas.Restaurant
             var foods = restaurant == null
                 ? new List<Food>()
                 : await _apiClient.GetResultAsync<List<Food>>($"Food/restaurant/{restaurant.IdRestaurant}", false) ?? new List<Food>();
+            
             var orders = restaurant == null
                 ? new List<Order>()
                 : await _apiClient.GetResultAsync<List<Order>>($"Orders/restaurant/{restaurant.IdRestaurant}") ?? new List<Order>();
@@ -192,65 +56,16 @@ namespace _225DAPM32.Areas.Restaurant
 
             var restaurant = await GetManagedRestaurantAsync();
             ViewData["Title"] = "Đơn hàng";
-<<<<<<< HEAD
-            int restaurantId = GetRestaurantId();
-            var client = GetApiClient();
-            var orders = new List<Order>();
-
-            try
-            {
-                var response = await client.GetAsync($"Orders/restaurant/{restaurantId}");
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<BackendOrder>>>(content, _jsonOptions);
-
-                    if (apiResponse?.Results != null)
-                    {
-                        orders = apiResponse.Results.Select(bo => new Order
-                        {
-                            IdOrder = bo.IdOrder,
-                            IdUser = bo.IdUser,
-                            OrderCode = bo.OrderCode,
-                            Total = bo.FoodAmount,
-                            ShippingFee = bo.ShippingFee,
-                            Discount = bo.Discount,
-                            FinalTotal = bo.FinalTotal,
-                            Status = bo.Status,
-                            Note = bo.Note ?? "",
-                            CreatedAt = bo.CreatedAt,
-                            DriverName = bo.Driver?.User?.FullName ?? "Chưa có",
-                            DriverPhone = bo.Driver?.User?.Phone ?? "",
-                            User = new User { FullName = bo.User?.FullName ?? "Khách hàng" },
-                            Address = new Address { AddressDetail = bo.DeliveryAddress ?? "" },
-                            OrderFoods = bo.OrderFoods?.Select(of => new OrderFoodViewModel
-                            {
-                                IdFood = of.IdFood,
-                                Name = of.Food?.Name ?? "Món ăn",
-                                Quantity = of.Quantity,
-                                UnitPrice = of.UnitPrice,
-                                TotalPrice = of.TotalPrice,
-                                Note = of.Note,
-                                Image = of.Food?.Image ?? "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271401/DAPM_32/foods/food-default.jpg"
-                            }).ToList()
-                        }).ToList();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Lỗi tải đơn hàng: {ex.Message}";
-            }
-
-            ViewBag.RestaurantId = restaurantId;
-            return View(orders);
-=======
 
             if (restaurant == null)
                 return View(new List<Order>());
 
             return View(await _apiClient.GetResultAsync<List<Order>>($"Orders/restaurant/{restaurant.IdRestaurant}") ?? new List<Order>());
->>>>>>> 0046400d0711806a8ed86b03458f2aae1128e39b
+        }
+        
+        public IActionResult Chat()
+        {
+            return View();
         }
 
         [HttpPost]
@@ -342,7 +157,6 @@ namespace _225DAPM32.Areas.Restaurant
             var client = GetApiClient();
             try
             {
-                // Fetch order details first to verify code
                 var getResponse = await client.GetAsync($"Orders/restaurant/{GetRestaurantId()}");
                 if (getResponse.IsSuccessStatusCode)
                 {
@@ -367,7 +181,6 @@ namespace _225DAPM32.Areas.Restaurant
                     }
                 }
 
-                // Code verified! Call backend to update status
                 var jsonContent = new StringContent(JsonSerializer.Serialize(status), Encoding.UTF8, "application/json");
                 var response = await client.PutAsync($"Orders/{orderId}/status", jsonContent);
 
@@ -471,80 +284,11 @@ namespace _225DAPM32.Areas.Restaurant
 
         public async Task<IActionResult> Profile()
         {
-<<<<<<< HEAD
-            ViewData["Title"] = "Quản lý Nhà hàng";
-            int restaurantId = GetRestaurantId();
-            var client = GetApiClient();
-            var model = new RestaurantEntity();
-
-            try
-            {
-                // 1. Fetch Restaurant Entity
-                var response = await client.GetAsync($"Restaurants/{restaurantId}");
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var apiResponse = JsonSerializer.Deserialize<ApiResponse<RestaurantEntity>>(content, _jsonOptions);
-                    model = apiResponse?.Results ?? new RestaurantEntity();
-                }
-
-                // 2. Fetch Foods
-                var foodResponse = await client.GetAsync($"Food/restaurant/{restaurantId}");
-                var foods = new List<Food>();
-                if (foodResponse.IsSuccessStatusCode)
-                {
-                    var foodContent = await foodResponse.Content.ReadAsStringAsync();
-                    var foodApiResponse = JsonSerializer.Deserialize<ApiResponse<List<Food>>>(foodContent, _jsonOptions);
-                    foods = foodApiResponse?.Results ?? new List<Food>();
-                }
-                ViewBag.Foods = foods;
-
-                // 3. Fetch Categories
-                var categoryResponse = await client.GetAsync("Category");
-                var categories = new List<Category>();
-                if (categoryResponse.IsSuccessStatusCode)
-                {
-                    var categoryContent = await categoryResponse.Content.ReadAsStringAsync();
-                    var categoryApiResponse = JsonSerializer.Deserialize<ApiResponse<List<Category>>>(categoryContent, _jsonOptions);
-                    categories = categoryApiResponse?.Results ?? new List<Category>();
-                }
-                ViewBag.Categories = categories;
-
-                // 4. Fetch Promotions
-                var promoResponse = await client.GetAsync($"Promotion/restaurant/{restaurantId}");
-                var promotions = new List<Promotion>();
-                if (promoResponse.IsSuccessStatusCode)
-                {
-                    var promoContent = await promoResponse.Content.ReadAsStringAsync();
-                    var promoApiResponse = JsonSerializer.Deserialize<ApiResponse<List<Promotion>>>(promoContent, _jsonOptions);
-                    promotions = promoApiResponse?.Results ?? new List<Promotion>();
-                }
-                ViewBag.Promotions = promotions;
-
-                // 5. Fetch Reviews
-                var reviewResponse = await client.GetAsync($"Restaurants/{restaurantId}/reviews");
-                var reviews = new List<ReviewViewModel>();
-                if (reviewResponse.IsSuccessStatusCode)
-                {
-                    var reviewContent = await reviewResponse.Content.ReadAsStringAsync();
-                    var reviewApiResponse = JsonSerializer.Deserialize<ApiResponse<List<ReviewViewModel>>>(reviewContent, _jsonOptions);
-                    reviews = reviewApiResponse?.Results ?? new List<ReviewViewModel>();
-                }
-                ViewBag.Reviews = reviews;
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Lỗi tải dữ liệu nhà hàng: {ex.Message}";
-            }
-
-            return View(model);
-=======
             if (!RequireRestaurant())
                 return RedirectToAction("Index", "Home", new { area = "" });
 
             ViewData["Title"] = "Thông tin Nhà hàng";
             return View(await GetManagedRestaurantAsync() ?? new RestaurantEntity());
->>>>>>> 0046400d0711806a8ed86b03458f2aae1128e39b
         }
 
         [HttpPost]
@@ -865,6 +609,34 @@ namespace _225DAPM32.Areas.Restaurant
             return RedirectToAction("Settings", new { area = "Restaurant" });
         }
 
+        // --- Helper Methods ---
+        private HttpClient GetApiClient()
+        {
+            var client = new HttpClient();
+            // Cập nhật lại port nếu Backend của bạn chạy port khác
+            client.BaseAddress = new Uri("https://localhost:8000/api/"); 
+            return client;
+        }
+
+        private int GetRestaurantId()
+        {
+            // Tạm thời fix cứng là 1 cho mục đích demo, 
+            // sau này bạn đổi thành lấy từ Session hoặc User nhé.
+            return 1; 
+        }
+
+        private async Task<RestaurantEntity?> GetManagedRestaurantAsync()
+        {
+            var restaurants = await _apiClient.GetResultAsync<List<RestaurantEntity>>("Restaurants/all", false) ?? new List<RestaurantEntity>();
+            return restaurants.FirstOrDefault();
+        }
+
+        private bool RequireRestaurant()
+        {
+            var role = HttpContext.Session.GetString("Role");
+            return role == "restaurant" || role == "admin";
+        }
+
         // --- Helper Models to deserialize Backend Responses ---
         public class ApiResponse<T>
         {
@@ -967,7 +739,7 @@ namespace _225DAPM32.Areas.Restaurant
             public int OrderId { get; set; }
             public string OrderCode { get; set; } = string.Empty;
             public string PartnerName { get; set; } = string.Empty;
-            public string PartnerRole { get; set; } = "customer"; // "customer" | "shipper"
+            public string PartnerRole { get; set; } = "customer"; 
             public string Status { get; set; } = string.Empty;
             public string LastMessage { get; set; } = string.Empty;
             public DateTime LastTime { get; set; }
@@ -995,18 +767,6 @@ namespace _225DAPM32.Areas.Restaurant
             public string? Comment { get; set; }
             public string? Image { get; set; }
             public string? FoodName { get; set; }
-        }
-
-        private async Task<RestaurantEntity?> GetManagedRestaurantAsync()
-        {
-            var restaurants = await _apiClient.GetResultAsync<List<RestaurantEntity>>("Restaurants/all", false) ?? new List<RestaurantEntity>();
-            return restaurants.FirstOrDefault();
-        }
-
-        private bool RequireRestaurant()
-        {
-            var role = HttpContext.Session.GetString("Role");
-            return role == "restaurant" || role == "admin";
         }
     }
 }
