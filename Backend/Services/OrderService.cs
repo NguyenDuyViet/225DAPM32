@@ -355,7 +355,7 @@ namespace Backend.Services
 
             var dailyRevenueList = new List<decimal>();
             var dayLabels = new List<string>();
-            string[] viDays = { "Chu nhat", "Thu 2", "Thu 3", "Thu 4", "Thu 5", "Thu 6", "Thu 7" };
+            string[] viDays = { "Chủ nhật", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7" };
 
             foreach (var day in past7Days)
             {
@@ -371,9 +371,9 @@ namespace Backend.Services
 
             var statusCounts = new Dictionary<string, int>
             {
-                { "Da xac nhan", allRestaurantOrders.Count(o => o.Status == "confirmed" || o.Status == "restaurant_accepted") },
-                { "Dang chuan bi", allRestaurantOrders.Count(o => o.Status == "preparing" || o.Status == "cooked") },
-                { "Da giao", allRestaurantOrders.Count(o => o.Status == "completed" || o.Status == "delivering") }
+                { "Đã xác nhận", allRestaurantOrders.Count(o => o.Status == "confirmed" || o.Status == "restaurant_accepted") },
+                { "Đang chuẩn bị", allRestaurantOrders.Count(o => o.Status == "preparing" || o.Status == "cooked") },
+                { "Đã giao", allRestaurantOrders.Count(o => o.Status == "completed" || o.Status == "delivering") }
             };
 
             return new

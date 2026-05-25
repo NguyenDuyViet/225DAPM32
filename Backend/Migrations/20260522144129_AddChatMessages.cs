@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -16,15 +17,19 @@ namespace Backend.Migrations
                 columns: table => new
                 {
                     id_Message = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    room_Id = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    room_Id = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     sender_Id = table.Column<int>(type: "int", nullable: false),
-                    sender_Role = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    sender_Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    sender_Role = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    sender_Name = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     order_Id = table.Column<int>(type: "int", nullable: true),
-                    content = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    sent_At = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    is_Read = table.Column<bool>(type: "bit", nullable: false)
+                    content = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    sent_At = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    is_Read = table.Column<bool>(type: "tinyint(1)", nullable: false)
                 },
                 constraints: table =>
                 {

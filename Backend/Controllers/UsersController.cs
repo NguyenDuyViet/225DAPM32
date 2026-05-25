@@ -3,6 +3,7 @@ using Backend.DTOs.Response;
 using Backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Backend.Controllers
 {
@@ -49,14 +50,29 @@ namespace Backend.Controllers
             {
                 var user = await _userService.GetUserByIdAsync(id);
                 if (user == null)
-                    return NotFound(new { message = "User not found" });
+                    return NotFound(new ApiResponse<UserResponse>
+                    {
+                        Code = 1002,
+                        Message = "Không tìm thấy tài khoản.",
+                        Results = default!
+                    });
 
-                return Ok(user);
+                return Ok(new ApiResponse<UserResponse>
+                {
+                    Code = 1000,
+                    Message = "Lấy thông tin tài khoản thành công.",
+                    Results = user
+                });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting user by id: {UserId}", id);
-                return StatusCode(500, new { message = "Internal server error" });
+                return StatusCode(500, new ApiResponse<UserResponse>
+                {
+                    Code = 9999,
+                    Message = "Không thể tải thông tin tài khoản.",
+                    Results = default!
+                });
             }
         }
 
@@ -104,16 +120,47 @@ namespace Backend.Controllers
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
+                var currentUserId = User.FindFirstValue("UserId");
+                var isAdmin = User.IsInRole("admin");
+                if (!isAdmin && (!int.TryParse(currentUserId, out var authenticatedId) || authenticatedId != id))
+                {
+                    return Forbid();
+                }
+
                 var updatedUser = await _userService.UpdateUserAsync(id, dto);
                 if (updatedUser == null)
-                    return NotFound(new { message = "User not found" });
+                    return NotFound(new ApiResponse<UserResponse>
+                    {
+                        Code = 1002,
+                        Message = "Không tìm thấy tài khoản.",
+                        Results = default!
+                    });
 
-                return Ok(updatedUser);
+                return Ok(new ApiResponse<UserResponse>
+                {
+                    Code = 1000,
+                    Message = "Cập nhật thông tin thành công.",
+                    Results = updatedUser
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new ApiResponse<UserResponse>
+                {
+                    Code = 1003,
+                    Message = ex.Message,
+                    Results = default!
+                });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating user: {UserId}", id);
-                return StatusCode(500, new { message = "Internal server error" });
+                return StatusCode(500, new ApiResponse<UserResponse>
+                {
+                    Code = 9999,
+                    Message = "Không thể cập nhật thông tin. Vui lòng kiểm tra dữ liệu và thử lại.",
+                    Results = default!
+                });
             }
         }
 
@@ -133,6 +180,46 @@ namespace Backend.Controllers
             {
                 _logger.LogError(ex, "Error deleting user: {UserId}", id);
                 return StatusCode(500, new { message = "Internal server error" });
+            }
+        }
+
+        [HttpPost("{id}/toggle-status")]
+        [Authorize(Roles = "admin")]
+        public async Task<ActionResult<ApiResponse<UserResponse>>> ToggleStatus(int id)
+        {
+            try
+            {
+                var user = await _userService.ToggleStatusAsync(id);
+                if (user == null)
+                {
+                    return NotFound(new ApiResponse<UserResponse>
+                    {
+                        Code = 1002,
+                        Message = "Không tìm thấy tài khoản.",
+                        Results = default!
+                    });
+                }
+
+                var message = string.Equals(user.Status, "active", StringComparison.OrdinalIgnoreCase)
+                    ? "Đã mở khóa tài khoản."
+                    : "Đã khóa tài khoản.";
+
+                return Ok(new ApiResponse<UserResponse>
+                {
+                    Code = 1000,
+                    Message = message,
+                    Results = user
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error toggling status for user: {UserId}", id);
+                return StatusCode(500, new ApiResponse<UserResponse>
+                {
+                    Code = 9999,
+                    Message = "Không thể cập nhật trạng thái tài khoản.",
+                    Results = default!
+                });
             }
         }
     }

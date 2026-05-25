@@ -40,6 +40,11 @@ namespace Backend.Services
                 throw new InvalidOperationException("Giỏ hàng chỉ hỗ trợ món ăn từ cùng một nhà hàng.");
 
             var item = cart.CartFoods.FirstOrDefault(cf => cf.IdFood == request.IdFood);
+            var resultingQuantity = (item?.Quantity ?? 0) + request.Quantity;
+
+            if (food.DailyQuantity <= 0 || resultingQuantity > food.DailyQuantity)
+                throw new InvalidOperationException("Món ăn không đủ số lượng để thêm vào giỏ hàng.");
+
             var price = GetSellingPrice(food);
 
             if (item == null)
@@ -56,6 +61,7 @@ namespace Backend.Services
                 };
 
                 await _context.CartFoods.AddAsync(item);
+                cart.CartFoods.Add(item);
             }
             else
             {
@@ -78,6 +84,9 @@ namespace Backend.Services
             var item = cart.CartFoods.FirstOrDefault(cf => cf.IdCartFood == idCartFood);
             if (item == null)
                 throw new KeyNotFoundException("Không tìm thấy món ăn trong giỏ hàng.");
+
+            if (request.Quantity > item.Food.DailyQuantity)
+                throw new InvalidOperationException("Món ăn không đủ số lượng để cập nhật giỏ hàng.");
 
             if (request.Quantity <= 0)
             {

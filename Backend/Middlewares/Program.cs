@@ -4,7 +4,6 @@ using Backend.Hubs;
 using Backend.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.SqlServer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -146,6 +145,10 @@ builder.Services
 // CORS
 // ==============================
 
+var frontendOrigins = (builder.Configuration["Cors:AllowedOrigins"]
+                       ?? "http://localhost:5241;https://localhost:7297")
+    .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(
@@ -153,7 +156,7 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy
-                .WithOrigins("http://localhost:5241", "https://localhost:7241")
+                .WithOrigins(frontendOrigins)
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials(); // Required for SignalR WebSocket
@@ -167,6 +170,8 @@ builder.Services.AddCors(options =>
 // ==============================
 
 var app = builder.Build();
+var forceSeed = args.Contains("--force-seed", StringComparer.OrdinalIgnoreCase);
+var seedOnly = args.Contains("--seed-only", StringComparer.OrdinalIgnoreCase);
 
 
 // ==============================
@@ -213,7 +218,7 @@ using (var scope = app.Services.CreateScope())
         context.Database.EnsureCreated();
 
         // Seed sample data
-        SeedData.Initialize(context);
+        SeedData.Initialize(context, forceSeed);
     }
     catch (Exception ex)
     {
@@ -230,5 +235,10 @@ using (var scope = app.Services.CreateScope())
 // ==============================
 // Run App
 // ==============================
+
+if (seedOnly)
+{
+    return;
+}
 
 app.Run();

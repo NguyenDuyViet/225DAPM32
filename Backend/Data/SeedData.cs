@@ -37,10 +37,10 @@ namespace Backend.Data
             return url;
         }
 
-        public static void Initialize(AppDbContext context)
+        public static void Initialize(AppDbContext context, bool forceReset = false)
         {
             // Only seed if we don't have 50 restaurants
-            if (context.Restaurants.Count() >= 50) return;
+            if (!forceReset && context.Restaurants.Count() >= 50) return;
 
             // Clear all tables to start fresh
             context.OrderFoods.RemoveRange(context.OrderFoods);
@@ -74,6 +74,11 @@ namespace Backend.Data
             var apiSecret = config["Cloudinary:ApiSecret"];
             var account = new Account(cloudName, apiKey, apiSecret);
             var cloudinary = new Cloudinary(account);
+            var defaultAvatarUrl = UploadToCloudinary(
+                cloudinary,
+                "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300&auto=format&fit=crop&q=80",
+                "users",
+                "default-user");
 
             var now = DateTime.Now;
 
@@ -97,6 +102,10 @@ namespace Backend.Data
                 new User { IdUser = 4, IdRole = 2, Username = "customer03", Password = BCrypt.Net.BCrypt.HashPassword("123456"), FullName = "Lê Minh Châu", Phone = "0901000003", Email = "customer03@example.com", Address = "78 Võ Nguyên Giáp, Quận Sơn Trà, Đà Nẵng", Avatar = "images/users/customer03.jpg", Status = "active", CreatedAt = now, LastOnline = now.AddHours(-1), CurrentLat = 16.0754m, CurrentLng = 108.2435m, CancelRate = 0.04f },
                 new User { IdUser = 5, IdRole = 3, Username = "restaurant01", Password = BCrypt.Net.BCrypt.HashPassword("123456"), FullName = "Chủ Nhà Hàng Ngon", Phone = "0902000001", Email = "restaurant01@example.com", Address = "100 Trần Phú, Quận Hải Châu, Đà Nẵng", Avatar = "images/users/restaurant.jpg", Status = "active", CreatedAt = now, LastOnline = now, CurrentLat = 16.0600m, CurrentLng = 108.2200m, CancelRate = 0 }
             };
+            foreach (var user in users)
+            {
+                user.Avatar = defaultAvatarUrl;
+            }
             context.Users.AddRange(users);
             context.SaveChanges();
 
@@ -108,11 +117,11 @@ namespace Backend.Data
                 "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=600&auto=format&fit=crop&q=80",
                 "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600&auto=format&fit=crop&q=80",
                 "https://images.unsplash.com/photo-1533777857889-4be7c70b33f7?w=600&auto=format&fit=crop&q=80",
-                "https://images.unsplash.com/photo-1514432324607-2e467f4851e8?w=600&auto=format&fit=crop&q=80",
-                "https://images.unsplash.com/photo-1504674900149-731c6541e5a1?w=600&auto=format&fit=crop&q=80",
-                "https://images.unsplash.com/photo-1496521821757-a1efb6729352?w=600&auto=format&fit=crop&q=80",
-                "https://images.unsplash.com/photo-1541518227354-08fa5d50c44d?w=600&auto=format&fit=crop&q=80",
-                "https://images.unsplash.com/photo-1464193687677-6f32dd54de71?w=600&auto=format&fit=crop&q=80"
+                "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=600&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=600&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600&auto=format&fit=crop&q=80"
             };
 
             var foodUnsplash = new Dictionary<int, string[]>
@@ -129,7 +138,7 @@ namespace Backend.Data
                     "https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=500&auto=format&fit=crop&q=80",
                     "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&auto=format&fit=crop&q=80",
                     "https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=500&auto=format&fit=crop&q=80",
-                    "https://images.unsplash.com/photo-1517701550927-30cf4ba20d4d?w=500&auto=format&fit=crop&q=80"
+                    "https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=500&auto=format&fit=crop&q=80"
                 }},
                 { 3, new string[] { // Đồ chay
                     "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=80",
@@ -352,7 +361,8 @@ namespace Backend.Data
                         Price = foodDetails.Price,
                         Discount = random.Next(0, 5) == 0 ? foodDetails.Price * 0.1m : 0m,
                         CookCount = random.Next(20, 250),
-                        PrepTime = random.Next(10, 30)
+                        PrepTime = random.Next(10, 30),
+                        DailyQuantity = random.Next(20, 91)
                     };
                     seedFoods.Add(food);
                 }
@@ -379,7 +389,8 @@ namespace Backend.Data
                         Price = drinkPrices[idx],
                         Discount = 0m,
                         CookCount = random.Next(50, 400),
-                        PrepTime = 5
+                        PrepTime = 5,
+                        DailyQuantity = random.Next(30, 121)
                     };
                     seedFoods.Add(drink);
                 }
@@ -401,7 +412,8 @@ namespace Backend.Data
                         Price = comboPrice,
                         Discount = comboPrice * 0.15m,
                         CookCount = random.Next(30, 180),
-                        PrepTime = 20
+                        PrepTime = 20,
+                        DailyQuantity = random.Next(15, 51)
                     };
                     seedFoods.Add(combo);
                 }
@@ -412,16 +424,16 @@ namespace Backend.Data
             // 6. Seed Drivers (Shippers) in Da Nang
             var shippers = new User[]
             {
-                new User { IdUser = 5, IdRole = 4, Username = "shipper01", Password = BCrypt.Net.BCrypt.HashPassword("123456"), FullName = "Nguyễn Hữu Chiến", Phone = "0902000001", Email = "shipper01@example.com", Address = "Quận Cẩm Lệ, Đà Nẵng", Avatar = "images/users/shipper01.jpg", Status = "active", CreatedAt = now, LastOnline = now, CurrentLat = 16.0224m, CurrentLng = 108.2045m, CancelRate = 0 },
-                new User { IdUser = 6, IdRole = 4, Username = "shipper02", Password = BCrypt.Net.BCrypt.HashPassword("123456"), FullName = "Trần Lê Anh", Phone = "0902000002", Email = "shipper02@example.com", Address = "Quận Thanh Khê, Đà Nẵng", Avatar = "images/users/shipper02.jpg", Status = "active", CreatedAt = now, LastOnline = now.AddMinutes(-5), CurrentLat = 16.0620m, CurrentLng = 108.1950m, CancelRate = 0.01f }
+                new User { IdUser = 6, IdRole = 4, Username = "shipper01", Password = BCrypt.Net.BCrypt.HashPassword("123456"), FullName = "Nguyễn Hữu Chiến", Phone = "0903000001", Email = "shipper01@example.com", Address = "Quận Cẩm Lệ, Đà Nẵng", Avatar = defaultAvatarUrl, Status = "active", CreatedAt = now, LastOnline = now, CurrentLat = 16.0224m, CurrentLng = 108.2045m, CancelRate = 0 },
+                new User { IdUser = 7, IdRole = 4, Username = "shipper02", Password = BCrypt.Net.BCrypt.HashPassword("123456"), FullName = "Trần Lê Anh", Phone = "0903000002", Email = "shipper02@example.com", Address = "Quận Thanh Khê, Đà Nẵng", Avatar = defaultAvatarUrl, Status = "active", CreatedAt = now, LastOnline = now.AddMinutes(-5), CurrentLat = 16.0620m, CurrentLng = 108.1950m, CancelRate = 0.01f }
             };
             context.Users.AddRange(shippers);
             context.SaveChanges();
 
             var drivers = new Driver[]
             {
-                new Driver { IdDriver = 1, IdUser = 5, LicensePlate = "43C1-99999", Address = "Quận Cẩm Lệ, Đà Nẵng", ExpRank = "Gold", DescStatus = "Giao nhanh, cẩn thận mọi nẻo đường Đà Nẵng", CurrentLat = 16.0224m, CurrentLng = 108.2045m, IsBusy = false, RateAvg = 4.9m, TotalOrders = 450 },
-                new Driver { IdDriver = 2, IdUser = 6, LicensePlate = "43D2-88888", Address = "Quận Thanh Khê, Đà Nẵng", ExpRank = "Silver", DescStatus = "Đúng giờ, thân thiện, thông thuộc đường hẻm", CurrentLat = 16.0620m, CurrentLng = 108.1950m, IsBusy = true, RateAvg = 4.7m, TotalOrders = 280 }
+                new Driver { IdDriver = 1, IdUser = 6, LicensePlate = "43C1-99999", Address = "Quận Cẩm Lệ, Đà Nẵng", ExpRank = "Gold", DescStatus = "Giao nhanh, cẩn thận mọi nẻo đường Đà Nẵng", CurrentLat = 16.0224m, CurrentLng = 108.2045m, IsBusy = false, RateAvg = 4.9m, TotalOrders = 450 },
+                new Driver { IdDriver = 2, IdUser = 7, LicensePlate = "43D2-88888", Address = "Quận Thanh Khê, Đà Nẵng", ExpRank = "Silver", DescStatus = "Đúng giờ, thân thiện, thông thuộc đường hẻm", CurrentLat = 16.0620m, CurrentLng = 108.1950m, IsBusy = true, RateAvg = 4.7m, TotalOrders = 280 }
             };
             context.Drivers.AddRange(drivers);
             context.SaveChanges();
