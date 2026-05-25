@@ -24,13 +24,17 @@ namespace Backend.Controllers
         public async Task<ActionResult<ApiResponse<PagedResult<Restaurant>>>> GetAllRestaurants(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 6,
-            [FromQuery] int? categoryId = null)
+            [FromQuery] int? categoryId = null,
+            [FromQuery] string? search = null,
+            [FromQuery] string? district = null,
+            [FromQuery] decimal? minPrice = null,
+            [FromQuery] decimal? maxPrice = null)
         {
             if (page < 1) page = 1;
             if (pageSize < 1) pageSize = 6;
             if (pageSize > 50) pageSize = 50;
 
-            var pagedResult = await _restaurantService.GetPagedRestaurantsAsync(page, pageSize, categoryId);
+            var pagedResult = await _restaurantService.GetPagedRestaurantsAsync(page, pageSize, categoryId, search, district, minPrice, maxPrice);
 
             return Ok(new ApiResponse<PagedResult<Restaurant>>
             {
