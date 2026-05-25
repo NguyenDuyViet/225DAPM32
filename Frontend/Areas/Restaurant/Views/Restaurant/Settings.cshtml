@@ -26,7 +26,11 @@
                             <li><a class="dropdown-item" href="@Url.Action("Profile", "Restaurant", new { area = "Restaurant" })"><i class="fas fa-building me-2"></i>Thông tin nhà hàng</a></li>
                             <li><a class="dropdown-item" href="@Url.Action("Settings", "Restaurant", new { area = "Restaurant" })"><i class="fas fa-cog me-2"></i>Cài đặt</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+                            <li>
+                                <form asp-area="" asp-controller="Auth" asp-action="Logout" method="post">
+                                    <button class="dropdown-item text-danger" type="submit"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</button>
+                                </form>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -80,7 +84,7 @@
         <div class="col-md-10">
             <div class="card border-0 shadow-sm p-4 bg-white rounded-3">
                 <h2 class="mb-4 fw-bold text-dark"><i class="fas fa-cog me-2 text-success"></i>Cài đặt Nhà hàng</h2>
-                <form action="@Url.Action("SaveSettings", "Restaurant", new { area = "Restaurant" })" method="post">
+                <form action="@Url.Action("SaveSettings", "Restaurant", new { area = "Restaurant" })" method="post" enctype="multipart/form-data">
                     <div class="row mb-4">
                         <div class="col-md-8">
                             <div class="mb-3">
@@ -88,13 +92,15 @@
                                 <input type="text" class="form-control rounded-3" id="nameRestaurant" name="nameRestaurant" value="@Model.NameRestaurant" required />
                             </div>
                             <div class="mb-3">
-                                <label for="image" class="form-label fw-bold">Đường dẫn hình ảnh (URL)</label>
-                                <input type="text" class="form-control rounded-3" id="image" name="image" value="@Model.Image" placeholder="https://..." oninput="document.getElementById('avatar-preview').src = this.value || 'https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271401/DAPM_32/restaurants/restaurant-1.jpg'" />
+                                <label for="imageFile" class="form-label fw-bold">Ảnh đại diện nhà hàng</label>
+                                <input type="file" class="form-control rounded-3" id="imageFile" name="imageFile" accept=".jpg,.jpeg,.png,.gif,.webp,image/*" onchange="previewRestaurantImage(this)" />
+                                <input type="hidden" name="currentImage" value="@Model.Image" />
+                                <div class="form-text">Chọn ảnh mới để thay đổi; tối đa 5MB.</div>
                             </div>
                         </div>
                         <div class="col-md-4 text-center">
                             <label class="form-label fw-bold d-block">Ảnh đại diện nhà hàng</label>
-                            <img id="avatar-preview" src="@(string.IsNullOrEmpty(Model.Image) ? "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271401/DAPM_32/restaurants/restaurant-1.jpg" : Model.Image)" class="rounded-3 shadow-sm border img-thumbnail" style="width: 180px; height: 120px; object-fit: cover;" alt="Preview" />
+                            <img id="avatar-preview" src="@(string.IsNullOrEmpty(Model.Image) ? "/images/placeholder-restaurant.svg" : Model.Image)" onerror="this.onerror=null;this.src='/images/placeholder-restaurant.svg';" class="rounded-3 shadow-sm border img-thumbnail" style="width: 180px; height: 120px; object-fit: cover;" alt="Xem trước ảnh nhà hàng" />
                         </div>
                     </div>
 
@@ -144,6 +150,20 @@
         </div>
     </div>
 </div>
+
+<script>
+    function previewRestaurantImage(input) {
+        if (!input.files || !input.files[0]) {
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (event) {
+            document.getElementById("avatar-preview").src = event.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+</script>
 
 <style>
 .admin-header {

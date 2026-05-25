@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +8,12 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddSession();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<_225DAPM32.Services.ApiClient>();
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 // Configure Razor view engine to find views in feature folders
 // builder.Services.Configure<RazorViewEngineOptions>(options =>
@@ -18,14 +25,19 @@ builder.Services.AddScoped<_225DAPM32.Services.ApiClient>();
 //     options.AreaViewLocationFormats.Add("/Views/Shared/{0}.cshtml");
 // });
 
+var apiBaseUrl = builder.Configuration["Api:BaseUrl"] ?? "http://localhost:8000/api/";
+var apiBaseUri = new Uri(apiBaseUrl.EndsWith('/') ? apiBaseUrl : $"{apiBaseUrl}/");
+
 builder.Services.AddHttpClient("API", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:8000/api/");
+    client.BaseAddress = apiBaseUri;
 });
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseForwardedHeaders();
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -34,27 +46,13 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStatusCodePagesWithReExecute("/Home/NotFoundPage");
 app.UseRouting();
 
 app.UseSession();
 app.UseAuthorization();
 
 app.MapStaticAssets();
-
-app.MapControllerRoute(
-    name: "legacy-admin-foods",
-    pattern: "admin/Foods/{action=Index}/{id?}",
-    defaults: new { area = "", controller = "Foods" });
-
-app.MapControllerRoute(
-    name: "legacy-admin-profile",
-    pattern: "admin/Profile/{action=Index}/{id?}",
-    defaults: new { area = "", controller = "Profile" });
-
-app.MapControllerRoute(
-    name: "legacy-admin-cart",
-    pattern: "admin/Cart/{action=Index}/{id?}",
-    defaults: new { area = "", controller = "Cart" });
 
 app.MapControllerRoute(
     name: "admin",

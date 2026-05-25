@@ -3,13 +3,25 @@
 @{
     ViewData["Title"] = Model.NameRestaurant;
     var foods = ViewBag.Foods as List<_225DAPM32.Models.Food> ?? new List<_225DAPM32.Models.Food>();
+    string imageUrl(string? image) => string.IsNullOrWhiteSpace(image)
+        ? "/images/placeholder-restaurant.svg"
+        : (image.StartsWith("http", StringComparison.OrdinalIgnoreCase) || image.StartsWith("/") ? image : "/" + image);
 }
 
 <main class="max-w-7xl mx-auto px-4 py-2">
+    @if (TempData["Success"] is string success)
+    {
+        <div class="mb-4 rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">@success</div>
+    }
+    @if (TempData["Error"] is string error)
+    {
+        <div class="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">@error</div>
+    }
+
     <!-- Restaurant Header Section -->
     <section class="bg-white rounded-xl overflow-hidden shadow-sm mb-5">
         <div class="relative h-[300px] w-full">
-            <img alt="@Model.NameRestaurant" class="w-full h-full object-cover" src="@Model.Image" />
+            <img alt="@Model.NameRestaurant" class="w-full h-full object-cover" src="@imageUrl(Model.Image)" onerror="this.onerror=null;this.src='/images/placeholder-restaurant.svg';" />
             <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
             <div class="absolute bottom-0 left-0 p-8 text-white">
                 <div class="flex items-center gap-2 mb-2">
@@ -134,7 +146,7 @@
                 </div>
                 <div class="p-4 space-y-4">
                     <div class="flex items-center gap-3">
-                        <img src="@Model.Image" alt="@Model.NameRestaurant" class="w-16 h-16 rounded-lg object-cover" />
+                        <img src="@imageUrl(Model.Image)" alt="@Model.NameRestaurant" class="w-16 h-16 rounded-lg object-cover" onerror="this.onerror=null;this.src='/images/placeholder-restaurant.svg';" />
                         <div>
                             <h3 class="font-semibold text-gray-800">@Model.NameRestaurant</h3>
                             <p class="text-xs text-gray-500 mt-1">@Model.Address</p>

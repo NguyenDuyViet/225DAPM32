@@ -103,7 +103,11 @@
                             <ul class="dropdown-menu dropdown-menu-end border-0 shadow mt-2 rounded-3">
                                 <li><a class="dropdown-item py-2" href="#"><i class="fas fa-user me-2 text-muted"></i>Hồ sơ cá nhân</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item py-2 text-danger" href="#"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+                                <li>
+                                    <form asp-area="" asp-controller="Auth" asp-action="Logout" method="post">
+                                        <button class="dropdown-item py-2 text-danger" type="submit"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</button>
+                                    </form>
+                                </li>
                             </ul>
                         </div>
                     </div>

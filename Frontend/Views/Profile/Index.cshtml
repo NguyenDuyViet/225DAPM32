@@ -59,20 +59,20 @@
             <div class="profile-nav p-3">
                 <h5 class="mb-3">Tài khoản</h5>
                 <nav class="nav flex-column">
-                    <a class="nav-link active" asp-controller="Profile" asp-action="Index">
+                    <a class="nav-link active" asp-area="" asp-controller="Profile" asp-action="Index">
                         <i class="fas fa-tachometer-alt me-2"></i>Tổng quan
                     </a>
-                    <a class="nav-link" asp-controller="Profile" asp-action="Orders">
+                    <a class="nav-link" asp-area="" asp-controller="Profile" asp-action="Orders">
                         <i class="fas fa-shopping-bag me-2"></i>Đơn hàng
                     </a>
-                    <a class="nav-link" asp-controller="Profile" asp-action="Addresses">
+                    <a class="nav-link" asp-area="" asp-controller="Profile" asp-action="Addresses">
                         <i class="fas fa-map-marker-alt me-2"></i>Địa chỉ
                     </a>
-                    <a class="nav-link" asp-controller="Profile" asp-action="Settings">
+                    <a class="nav-link" asp-area="" asp-controller="Profile" asp-action="Settings">
                         <i class="fas fa-cog me-2"></i>Cài đặt
                     </a>
                     <hr class="my-3">
-                    <form asp-controller="Auth" asp-action="Logout" method="post">
+                    <form asp-area="" asp-controller="Auth" asp-action="Logout" method="post">
                         <button type="submit" class="nav-link text-danger border-0 bg-transparent p-0">
                             <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
                         </button>
@@ -117,7 +117,7 @@
                             }
                         </div>
                     }
-                    <a asp-controller="Profile" asp-action="Orders" class="btn btn-outline-primary">
+                    <a asp-area="" asp-controller="Profile" asp-action="Orders" class="btn btn-outline-primary">
                         Xem tất cả đơn hàng
                     </a>
                 </div>
@@ -153,7 +153,7 @@
                             }
                         </div>
                     }
-                    <a asp-controller="Profile" asp-action="Addresses" class="btn btn-outline-primary">
+                    <a asp-area="" asp-controller="Profile" asp-action="Addresses" class="btn btn-outline-primary">
                         Quản lý địa chỉ
                     </a>
                 </div>

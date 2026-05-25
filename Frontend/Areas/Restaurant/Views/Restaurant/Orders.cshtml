@@ -1,7 +1,9 @@
 @model IEnumerable<_225DAPM32.Models.Order>
 @using System.Text.Json
+@inject IConfiguration Configuration
 @{
     ViewData["Title"] = "Đơn hàng";
+    var apiBaseUrl = (Configuration["Api:BaseUrl"] ?? "http://localhost:8000/api/").TrimEnd('/');
 }
 
 <div class="admin-header bg-dark text-white py-4 mb-4">
@@ -27,7 +29,11 @@
                             <li><a class="dropdown-item" href="@Url.Action("Profile", "Restaurant", new { area = "Restaurant" })"><i class="fas fa-building me-2"></i>Thông tin nhà hàng</a></li>
                             <li><a class="dropdown-item" href="@Url.Action("Settings", "Restaurant", new { area = "Restaurant" })"><i class="fas fa-cog me-2"></i>Cài đặt</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+                            <li>
+                                <form asp-area="" asp-controller="Auth" asp-action="Logout" method="post">
+                                    <button class="dropdown-item text-danger" type="submit"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</button>
+                                </form>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -674,7 +680,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Polling function
     async function checkNewOrders() {
         try {
-            const response = await fetch(`http://localhost:8000/api/Orders/restaurant/${RESTAURANT_ID}`);
+            const response = await fetch(`@apiBaseUrl/Orders/restaurant/${RESTAURANT_ID}`);
             if (response.ok) {
                 const data = await response.json();
                 const orders = data.results || [];

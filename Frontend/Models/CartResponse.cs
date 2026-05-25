@@ -17,6 +17,8 @@ namespace _225DAPM32.Models
         public int IdFood { get; set; }
         public string FoodName { get; set; } = string.Empty;
         public string FoodImage { get; set; } = string.Empty;
+        public int IdRestaurant { get; set; }
+        public string RestaurantName { get; set; } = string.Empty;
         public decimal Price { get; set; }
         public decimal UnitPrice
         {

@@ -1,8 +1,11 @@
 @using _225DAPM32.Areas.Restaurant
+@inject IConfiguration Configuration
 @{
     ViewData["Title"] = "Chat";
     int restaurantId = ViewBag.RestaurantId ?? 1;
     var chatRooms = ViewBag.ChatRooms as List<RestaurantController.ChatRoomInfo> ?? new();
+    var apiRootUrl = new Uri(Configuration["Api:BaseUrl"] ?? "http://localhost:8000/api/")
+        .GetLeftPart(UriPartial.Authority);
 }
 
 <!-- Restaurant Header (đồng bộ với các trang khác) -->
@@ -29,7 +32,11 @@
                             <li><a class="dropdown-item" href="@Url.Action("Profile", "Restaurant", new { area = "Restaurant" })"><i class="fas fa-building me-2"></i>Thông tin nhà hàng</a></li>
                             <li><a class="dropdown-item" href="@Url.Action("Settings", "Restaurant", new { area = "Restaurant" })"><i class="fas fa-cog me-2"></i>Cài đặt</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+                            <li>
+                                <form asp-area="" asp-controller="Auth" asp-action="Logout" method="post">
+                                    <button class="dropdown-item text-danger" type="submit"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</button>
+                                </form>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -359,7 +366,7 @@
     // ---- SignalR ----
     async function initSignalR() {
         connection = new signalR.HubConnectionBuilder()
-            .withUrl("http://localhost:8000/chatHub", {
+            .withUrl("@apiRootUrl/chatHub", {
                 withCredentials: true,
                 transport: signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.LongPolling
             })

@@ -50,12 +50,13 @@ namespace _225DAPM32.Controllers
             if (!IsLoggedIn())
                 return RedirectToAction("Index", "Home", new { area = "", loginRequired = true });
 
-            await _apiClient.PutResultAsync<CartResponse>($"Cart/items/{idCartFood}", new UpdateCartItemRequest
+            var (success, _, message) = await _apiClient.PutResultAsync<CartResponse>($"Cart/items/{idCartFood}", new UpdateCartItemRequest
             {
                 Quantity = Math.Max(1, quantity),
                 Note = note
             });
 
+            TempData[success ? "Success" : "Error"] = success ? "Đã cập nhật giỏ hàng." : (message ?? "Không thể cập nhật giỏ hàng.");
             return RedirectToAction("Index", "Cart", new { area = "" });
         }
 
@@ -65,7 +66,8 @@ namespace _225DAPM32.Controllers
             if (!IsLoggedIn())
                 return RedirectToAction("Index", "Home", new { area = "", loginRequired = true });
 
-            await _apiClient.DeleteAsync($"Cart/items/{idCartFood}");
+            var success = await _apiClient.DeleteAsync($"Cart/items/{idCartFood}");
+            TempData[success ? "Success" : "Error"] = success ? "Đã xóa món khỏi giỏ hàng." : "Không thể xóa món khỏi giỏ hàng.";
             return RedirectToAction("Index", "Cart", new { area = "" });
         }
 

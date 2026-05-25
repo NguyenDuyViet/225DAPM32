@@ -1,0 +1,46 @@
+services:
+  - type: web
+    name: mon-ngon-api
+    runtime: docker
+    plan: free
+    dockerContext: .
+    dockerfilePath: ./Backend/Dockerfile
+    healthCheckPath: /api/Restaurants
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_HTTP_PORTS
+        value: "10000"
+      - key: ConnectionStrings__MySqlConnection
+        sync: false
+      - key: Jwt__Key
+        sync: false
+      - key: Jwt__Issuer
+        sync: false
+      - key: Jwt__Audience
+        sync: false
+      - key: Jwt__ExpirationMinutes
+        value: "120"
+      - key: Cloudinary__CloudName
+        sync: false
+      - key: Cloudinary__ApiKey
+        sync: false
+      - key: Cloudinary__ApiSecret
+        sync: false
+      - key: Cors__AllowedOrigins
+        sync: false
+
+  - type: web
+    name: mon-ngon-web
+    runtime: docker
+    plan: free
+    dockerContext: .
+    dockerfilePath: ./Frontend/Dockerfile
+    healthCheckPath: /
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_HTTP_PORTS
+        value: "10000"
+      - key: Api__BaseUrl
+        sync: false

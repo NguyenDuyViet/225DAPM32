@@ -23,6 +23,12 @@ public class HomeController : Controller
         return View();
     }
 
+    public IActionResult NotFoundPage()
+    {
+        Response.StatusCode = StatusCodes.Status404NotFound;
+        return View();
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

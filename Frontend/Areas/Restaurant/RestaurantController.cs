@@ -3,10 +3,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Filters;
 using _225DAPM32.Areas.Restaurant.Models;
 using _225DAPM32.Models;
 using _225DAPM32.Services;
@@ -25,10 +27,21 @@ namespace _225DAPM32.Areas.Restaurant
             _apiClient = apiClient;
         }
 
+        public override void OnActionExecuting(ActionExecutingContext context)
+        {
+            if (HttpContext.Session.GetString("Role") != "restaurant")
+            {
+                context.Result = NotFound();
+                return;
+            }
+
+            base.OnActionExecuting(context);
+        }
+
         public async Task<IActionResult> Index()
         {
             if (!RequireRestaurant())
-                return RedirectToAction("Index", "Home", new { area = "" });
+                return NotFound();
 
             var restaurant = await GetManagedRestaurantAsync();
             var foods = restaurant == null
@@ -52,7 +65,7 @@ namespace _225DAPM32.Areas.Restaurant
         public async Task<IActionResult> Orders()
         {
             if (!RequireRestaurant())
-                return RedirectToAction("Index", "Home", new { area = "" });
+                return NotFound();
 
             var restaurant = await GetManagedRestaurantAsync();
             ViewData["Title"] = "Đơn hàng";
@@ -285,27 +298,42 @@ namespace _225DAPM32.Areas.Restaurant
         public async Task<IActionResult> Profile()
         {
             if (!RequireRestaurant())
-                return RedirectToAction("Index", "Home", new { area = "" });
+                return NotFound();
 
             ViewData["Title"] = "Thông tin Nhà hàng";
-            return View(await GetManagedRestaurantAsync() ?? new RestaurantEntity());
+            var restaurant = await GetManagedRestaurantAsync();
+
+            ViewBag.Categories = await _apiClient.GetResultAsync<List<Category>>("Category", false) ?? new List<Category>();
+            ViewBag.Foods = restaurant == null
+                ? new List<Food>()
+                : await _apiClient.GetResultAsync<List<Food>>($"Food/restaurant/{restaurant.IdRestaurant}", false) ?? new List<Food>();
+            ViewBag.Promotions = restaurant == null
+                ? new List<Promotion>()
+                : await _apiClient.GetResultAsync<List<Promotion>>($"Promotion/restaurant/{restaurant.IdRestaurant}", false) ?? new List<Promotion>();
+            ViewBag.Reviews = restaurant == null
+                ? new List<ReviewViewModel>()
+                : await _apiClient.GetResultAsync<List<ReviewViewModel>>($"Restaurants/{restaurant.IdRestaurant}/reviews", false) ?? new List<ReviewViewModel>();
+
+            return View(restaurant ?? new RestaurantEntity());
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateFood(int idCategory, string name, string description, string image, string video, decimal price, decimal? discount, int? prepTime, int dailyQuantity)
+        public async Task<IActionResult> CreateFood(int idCategory, string name, string description, IFormFile? imageFile, string video, decimal price, decimal? discount, int? prepTime, int dailyQuantity)
         {
             int restaurantId = GetRestaurantId();
             var client = GetApiClient();
 
             try
             {
+                var imageUrl = await UploadImageAsync(imageFile, "Upload/food")
+                    ?? "/images/placeholder-food.svg";
                 var request = new
                 {
                     IdCategory = idCategory,
                     IdRestaurant = restaurantId,
                     Name = name,
                     Description = description ?? "",
-                    Image = image ?? "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271401/DAPM_32/foods/food-default.jpg",
+                    Image = imageUrl,
                     Video = video ?? "",
                     Price = price,
                     Discount = discount ?? 0,
@@ -334,20 +362,22 @@ namespace _225DAPM32.Areas.Restaurant
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateFood(int idFood, int idCategory, string name, string description, string image, string video, decimal price, decimal? discount, int? prepTime, int dailyQuantity)
+        public async Task<IActionResult> UpdateFood(int idFood, int idCategory, string name, string description, string? currentImage, IFormFile? imageFile, string video, decimal price, decimal? discount, int? prepTime, int dailyQuantity)
         {
             int restaurantId = GetRestaurantId();
             var client = GetApiClient();
 
             try
             {
+                var imageUrl = await UploadImageAsync(imageFile, "Upload/food")
+                    ?? (string.IsNullOrWhiteSpace(currentImage) ? "/images/placeholder-food.svg" : currentImage);
                 var request = new
                 {
                     IdCategory = idCategory,
                     IdRestaurant = restaurantId,
                     Name = name,
                     Description = description ?? "",
-                    Image = image ?? "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271401/DAPM_32/foods/food-default.jpg",
+                    Image = imageUrl,
                     Video = video ?? "",
                     Price = price,
                     Discount = discount ?? 0,
@@ -567,7 +597,7 @@ namespace _225DAPM32.Areas.Restaurant
         }
 
         [HttpPost]
-        public async Task<IActionResult> SaveSettings(string nameRestaurant, string description, string address, string image, string openTime, string closeTime)
+        public async Task<IActionResult> SaveSettings(string nameRestaurant, string description, string address, string? currentImage, IFormFile? imageFile, string openTime, string closeTime)
         {
             int restaurantId = GetRestaurantId();
             var client = GetApiClient();
@@ -576,13 +606,15 @@ namespace _225DAPM32.Areas.Restaurant
             {
                 TimeSpan.TryParse(openTime, out var parsedOpen);
                 TimeSpan.TryParse(closeTime, out var parsedClose);
+                var imageUrl = await UploadImageAsync(imageFile, "Upload/restaurant")
+                    ?? (string.IsNullOrWhiteSpace(currentImage) ? "/images/placeholder-restaurant.svg" : currentImage);
 
                 var updateDto = new
                 {
                     NameRestaurant = nameRestaurant,
                     Description = description,
                     Address = address,
-                    Image = image ?? "https://res.cloudinary.com/dzrhf1hwk/image/upload/v1779271401/DAPM_32/restaurants/restaurant-1.jpg",
+                    Image = imageUrl,
                     OpenTime = parsedOpen,
                     CloseTime = parsedClose,
                     Lat = 10.782500m,
@@ -610,12 +642,29 @@ namespace _225DAPM32.Areas.Restaurant
         }
 
         // --- Helper Methods ---
+        private async Task<string?> UploadImageAsync(IFormFile? imageFile, string endpoint)
+        {
+            if (imageFile == null || imageFile.Length == 0)
+                return null;
+
+            using var form = new MultipartFormDataContent();
+            using var fileContent = new StreamContent(imageFile.OpenReadStream());
+            if (!string.IsNullOrWhiteSpace(imageFile.ContentType))
+                fileContent.Headers.ContentType = new MediaTypeHeaderValue(imageFile.ContentType);
+            form.Add(fileContent, "file", imageFile.FileName);
+
+            var response = await GetApiClient().PostAsync(endpoint, form);
+            var content = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<ApiResponse<string>>(content, _jsonOptions);
+            if (!response.IsSuccessStatusCode)
+                throw new InvalidOperationException(result?.Message ?? "Không thể tải ảnh lên.");
+
+            return result?.Results;
+        }
+
         private HttpClient GetApiClient()
         {
-            var client = new HttpClient();
-            // Cập nhật lại port nếu Backend của bạn chạy port khác
-            client.BaseAddress = new Uri("https://localhost:8000/api/"); 
-            return client;
+            return _apiClient.CreateClient();
         }
 
         private int GetRestaurantId()
@@ -634,7 +683,7 @@ namespace _225DAPM32.Areas.Restaurant
         private bool RequireRestaurant()
         {
             var role = HttpContext.Session.GetString("Role");
-            return role == "restaurant" || role == "admin";
+            return role == "restaurant";
         }
 
         // --- Helper Models to deserialize Backend Responses ---
