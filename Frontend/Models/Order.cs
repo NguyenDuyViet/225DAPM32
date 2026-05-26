@@ -41,6 +41,8 @@ namespace _225DAPM32.Models
         public string? TrackingNumber { get; set; }
         public string? DriverName { get; set; }
         public string? DriverPhone { get; set; }
+        public string? CustomerName { get; set; }
+        public string? CustomerPhone { get; set; }
         public DateTime? EstimatedDelivery { get; set; }
 
         [ForeignKey("IdUser")]
