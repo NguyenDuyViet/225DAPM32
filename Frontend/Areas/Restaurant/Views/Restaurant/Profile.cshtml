@@ -140,9 +140,38 @@
                             </button>
                         </div>
 
+                        <!-- Premium Search & Filter Bar -->
+                        <div class="row g-3 mb-4 p-3 bg-light rounded-3 shadow-sm border align-items-center">
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0 text-muted rounded-start-pill px-3">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                    <input type="text" id="foodSearchInput" class="form-control border-start-0 rounded-end-pill py-2.5 shadow-none" placeholder="Tìm kiếm tên món ăn..." style="border-color: #dee2e6;" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0 text-muted rounded-start-pill px-3">
+                                        <i class="fas fa-filter"></i>
+                                    </span>
+                                    <select id="foodCategoryFilter" class="form-select border-start-0 rounded-end-pill py-2.5 shadow-none" style="border-color: #dee2e6;">
+                                        <option value="all">Tất cả danh mục</option>
+                                        @foreach (var cat in categories)
+                                        {
+                                            <option value="@cat.Name">@cat.Name</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2 text-md-end text-center">
+                                <span class="badge bg-success px-3.5 py-2.5 rounded-pill fw-bold" id="visibleFoodsCount" style="font-size: 0.82rem;">Hiển thị: 0 món</span>
+                            </div>
+                        </div>
+
                         @if (foods.Count == 0)
                         {
-                            <div class="text-center py-5">
+                            <div class="text-center py-5 bg-white border border-light-subtle rounded-3 shadow-sm">
                                 <img src="/images/placeholder-food.svg" class="opacity-25 mb-3 rounded-circle" style="width: 100px; height: 100px; object-fit: cover;" alt="Chưa có món ăn" />
                                 <h5 class="text-muted">Chưa có món ăn nào trong thực đơn của nhà hàng</h5>
                                 <p class="text-secondary small">Hãy thêm món ăn đầu tiên để bắt đầu đón nhận đơn hàng.</p>
@@ -150,61 +179,73 @@
                         }
                         else
                         {
-                            <div class="row g-4">
-                                @foreach (var food in foods)
-                                {
-                                    var category = categories.FirstOrDefault(c => c.IdCategory == food.IdCategory);
-                                    var actualPrice = food.Price - (food.Discount ?? 0);
-                                    <div class="col-md-6 col-lg-4">
-                                        <div class="card h-100 border-0 shadow-sm food-card overflow-hidden bg-light rounded-3 transition">
-                                            <div class="position-relative" style="height: 180px;">
-                                                <img src="@(string.IsNullOrEmpty(food.Image) ? "/images/placeholder-food.svg" : food.Image)" onerror="this.onerror=null;this.src='/images/placeholder-food.svg';" class="w-100 h-100 img-cover" style="object-fit: cover;" alt="@food.Name" />
-                                                @if (food.Discount.HasValue && food.Discount.Value > 0)
-                                                {
-                                                    <span class="position-absolute top-2 start-2 badge bg-danger rounded-pill px-2 py-1 shadow-sm">
-                                                        <i class="fas fa-percentage me-1"></i>Giảm @food.Discount.Value.ToString("N0")đ
+                            <div class="table-responsive border border-light-subtle rounded-3 shadow-sm bg-white">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th class="ps-4" style="width: 80px;">Hình ảnh</th>
+                                            <th>Tên món & Thể loại</th>
+                                            <th style="max-width: 250px;">Mô tả</th>
+                                            <th>Giá bán</th>
+                                            <th>Chuẩn bị</th>
+                                            <th style="width: 170px;">Số lượng bán hôm nay</th>
+                                            <th class="text-end pe-4" style="width: 180px;">Hành động</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var food in foods)
+                                        {
+                                            var category = categories.FirstOrDefault(c => c.IdCategory == food.IdCategory);
+                                            var actualPrice = food.Price - (food.Discount ?? 0);
+                                            
+                                            <tr>
+                                                <td class="ps-4">
+                                                    <img src="@(string.IsNullOrEmpty(food.Image) ? "/images/placeholder-food.svg" : food.Image)" 
+                                                         onerror="this.onerror=null;this.src='/images/placeholder-food.svg';" 
+                                                         class="rounded-3 border shadow-sm" 
+                                                         style="width: 50px; height: 50px; object-fit: cover;" 
+                                                         alt="@food.Name" />
+                                                </td>
+                                                <td>
+                                                    <div class="fw-bold text-dark mb-1" style="font-size: 0.95rem;">@food.Name</div>
+                                                    <span class="badge bg-light text-secondary border px-2 py-1 rounded-pill fw-semibold" style="font-size: 0.75rem;">
+                                                        <i class="fas fa-folder me-1 text-primary"></i>@(category?.Name ?? "Khác")
                                                     </span>
-                                                }
-                                                <span class="position-absolute bottom-2 end-2 badge bg-dark rounded-pill px-2 py-1 opacity-75">
-                                                    @(category?.Name ?? "Khác")
-                                                </span>
-                                            </div>
-                                            <div class="card-body p-3 d-flex flex-column justify-content-between">
-                                                <div>
-                                                    <h5 class="card-title fw-bold text-dark mb-1">@food.Name</h5>
-                                                    <p class="card-text text-secondary small text-truncate-2 mb-3">@food.Description</p>
-                                                    <div class="d-flex align-items-center mb-3">
-                                                        @if (food.Discount.HasValue && food.Discount.Value > 0)
-                                                        {
-                                                            <span class="fs-5 fw-bold text-success me-2">@actualPrice.ToString("N0")đ</span>
-                                                            <span class="small text-muted line-through">@food.Price.ToString("N0")đ</span>
-                                                        }
-                                                        else
-                                                        {
-                                                            <span class="fs-5 fw-bold text-success">@food.Price.ToString("N0")đ</span>
-                                                        }
-                                                    </div>
-
-                                                    <!-- Quản lý Số lượng Bán hôm nay -->
-                                                    <div class="p-2 mb-3 bg-white border border-light-subtle rounded-3 shadow-sm">
-                                                        <form action="@Url.Action("UpdateDailyQuantity", "Restaurant", new { area = "Restaurant" })" method="post" class="d-flex align-items-center justify-content-between gap-2">
-                                                            <input type="hidden" name="idFood" value="@food.IdFood" />
-                                                            <div class="d-flex align-items-center">
-                                                                <i class="fas fa-cubes text-success me-2 small"></i>
-                                                                <span class="small fw-bold text-secondary">Số lượng bán:</span>
-                                                            </div>
-                                                            <div class="d-flex align-items-center gap-1">
-                                                                <input type="number" name="dailyQuantity" value="@food.DailyQuantity" class="form-control form-control-sm text-center fw-bold text-success border-success-subtle rounded-3" style="width: 70px; font-size: 0.85rem;" min="0" required />
-                                                                <button type="submit" class="btn btn-sm btn-success rounded-3 px-2 py-1" style="font-size: 0.8rem;" title="Cập nhật số lượng">
-                                                                    <i class="fas fa-save"></i>
-                                                                </button>
-                                                            </div>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <div class="d-flex gap-2">
-                                                        <button class="btn btn-outline-primary btn-sm flex-fill rounded-pill edit-food-btn" 
+                                                </td>
+                                                <td style="max-width: 250px;">
+                                                    <p class="text-secondary mb-0 small text-truncate-2" title="@food.Description">@food.Description</p>
+                                                </td>
+                                                <td>
+                                                    @if (food.Discount.HasValue && food.Discount.Value > 0)
+                                                    {
+                                                        <div class="fw-bold text-success" style="font-size: 0.95rem;">@actualPrice.ToString("N0")đ</div>
+                                                        <div class="text-muted line-through small" style="font-size: 0.8rem;">@food.Price.ToString("N0")đ</div>
+                                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-1.5 py-0.5 mt-1 fw-bold d-inline-block" style="font-size: 0.68rem;">
+                                                            Giảm @food.Discount.Value.ToString("N0")đ
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="fw-bold text-success" style="font-size: 0.95rem;">@food.Price.ToString("N0")đ</div>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <span class="text-dark small fw-semibold">
+                                                        <i class="far fa-clock text-warning me-1.5"></i>@(food.PrepTime ?? 15) phút
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <form action="@Url.Action("UpdateDailyQuantity", "Restaurant", new { area = "Restaurant" })" method="post" class="d-flex align-items-center gap-1.5">
+                                                        <input type="hidden" name="idFood" value="@food.IdFood" />
+                                                        <input type="number" name="dailyQuantity" value="@food.DailyQuantity" class="form-control form-control-sm text-center fw-bold text-success border-success-subtle rounded-3" style="width: 75px; font-size: 0.88rem;" min="0" required />
+                                                        <button type="submit" class="btn btn-sm btn-success rounded-3 px-2 py-1" style="font-size: 0.8rem;" title="Lưu số lượng">
+                                                            <i class="fas fa-save"></i>
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                                <td class="text-end pe-4">
+                                                    <div class="d-flex justify-content-end gap-1.5">
+                                                        <button class="btn btn-outline-primary btn-sm rounded-pill edit-food-btn px-2.5" 
                                                                 data-id="@food.IdFood" 
                                                                 data-name="@food.Name" 
                                                                 data-category="@food.IdCategory"
@@ -219,7 +260,7 @@
                                                                 data-bs-target="#editFoodModal">
                                                             <i class="fas fa-edit me-1"></i>Sửa
                                                         </button>
-                                                        <button class="btn btn-outline-danger btn-sm flex-fill rounded-pill delete-food-btn" 
+                                                        <button class="btn btn-outline-danger btn-sm rounded-pill delete-food-btn px-2.5" 
                                                                 data-id="@food.IdFood"
                                                                 data-name="@food.Name"
                                                                 data-bs-toggle="modal" 
@@ -227,11 +268,23 @@
                                                             <i class="fas fa-trash-alt me-1"></i>Xóa
                                                         </button>
                                                     </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Pagination Controls -->
+                            <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-3 p-3 bg-light rounded-3 border" id="foodPaginationContainer">
+                                <div class="text-muted small fw-semibold" id="paginationInfo">
+                                    Đang tải dữ liệu phân trang...
+                                </div>
+                                <nav aria-label="Page navigation">
+                                    <ul class="pagination pagination-sm mb-0 justify-content-center" id="foodPagination">
+                                        <!-- Dynamic pagination links injected here -->
+                                    </ul>
+                                </nav>
                             </div>
                         }
                     </div>
@@ -871,6 +924,134 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
+        // ==========================================
+        // CLIENT-SIDE SEARCH, FILTER & PAGINATION FOR FOODS
+        // ==========================================
+        const foodsTableBody = document.querySelector("#foods-pane tbody");
+        const foodRows = foodsTableBody ? Array.from(foodsTableBody.querySelectorAll("tr")) : [];
+        const searchInput = document.getElementById("foodSearchInput");
+        const categoryFilter = document.getElementById("foodCategoryFilter");
+        const visibleCountBadge = document.getElementById("visibleFoodsCount");
+        const paginationInfo = document.getElementById("paginationInfo");
+        const paginationUl = document.getElementById("foodPagination");
+        
+        const ITEMS_PER_PAGE = 5;
+        let currentPage = 1;
+        let filteredRows = [...foodRows];
+
+        function updateFoodsList() {
+            if (!foodsTableBody || foodRows.length === 0) return;
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const selectedCategory = categoryFilter.value;
+
+            // 1. Filter rows based on search term and category selection
+            filteredRows = foodRows.filter(row => {
+                const nameEl = row.querySelector("td:nth-child(2) .fw-bold");
+                const catEl = row.querySelector("td:nth-child(2) .badge");
+                if (!nameEl) return false;
+                
+                const foodName = nameEl.textContent.toLowerCase();
+                const categoryBadge = catEl ? catEl.textContent.trim() : "";
+                
+                const matchesSearch = foodName.includes(searchTerm);
+                const matchesCategory = selectedCategory === "all" || categoryBadge === selectedCategory;
+
+                return matchesSearch && matchesCategory;
+            });
+
+            // 2. Pagination Calculations
+            const totalItems = filteredRows.length;
+            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
+
+            if (currentPage > totalPages) {
+                currentPage = totalPages;
+            }
+
+            const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+            const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, totalItems);
+
+            // 3. Show/hide rows based on current page
+            foodRows.forEach(row => row.style.display = "none");
+            filteredRows.slice(startIndex, endIndex).forEach(row => row.style.display = "");
+
+            // 4. Update Badge Count & Info Text
+            if (visibleCountBadge) visibleCountBadge.textContent = `Hiển thị: ${totalItems} món`;
+            if (paginationInfo) {
+                if (totalItems === 0) {
+                    paginationInfo.textContent = "Không tìm thấy món ăn nào";
+                } else {
+                    paginationInfo.textContent = `Hiển thị từ món ${startIndex + 1} đến ${endIndex} trên tổng số ${totalItems} món`;
+                }
+            }
+
+            // 5. Render Pagination Buttons
+            renderPagination(totalPages);
+        }
+
+        function renderPagination(totalPages) {
+            if (!paginationUl) return;
+            paginationUl.innerHTML = "";
+
+            const pagContainer = document.getElementById("foodPaginationContainer");
+            if (totalPages <= 1) {
+                if (pagContainer) pagContainer.style.setProperty("display", "none", "important");
+                return;
+            } else {
+                if (pagContainer) pagContainer.style.setProperty("display", "flex", "important");
+            }
+
+            // Previous Button
+            const prevLi = document.createElement("li");
+            prevLi.className = `page-item ${currentPage === 1 ? "disabled" : ""}`;
+            prevLi.innerHTML = `<button class="page-link rounded-start-pill px-3" type="button"><i class="fas fa-chevron-left"></i></button>`;
+            if (currentPage > 1) {
+                prevLi.querySelector("button").addEventListener("click", () => {
+                    currentPage--;
+                    updateFoodsList();
+                });
+            }
+            paginationUl.appendChild(prevLi);
+
+            // Page Number Buttons
+            for (let i = 1; i <= totalPages; i++) {
+                const pageLi = document.createElement("li");
+                pageLi.className = `page-item ${currentPage === i ? "active" : ""}`;
+                pageLi.innerHTML = `<button class="page-link px-3" type="button">${i}</button>`;
+                pageLi.querySelector("button").addEventListener("click", () => {
+                    currentPage = i;
+                    updateFoodsList();
+                });
+                paginationUl.appendChild(pageLi);
+            }
+
+            // Next Button
+            const nextLi = document.createElement("li");
+            nextLi.className = `page-item ${currentPage === totalPages ? "disabled" : ""}`;
+            nextLi.innerHTML = `<button class="page-link rounded-end-pill px-3" type="button"><i class="fas fa-chevron-right"></i></button>`;
+            if (currentPage < totalPages) {
+                nextLi.querySelector("button").addEventListener("click", () => {
+                    currentPage++;
+                    updateFoodsList();
+                });
+            }
+            paginationUl.appendChild(nextLi);
+        }
+
+        // Add Event Listeners for Search & Filter
+        if (searchInput) searchInput.addEventListener("input", () => {
+            currentPage = 1;
+            updateFoodsList();
+        });
+        if (categoryFilter) categoryFilter.addEventListener("change", () => {
+            currentPage = 1;
+            updateFoodsList();
+        });
+
+        // Initialize display
+        if (foodRows.length > 0) {
+            updateFoodsList();
+        }
+
         // Setup dates defaults for create promo modal
         const now = new Date();
         const startString = now.toISOString().slice(0, 16);

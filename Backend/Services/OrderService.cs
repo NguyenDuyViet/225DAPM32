@@ -187,9 +187,9 @@ namespace Backend.Services
                 order.Driver = driver;
                 driver.IsBusy = order.Status is "delivering" or "confirmed";
             }
-            else if (order.Status == "completed" && order.IdDriver == null)
+            else if ((order.Status == "delivering" || order.Status == "completed") && order.IdDriver == null)
             {
-                var driver = await _context.Drivers.FirstOrDefaultAsync();
+                var driver = await _context.Drivers.Include(d => d.User).FirstOrDefaultAsync();
                 if (driver != null)
                 {
                     order.IdDriver = driver.IdDriver;
@@ -685,6 +685,8 @@ namespace Backend.Services
                 DeliveryAddress = order.DeliveryAddress,
                 DeliveryLat = order.DeliveryLat,
                 DeliveryLng = order.DeliveryLng,
+                CustomerName = order.User?.FullName,
+                CustomerPhone = order.User?.Phone,
                 PaymentMethod = order.PaymentMethod,
                 FoodAmount = order.FoodAmount,
                 Total = order.FoodAmount,
@@ -717,6 +719,7 @@ namespace Backend.Services
         private IQueryable<Order> GetOrdersQuery()
         {
             return _context.Orders
+                .Include(o => o.User)
                 .Include(o => o.Restaurant)
                 .Include(o => o.Driver)
                     .ThenInclude(d => d.User)

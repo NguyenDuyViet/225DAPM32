@@ -10,6 +10,8 @@ namespace Backend.DTOs.Response
         public string DeliveryAddress { get; set; } = string.Empty;
         public decimal? DeliveryLat { get; set; }
         public decimal? DeliveryLng { get; set; }
+        public string? CustomerName { get; set; }
+        public string? CustomerPhone { get; set; }
         public string PaymentMethod { get; set; } = string.Empty;
         public decimal FoodAmount { get; set; }
         public decimal Total { get; set; }
