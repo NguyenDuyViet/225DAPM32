@@ -51,10 +51,18 @@
 
         <!-- Main content -->
         <div class="col-md-10">
+            @if (TempData["Success"] is string success)
+            {
+                <div class="alert alert-success">@success</div>
+            }
+            @if (TempData["Error"] is string error)
+            {
+                <div class="alert alert-danger">@error</div>
+            }
 
             <!-- Filter -->
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <input type="text" class="form-control w-25" placeholder="🔍 Tìm mã đơn...">
+                <input type="text" class="form-control w-25" placeholder="Tìm mã đơn...">
                 <input type="date" class="form-control w-auto">
             </div>
 
@@ -74,22 +82,30 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                @if (!Model.Any())
+                                {
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-5">Chưa có đơn đang giao được phân công.</td>
+                                    </tr>
+                                }
                                 @foreach (var order in Model)
                                 {
                                     var statusClass = order.Status switch
                                     {
-                                        "Pending" => "bg-warning",
-                                        "Delivering" => "bg-info",
-                                        "Completed" => "bg-success",
+                                        "pending" => "bg-warning text-dark",
+                                        "confirmed" => "bg-primary",
+                                        "delivering" => "bg-info",
+                                        "completed" => "bg-success",
                                         _ => "bg-secondary"
                                     };
+                                    var statusText = order.Status == "delivering" ? "Đang giao" : order.Status;
 
                                     <tr>
-                                        <td><strong>#@order.IdOrder</strong></td>
+                                        <td><strong>@order.OrderCode</strong></td>
 
                                         <td>
                                             <span class="badge @statusClass">
-                                                @order.Status
+                                                @statusText
                                             </span>
                                         </td>
 
@@ -107,20 +123,15 @@
                                         </td>
 
                                         <td>
-                                            <button class="btn btn-success btn-sm me-1"
-                                                    onclick="markDelivering(@order.IdOrder)">
-                                                <i class="fas fa-truck"></i>
-                                            </button>
-
-                                            <button class="btn btn-primary btn-sm me-1"
-                                                    onclick="callCustomer(@order.IdOrder)">
-                                                <i class="fas fa-phone"></i>
-                                            </button>
-
-                                            <button class="btn btn-danger btn-sm"
-                                                    onclick="cancelOrder(@order.IdOrder)">
-                                                <i class="fas fa-times"></i>
-                                            </button>
+                                            @if (order.Status == "delivering")
+                                            {
+                                                <form asp-area="Shipper" asp-controller="Shipper" asp-action="MarkCompleted" method="post" class="d-inline">
+                                                    <input type="hidden" name="orderId" value="@order.IdOrder" />
+                                                    <button type="submit" class="btn btn-success btn-sm">
+                                                        <i class="fas fa-check me-1"></i>Đã giao
+                                                    </button>
+                                                </form>
+                                            }
                                         </td>
                                     </tr>
                                 }
@@ -164,23 +175,3 @@
     background-color: #f8f9fa;
 }
 </style>
-
-<script>
-function markDelivering(orderId) {
-    if (confirm("Bắt đầu giao đơn #" + orderId + "?")) {
-        alert("Đã chuyển sang trạng thái đang giao!");
-        location.reload();
-    }
-}
-
-function callCustomer(orderId) {
-    alert("Đang gọi khách đơn #" + orderId);
-}
-
-function cancelOrder(orderId) {
-    if (confirm("Hủy đơn #" + orderId + "?")) {
-        alert("Đã hủy đơn!");
-        location.reload();
-    }
-}
-</script>

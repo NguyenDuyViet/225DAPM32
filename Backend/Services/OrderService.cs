@@ -59,6 +59,18 @@ namespace Backend.Services
             return orders.Select(ToOrderResponse).ToList();
         }
 
+        public async Task<List<OrderResponse>> GetOrdersByDriverUserIdAsync(int userId, bool history)
+        {
+            var driverId = await _context.Drivers
+                .Where(d => d.IdUser == userId)
+                .Select(d => (int?)d.IdDriver)
+                .FirstOrDefaultAsync();
+
+            return driverId.HasValue
+                ? await GetOrdersByDriverAsync(driverId.Value, history)
+                : new List<OrderResponse>();
+        }
+
         public async Task<OrderResponse> GetOrderByIdAsync(int userId, int idOrder)
         {
             var order = await GetOrdersQuery()
@@ -151,8 +163,8 @@ namespace Backend.Services
             if (order == null)
                 throw new KeyNotFoundException("Khong tim thay don hang.");
 
-            if (order.Status is "completed" or "cancelled" or "canceled")
-                throw new InvalidOperationException("Khong the huy don hang o trang thai hien tai.");
+            if (order.Status != "pending")
+                throw new InvalidOperationException("Chi co the huy don hang khi nha hang chua xac nhan.");
 
             var oldStatus = order.Status;
             order.Status = "cancelled";
@@ -174,6 +186,7 @@ namespace Backend.Services
                 throw new InvalidOperationException("Trang thai don hang khong duoc de trong.");
 
             var oldStatus = order.Status;
+            var assignedDriver = order.Driver;
             order.Status = NormalizeStatus(request.Status);
             order.UpdatedAt = DateTime.Now;
 
@@ -189,15 +202,23 @@ namespace Backend.Services
             }
             else if ((order.Status == "delivering" || order.Status == "completed") && order.IdDriver == null)
             {
-                var driver = await _context.Drivers.Include(d => d.User).FirstOrDefaultAsync();
+                var driver = await _context.Drivers
+                    .Include(d => d.User)
+                    .OrderBy(d => d.IsBusy)
+                    .ThenBy(d => d.TotalOrders)
+                    .FirstOrDefaultAsync();
                 if (driver != null)
                 {
                     order.IdDriver = driver.IdDriver;
                     order.Driver = driver;
+                    driver.IsBusy = order.Status == "delivering";
                 }
             }
             else if (order.Status != "delivering" && order.Status != "completed")
             {
+                if (assignedDriver != null)
+                    assignedDriver.IsBusy = false;
+
                 order.IdDriver = null;
             }
 
@@ -214,6 +235,22 @@ namespace Backend.Services
             await AdjustFoodDailyQuantityAsync(order, oldStatus, order.Status);
             await _context.SaveChangesAsync();
             return ToOrderResponse(order);
+        }
+
+        public async Task<OrderResponse> UpdateOrderStatusForDriverAsync(int userId, int idOrder, UpdateOrderStatusRequest request)
+        {
+            var ownsOrder = await _context.Orders
+                .AnyAsync(o => o.IdOrder == idOrder && o.Driver != null && o.Driver.IdUser == userId);
+
+            if (!ownsOrder)
+                throw new KeyNotFoundException("Khong tim thay don hang duoc giao cho shipper.");
+
+            var status = NormalizeStatus(request.Status);
+            if (status is not "delivering" and not "completed")
+                throw new InvalidOperationException("Shipper chi co the cap nhat trang thai giao hang.");
+
+            request.Status = status;
+            return await UpdateOrderStatusAsync(idOrder, request);
         }
 
         public async Task<bool> UpdateOrderStatusAsync(int orderId, string status)

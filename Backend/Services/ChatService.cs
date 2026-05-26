@@ -15,7 +15,13 @@ namespace Backend.Services
         public async Task<List<ChatMessage>> GetRoomHistoryAsync(string roomId, int page = 1, int pageSize = 50)
         {
             int skip = (page - 1) * pageSize;
-            return await _chatRepository.GetMessagesByRoomAsync(roomId, skip, pageSize);
+            var messages = await _chatRepository.GetMessagesByRoomAsync(roomId, skip, pageSize);
+
+            // Chat timestamps are stored in UTC; database reads do not preserve DateTimeKind.
+            foreach (var message in messages)
+                message.SentAt = DateTime.SpecifyKind(message.SentAt, DateTimeKind.Utc);
+
+            return messages;
         }
 
         public async Task<ChatMessage> SaveMessageAsync(ChatMessage message)

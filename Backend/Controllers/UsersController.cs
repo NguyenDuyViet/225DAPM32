@@ -112,7 +112,7 @@ namespace Backend.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "admin,customer")]
+        [Authorize]
         public async Task<ActionResult<ApiResponse<UserResponse>>> UpdateUser(int id, [FromBody] UpdateUserDto dto)
         {
             try

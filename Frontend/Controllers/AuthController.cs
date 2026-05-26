@@ -87,6 +87,7 @@ namespace _225DAPM32.Controllers
             {
                 "admin" => RedirectToAction("Index", "Admin", new { area = "Admin" }),
                 "restaurant" => RedirectToAction("Index", "Restaurant", new { area = "Restaurant" }),
+                "shipper" => RedirectToAction("Orders", "Shipper", new { area = "Shipper" }),
                 _ => null
             };
 

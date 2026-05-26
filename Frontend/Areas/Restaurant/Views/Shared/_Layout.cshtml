@@ -18,6 +18,16 @@
             display: inline-block;
             vertical-align: middle;
         }
+        .chat-new-dot {
+            display: inline-block;
+            width: 9px;
+            height: 9px;
+            margin-left: 6px;
+            border-radius: 999px;
+            background: #ef4444;
+            box-shadow: 0 0 0 2px #fff;
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body>
@@ -31,6 +41,20 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        (function refreshRestaurantChatDot() {
+            if (window.restaurantChatPageOwnsUnread) return;
+            const dots = document.querySelectorAll('.js-restaurant-chat-dot');
+            if (dots.length === 0) return;
+
+            fetch('@Url.Action("ChatUnread", "Restaurant", new { area = "Restaurant" })')
+                .then(response => response.ok ? response.json() : { count: 0 })
+                .then(data => dots.forEach(dot => dot.classList.toggle('d-none', Number(data.count || 0) === 0)))
+                .catch(() => {});
+
+            window.setTimeout(refreshRestaurantChatDot, 15000);
+        })();
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

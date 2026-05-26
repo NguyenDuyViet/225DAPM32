@@ -33,6 +33,19 @@ namespace Backend.Controllers
             });
         }
 
+        [HttpGet("vouchers")]
+        public async Task<ActionResult<ApiResponse<List<VoucherResponse>>>> GetAvailableVouchers()
+        {
+            var vouchers = await _cartService.GetAvailableVouchersAsync(GetUserId());
+
+            return Ok(new ApiResponse<List<VoucherResponse>>
+            {
+                Code = 1000,
+                Message = "Lay danh sach voucher thanh cong",
+                Results = vouchers
+            });
+        }
+
         [HttpPost("items")]
         public async Task<ActionResult<ApiResponse<CartResponse>>> AddItem([FromBody] CartItemRequest request)
         {

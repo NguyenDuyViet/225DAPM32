@@ -1,74 +1,85 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
 using _225DAPM32.Areas.Shipper.Models;
 using _225DAPM32.Models;
+using _225DAPM32.Services;
 
 namespace _225DAPM32.Areas.Shipper
 {
     [Area("Shipper")]
     public class ShipperController : Controller
     {
-        private static readonly List<Order> CurrentOrders = new()
-        {
-            new Order { IdOrder = 3001, IdUser = 1, Total = 185000m, ShippingFee = 15000m, FinalTotal = 200000m, Status = "delivering", DriverName = "Hoàng Văn E", DriverPhone = "0911222333", EstimatedDelivery = DateTime.Now.AddMinutes(30) },
-            new Order { IdOrder = 3002, IdUser = 2, Total = 98000m, ShippingFee = 15000m, FinalTotal = 113000m, Status = "delivering", DriverName = "Hoàng Văn E", DriverPhone = "0911222333", EstimatedDelivery = DateTime.Now.AddMinutes(45) }
-        };
+        private readonly ApiClient _apiClient;
 
-        private static readonly List<Order> HistoryOrders = new()
+        public ShipperController(ApiClient apiClient)
         {
-            new Order { IdOrder = 3000, IdUser = 3, Total = 130000m, ShippingFee = 15000m, FinalTotal = 145000m, Status = "completed", CreatedAt = DateTime.Now.AddHours(-6), DeliveredAt = DateTime.Now.AddHours(-5) },
-            new Order { IdOrder = 2999, IdUser = 4, Total = 210000m, ShippingFee = 15000m, FinalTotal = 225000m, Status = "completed", CreatedAt = DateTime.Now.AddHours(-8), DeliveredAt = DateTime.Now.AddHours(-7) }
-        };
+            _apiClient = apiClient;
+        }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            var currentOrders = await GetCurrentOrdersAsync();
+            var historyOrders = await GetHistoryOrdersAsync();
             ViewData["Title"] = "Dashboard Shipper";
             var model = new ShipperDashboardViewModel
             {
-                ActiveDeliveries = CurrentOrders.Count,
-                CompletedDeliveries = HistoryOrders.Count,
-                TodayEarnings = 450000m,
+                ActiveDeliveries = currentOrders.Count,
+                CompletedDeliveries = historyOrders.Count(o => o.Status == "completed"),
+                TodayEarnings = historyOrders
+                    .Where(o => o.Status == "completed" && (o.UpdatedAt ?? o.CreatedAt).Date == DateTime.Today)
+                    .Sum(o => o.ShippingFee),
                 Rating = 4.8m
             };
             return View(model);
         }
 
-        public IActionResult Orders()
+        public async Task<IActionResult> Orders()
         {
             ViewData["Title"] = "Đơn hàng cần giao";
-            return View(CurrentOrders);
+            return View(await GetCurrentOrdersAsync());
         }
 
-        public IActionResult History()
+        public async Task<IActionResult> History()
         {
             ViewData["Title"] = "Lịch sử giao hàng";
-            return View(HistoryOrders);
+            return View(await GetHistoryOrdersAsync());
         }
 
-        public IActionResult Earnings()
+        public async Task<IActionResult> Earnings()
         {
+            var currentOrders = await GetCurrentOrdersAsync();
+            var historyOrders = await GetHistoryOrdersAsync();
+            var completedOrders = historyOrders.Where(o => o.Status == "completed").ToList();
             ViewData["Title"] = "Thu nhập";
             var earnings = new ShipperEarningsViewModel
             {
-                WeekTotal = 2850000m,
-                TodayTotal = 450000m,
-                CompletedOrders = HistoryOrders.Count,
-                PendingOrders = CurrentOrders.Count
+                WeekTotal = completedOrders
+                    .Where(o => (o.UpdatedAt ?? o.CreatedAt) >= DateTime.Today.AddDays(-6))
+                    .Sum(o => o.ShippingFee),
+                TodayTotal = completedOrders
+                    .Where(o => (o.UpdatedAt ?? o.CreatedAt).Date == DateTime.Today)
+                    .Sum(o => o.ShippingFee),
+                CompletedOrders = completedOrders.Count,
+                PendingOrders = currentOrders.Count
             };
             return View(earnings);
         }
 
-        public IActionResult Profile()
+        public async Task<IActionResult> Profile()
         {
+            var userId = HttpContext.Session.GetString("UserId");
+            var user = int.TryParse(userId, out var id)
+                ? await _apiClient.GetResultAsync<User>($"Users/{id}")
+                : null;
+            var historyOrders = await GetHistoryOrdersAsync();
             ViewData["Title"] = "Thông tin cá nhân";
             var profile = new ShipperProfileViewModel
             {
-                Name = "Hoàng Văn E",
-                Phone = "0911222333",
-                Email = "shipper@example.com",
+                Name = user?.FullName ?? "Shipper",
+                Phone = user?.Phone ?? string.Empty,
+                Email = user?.Email ?? string.Empty,
                 Status = "Online",
                 Rating = 4.8m,
-                CompletedDeliveries = HistoryOrders.Count
+                CompletedDeliveries = historyOrders.Count(o => o.Status == "completed")
             };
             return View(profile);
         }
@@ -77,6 +88,30 @@ namespace _225DAPM32.Areas.Shipper
         {
             ViewData["Title"] = "Cài đặt";
             return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> MarkCompleted(int orderId)
+        {
+            var (success, _, message) = await _apiClient.PutResultAsync<Order>(
+                $"Shipper/orders/{orderId}/completed",
+                new { Status = "completed" });
+
+            TempData[success ? "Success" : "Error"] = success
+                ? "Đã xác nhận giao hàng thành công."
+                : (message ?? "Không thể hoàn tất đơn hàng.");
+
+            return RedirectToAction("Orders", new { area = "Shipper" });
+        }
+
+        private async Task<List<Order>> GetCurrentOrdersAsync()
+        {
+            return await _apiClient.GetResultAsync<List<Order>>("Shipper/orders") ?? new List<Order>();
+        }
+
+        private async Task<List<Order>> GetHistoryOrdersAsync()
+        {
+            return await _apiClient.GetResultAsync<List<Order>>("Shipper/history") ?? new List<Order>();
         }
     }
 }

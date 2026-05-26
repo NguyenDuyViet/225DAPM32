@@ -4,6 +4,9 @@
 @{
     ViewData["Title"] = "Đơn hàng";
     var apiBaseUrl = (Configuration["Api:BaseUrl"] ?? "http://localhost:8000/api/").TrimEnd('/');
+    var currentPage = (int?)ViewBag.CurrentPage ?? 1;
+    var totalPages = (int?)ViewBag.TotalPages ?? 1;
+    var totalOrders = (int?)ViewBag.TotalOrders ?? Model.Count();
 }
 
 <div class="admin-header bg-dark text-white py-4 mb-4">
@@ -70,6 +73,7 @@
                     </a>
                     <a class="nav-link" href="@Url.Action("Chat", "Restaurant", new { area = "Restaurant" })">
                         <i class="fas fa-comments me-2"></i>Chat
+                        <span class="chat-new-dot js-restaurant-chat-dot d-none" title="Có tin nhắn mới"></span>
                     </a>
                     <a class="nav-link" href="@Url.Action("Analytics", "Restaurant", new { area = "Restaurant" })">
                         <i class="fas fa-chart-line me-2"></i>Thống kê
@@ -93,12 +97,13 @@
                             <form action="@Url.Action("SimulateDelivery", "Restaurant", new { area = "Restaurant" })" method="post" class="d-inline ps-2">
                                 <div class="input-group input-group-sm">
                                     <input type="number" name="orderId" class="form-control rounded-start-pill text-center fw-bold" placeholder="ID đơn" required style="width: 80px; border-color: #10b981;">
+                                    <input type="hidden" name="page" value="@currentPage" />
                                     <button type="submit" class="btn btn-success rounded-end-pill fw-bold px-3 shadow-sm">
                                         <i class="fas fa-check-double me-1"></i>Shipper giao xong
                                     </button>
                                 </div>
                             </form>
-                            <span class="badge bg-secondary px-3 py-2 rounded-pill fw-bold ms-2">Tổng cộng: @Model.Count() đơn</span>
+                            <span class="badge bg-secondary px-3 py-2 rounded-pill fw-bold ms-2">Tổng cộng: @totalOrders đơn</span>
                         </div>
                     </div>
 
@@ -124,12 +129,12 @@
                                     <option value="ready_for_pickup">Nấu xong/Chờ tài xế</option>
                                     <option value="delivering">Đang giao</option>
                                     <option value="completed">Hoàn thành</option>
-                                    <option value="canceled">Đã hủy</option>
+                                    <option value="cancelled">Đã hủy</option>
                                 </select>
                             </div>
                         </div>
                         <div class="col-md-2 text-md-end text-center">
-                            <span class="badge bg-success px-3.5 py-2.5 rounded-pill fw-bold" id="visibleOrdersCount" style="font-size: 0.82rem;">Hiển thị: @Model.Count() đơn</span>
+                            <span class="badge bg-success px-3.5 py-2.5 rounded-pill fw-bold" id="visibleOrdersCount" style="font-size: 0.82rem;">Trang @currentPage: @Model.Count() đơn</span>
                         </div>
                     </div>
                     
@@ -186,6 +191,7 @@
                                                         "cooked" => "bg-success text-white",
                                                         "delivering" => "bg-info text-white",
                                                         "completed" => "bg-success text-white",
+                                                        "cancelled" => "bg-danger text-white",
                                                         "canceled" => "bg-danger text-white",
                                                         _ => "bg-secondary text-white"
                                                     };
@@ -198,6 +204,7 @@
                                                         "cooked" => "Đã nấu xong",
                                                         "delivering" => "Đang giao",
                                                         "completed" => "Hoàn thành",
+                                                        "cancelled" => "Đã hủy",
                                                         "canceled" => "Đã hủy",
                                                         _ => order.Status
                                                     };
@@ -224,7 +231,7 @@
                                             </td>
                                             <td class="text-center">
                                                 <div class="d-flex flex-column gap-2 align-items-center">
-                                                    <!-- Hàng 1: Chi tiết, Sửa, Xóa -->
+                                                    <!-- Hàng 1: Chi tiết, Sửa, Hủy -->
                                                     <div class="d-flex gap-1">
                                                         <button type="button" class="btn btn-sm btn-info text-white fw-bold rounded-pill px-2.5 btn-view-details" 
                                                                 data-id="@order.IdOrder" 
@@ -252,10 +259,11 @@
                                                                 data-status="@order.Status">
                                                             <i class="fas fa-edit"></i>
                                                         </button>
-                                                        <form action="@Url.Action("DeleteOrder", "Restaurant", new { area = "Restaurant" })" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa vĩnh viễn đơn hàng #@order.IdOrder này cùng tất cả thông tin liên quan? Hành động này không thể hoàn tác!')">
+                                                        <form action="@Url.Action("CancelOrder", "Restaurant", new { area = "Restaurant" })" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn hủy đơn hàng #@order.IdOrder? Đơn sẽ được giữ lại với trạng thái Đã hủy.')">
                                                             <input type="hidden" name="orderId" value="@order.IdOrder" />
+                                                            <input type="hidden" name="page" value="@currentPage" />
                                                             <button type="submit" class="btn btn-sm btn-danger fw-bold rounded-pill px-2.5">
-                                                                <i class="fas fa-trash-alt"></i>
+                                                                <i class="fas fa-ban"></i>
                                                             </button>
                                                         </form>
                                                     </div>
@@ -266,13 +274,15 @@
                                                             <form action="@Url.Action("UpdateOrderStatus", "Restaurant", new { area = "Restaurant" })" method="post" class="d-inline">
                                                                 <input type="hidden" name="orderId" value="@order.IdOrder" />
                                                                 <input type="hidden" name="status" value="preparing" />
+                                                                <input type="hidden" name="page" value="@currentPage" />
                                                                 <button type="submit" class="btn btn-xs btn-primary fw-bold rounded-pill px-2 py-0.5 shadow-sm">
                                                                     <i class="fas fa-check me-1"></i>Xác nhận đơn
                                                                 </button>
                                                             </form>
                                                             <form action="@Url.Action("UpdateOrderStatus", "Restaurant", new { area = "Restaurant" })" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn từ chối đơn hàng này?')">
                                                                 <input type="hidden" name="orderId" value="@order.IdOrder" />
-                                                                <input type="hidden" name="status" value="canceled" />
+                                                                <input type="hidden" name="status" value="cancelled" />
+                                                                <input type="hidden" name="page" value="@currentPage" />
                                                                 <button type="submit" class="btn btn-xs btn-danger fw-bold rounded-pill px-2 py-0.5 shadow-sm">
                                                                     <i class="fas fa-times me-1"></i>Từ chối
                                                                 </button>
@@ -283,6 +293,7 @@
                                                             <form action="@Url.Action("UpdateOrderStatus", "Restaurant", new { area = "Restaurant" })" method="post" class="d-inline">
                                                                 <input type="hidden" name="orderId" value="@order.IdOrder" />
                                                                 <input type="hidden" name="status" value="ready_for_pickup" />
+                                                                <input type="hidden" name="page" value="@currentPage" />
                                                                 <button type="submit" class="btn btn-xs btn-success fw-bold rounded-pill px-2 py-0.5 shadow-sm">
                                                                     <i class="fas fa-check-circle me-1"></i>Nấu xong
                                                                 </button>
@@ -304,7 +315,7 @@
                                                         {
                                                             <span class="text-success small fw-bold"><i class="fas fa-check-circle me-1"></i>Hoàn thành</span>
                                                         }
-                                                        else if (order.Status == "canceled")
+                                                        else if (order.Status == "canceled" || order.Status == "cancelled")
                                                         {
                                                             <span class="text-danger small fw-bold"><i class="fas fa-times-circle me-1"></i>Đã hủy</span>
                                                         }
@@ -326,6 +337,26 @@
                             </tbody>
                         </table>
                     </div>
+
+                    @if (totalPages > 1)
+                    {
+                        <nav class="mt-4" aria-label="Phân trang đơn hàng nhà hàng">
+                            <ul class="pagination justify-content-center mb-0">
+                                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                    <a class="page-link" asp-area="Restaurant" asp-controller="Restaurant" asp-action="Orders" asp-route-page="@(currentPage - 1)">Trước</a>
+                                </li>
+                                @for (var i = 1; i <= totalPages; i++)
+                                {
+                                    <li class="page-item @(i == currentPage ? "active" : "")">
+                                        <a class="page-link" asp-area="Restaurant" asp-controller="Restaurant" asp-action="Orders" asp-route-page="@i">@i</a>
+                                    </li>
+                                }
+                                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                    <a class="page-link" asp-area="Restaurant" asp-controller="Restaurant" asp-action="Orders" asp-route-page="@(currentPage + 1)">Sau</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    }
                 </div>
             </div>
         </div>
@@ -434,6 +465,7 @@
             <form action="@Url.Action("EditOrder", "Restaurant", new { area = "Restaurant" })" method="post">
                 <div class="modal-body p-4">
                     <input type="hidden" name="orderId" id="editOrderId" />
+                    <input type="hidden" name="page" value="@currentPage" />
                     
                     <div class="mb-3">
                         <label for="editAddress" class="form-label fw-bold text-dark"><i class="fas fa-map-marker-alt text-secondary me-1"></i>Địa chỉ giao hàng (Không thể sửa)</label>
@@ -454,7 +486,7 @@
                             <option value="ready_for_pickup">Nấu xong/Chờ tài xế</option>
                             <option value="delivering">Đang giao hàng</option>
                             <option value="completed">Đã hoàn thành</option>
-                            <option value="canceled">Đã hủy đơn</option>
+                            <option value="cancelled">Đã hủy đơn</option>
                         </select>
                     </div>
                 </div>
@@ -638,13 +670,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 `;
             } else {
                 // Before handover, show only pre-handover states:
-                // "chờ xác nhận" (pending), "đã nhận đơn" (restaurant_accepted), "đang chuẩn bị" (preparing), "nấu xong/chờ tài xế" (ready_for_pickup), and "đã hủy đơn" (canceled)
+                // States before handover, including a retained cancelled order.
                 editStatusSelect.innerHTML = `
                     <option value="pending">Chờ xác nhận</option>
                     <option value="restaurant_accepted">Đã nhận đơn</option>
                     <option value="preparing">Đang chuẩn bị</option>
                     <option value="ready_for_pickup">Nấu xong/Chờ tài xế</option>
-                    <option value="canceled">Đã hủy đơn</option>
+                    <option value="cancelled">Đã hủy đơn</option>
                 `;
             }
             
@@ -767,6 +799,12 @@ document.addEventListener("DOMContentLoaded", function () {
         statusInput.name = 'status';
         statusInput.value = status;
         form.appendChild(statusInput);
+
+        const pageInput = document.createElement('input');
+        pageInput.type = 'hidden';
+        pageInput.name = 'page';
+        pageInput.value = '@currentPage';
+        form.appendChild(pageInput);
         
         document.body.appendChild(form);
         form.submit();
@@ -868,7 +906,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     <button class="btn btn-success flex-grow-1 fw-bold rounded-pill shadow-sm py-2" onclick="submitStatusUpdate(${order.idOrder}, 'preparing')">
                         <i class="fas fa-check me-1"></i>Xác nhận đơn
                     </button>
-                    <button class="btn btn-danger flex-grow-1 fw-bold rounded-pill shadow-sm py-2" onclick="if(confirm('Bạn có chắc chắn muốn hủy và từ chối đơn hàng này?')) submitStatusUpdate(${order.idOrder}, 'canceled')">
+                    <button class="btn btn-danger flex-grow-1 fw-bold rounded-pill shadow-sm py-2" onclick="if(confirm('Bạn có chắc chắn muốn hủy và từ chối đơn hàng này?')) submitStatusUpdate(${order.idOrder}, 'cancelled')">
                         <i class="fas fa-times me-1"></i>Từ chối
                     </button>
                 </div>
@@ -929,6 +967,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 <div class="modal-body p-4">
                     <input type="hidden" name="orderId" id="handoverOrderId" />
                     <input type="hidden" name="status" value="delivering" />
+                    <input type="hidden" name="page" value="@currentPage" />
                     
                     <div class="text-center mb-4">
                         <div class="display-6 text-info mb-2"><i class="fas fa-truck-loading"></i></div>

@@ -18,7 +18,6 @@ namespace Backend.DTOs.Request
         public string? Email { get; set; }
         public string? Password { get; set; }
         public string? Status { get; set; }
-        public int? IdRole { get; set; }
         public DateTime? LastOnline { get; set; }
         public decimal? CurrentLat { get; set; }
         public decimal? CurrentLng { get; set; }
