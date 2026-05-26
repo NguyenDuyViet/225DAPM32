@@ -90,12 +90,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                         <h2 class="mb-0 fw-bold text-dark"><i class="fas fa-receipt me-2 text-success"></i>Quản lý Đơn hàng</h2>
                         <div class="d-flex align-items-center gap-2 flex-wrap">
-                            <form action="@Url.Action("SimulateOrder", "Restaurant", new { area = "Restaurant" })" method="post" class="d-inline">
-                                <button type="submit" class="btn btn-warning rounded-pill px-3 fw-bold shadow-sm">
-                                    <i class="fas fa-magic me-2"></i>Tạo đơn hàng giả lập (Khách)
-                                </button>
-                            </form>
-                            <form action="@Url.Action("SimulateDelivery", "Restaurant", new { area = "Restaurant" })" method="post" class="d-inline border-start ps-2">
+                            <form action="@Url.Action("SimulateDelivery", "Restaurant", new { area = "Restaurant" })" method="post" class="d-inline ps-2">
                                 <div class="input-group input-group-sm">
                                     <input type="number" name="orderId" class="form-control rounded-start-pill text-center fw-bold" placeholder="ID đơn" required style="width: 80px; border-color: #10b981;">
                                     <button type="submit" class="btn btn-success rounded-end-pill fw-bold px-3 shadow-sm">
@@ -104,6 +99,37 @@
                                 </div>
                             </form>
                             <span class="badge bg-secondary px-3 py-2 rounded-pill fw-bold ms-2">Tổng cộng: @Model.Count() đơn</span>
+                        </div>
+                    </div>
+
+                    <!-- Search & Filter Controls -->
+                    <div class="row g-3 mb-4 p-3 bg-light rounded-3 shadow-sm border align-items-center">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0 text-muted rounded-start-pill px-3">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" id="orderSearchInput" class="form-control border-start-0 rounded-end-pill py-2.5 shadow-none" placeholder="Tìm kiếm theo mã đơn hoặc tên khách hàng..." style="border-color: #dee2e6;" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0 text-muted rounded-start-pill px-3">
+                                    <i class="fas fa-filter"></i>
+                                </span>
+                                <select id="orderStatusFilter" class="form-select border-start-0 rounded-end-pill py-2.5 shadow-none" style="border-color: #dee2e6;">
+                                    <option value="all">Tất cả trạng thái</option>
+                                    <option value="pending">Chờ xác nhận</option>
+                                    <option value="preparing">Đang chuẩn bị</option>
+                                    <option value="ready_for_pickup">Nấu xong/Chờ tài xế</option>
+                                    <option value="delivering">Đang giao</option>
+                                    <option value="completed">Hoàn thành</option>
+                                    <option value="canceled">Đã hủy</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2 text-md-end text-center">
+                            <span class="badge bg-success px-3.5 py-2.5 rounded-pill fw-bold" id="visibleOrdersCount" style="font-size: 0.82rem;">Hiển thị: @Model.Count() đơn</span>
                         </div>
                     </div>
                     
@@ -126,16 +152,26 @@
                                 {
                                     @foreach (var order in Model)
                                     {
-                                        var foodsJson = JsonSerializer.Serialize(order.OrderFoods ?? new List<_225DAPM32.Models.OrderFoodViewModel>());
-                                        <tr data-order-id="@order.IdOrder" data-status="@order.Status">
+                                        var foodsJson = JsonSerializer.Serialize(order.Items?.Select(i => new _225DAPM32.Models.OrderFoodViewModel
+                                        {
+                                            IdOrderFood = i.IdOrderFood,
+                                            IdFood = i.IdFood,
+                                            Name = i.FoodName,
+                                            Image = i.FoodImage,
+                                            Quantity = i.Quantity,
+                                            UnitPrice = i.UnitPrice,
+                                            TotalPrice = i.TotalPrice,
+                                            Note = i.Note
+                                        }) ?? new List<_225DAPM32.Models.OrderFoodViewModel>());
+                                        <tr data-order-id="@order.IdOrder" data-order-code="@order.OrderCode" data-status="@order.Status">
                                             <td class="fw-bold text-primary">#@order.IdOrder</td>
                                             <td>
-                                                <div class="fw-bold">@order.User?.FullName</div>
+                                                <div class="fw-bold">@(order.CustomerName ?? "Khách hàng")</div>
                                                 <small class="text-muted">ID: @order.IdUser</small>
                                             </td>
                                             <td>
-                                                <div class="text-truncate" style="max-width: 200px;" title="@order.Address?.AddressDetail">
-                                                    @order.Address?.AddressDetail
+                                                <div class="text-truncate" style="max-width: 200px;" title="@order.DeliveryAddress">
+                                                    @order.DeliveryAddress
                                                 </div>
                                             </td>
                                             <td class="fw-bold text-success text-end">@order.FinalTotal.ToString("N0") đ</td>
@@ -169,7 +205,7 @@
                                                 <span class="badge @badgeClass px-2 py-1 rounded-pill fw-bold">@statusName</span>
                                             </td>
                                             <td>
-                                                @if (order.DriverName != "Chưa có" && !string.IsNullOrEmpty(order.DriverName))
+                                                @if ((order.Status == "delivering" || order.Status == "completed") && order.DriverName != "Chưa có" && !string.IsNullOrEmpty(order.DriverName))
                                                 {
                                                     <div class="fw-semibold">@order.DriverName</div>
                                                     @if (!string.IsNullOrEmpty(order.DriverPhone))
@@ -192,9 +228,9 @@
                                                     <div class="d-flex gap-1">
                                                         <button type="button" class="btn btn-sm btn-info text-white fw-bold rounded-pill px-2.5 btn-view-details" 
                                                                 data-id="@order.IdOrder" 
-                                                                data-customer="@order.User?.FullName" 
-                                                                data-phone="@order.User?.Phone"
-                                                                data-address="@order.Address?.AddressDetail" 
+                                                                data-customer="@order.CustomerName" 
+                                                                data-phone="@order.CustomerPhone"
+                                                                data-address="@order.DeliveryAddress" 
                                                                 data-note="@order.Note" 
                                                                 data-status="@order.Status" 
                                                                 data-status-text="@statusName"
@@ -211,7 +247,7 @@
                                                         </button>
                                                         <button type="button" class="btn btn-sm btn-warning text-white fw-bold rounded-pill px-2.5 btn-edit-order" 
                                                                 data-id="@order.IdOrder" 
-                                                                data-address="@order.Address?.AddressDetail" 
+                                                                data-address="@order.DeliveryAddress" 
                                                                 data-note="@order.Note" 
                                                                 data-status="@order.Status">
                                                             <i class="fas fa-edit"></i>
@@ -433,6 +469,64 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+    // ==========================================
+    // CLIENT-SIDE SEARCH & FILTER FOR ORDERS
+    // ==========================================
+    const orderSearchInput = document.getElementById("orderSearchInput");
+    const orderStatusFilter = document.getElementById("orderStatusFilter");
+    const visibleOrdersCount = document.getElementById("visibleOrdersCount");
+    const orderRows = Array.from(document.querySelectorAll("tbody tr[data-order-id]"));
+
+    function updateOrdersList() {
+        if (orderRows.length === 0) return;
+        const searchTerm = orderSearchInput.value.toLowerCase().trim();
+        const selectedStatus = orderStatusFilter.value;
+
+        let visibleCount = 0;
+
+        orderRows.forEach(row => {
+            const orderIdTd = row.querySelector("td:nth-child(1)");
+            const customerNameEl = row.querySelector("td:nth-child(2) .fw-bold");
+            
+            if (!orderIdTd || !customerNameEl) return;
+
+            const orderId = row.getAttribute("data-order-id").toLowerCase();
+            const orderCode = (row.getAttribute("data-order-code") || "").toLowerCase();
+            const customerName = customerNameEl.textContent.toLowerCase();
+            const orderStatus = row.getAttribute("data-status");
+
+            const matchesSearch = orderId.includes(searchTerm) || 
+                                  orderCode.includes(searchTerm) || 
+                                  customerName.includes(searchTerm) || 
+                                  `#${orderId}`.includes(searchTerm);
+            
+            let matchesStatus = false;
+            if (selectedStatus === "all") {
+                matchesStatus = true;
+            } else if (selectedStatus === "preparing") {
+                matchesStatus = (orderStatus === "preparing" || orderStatus === "restaurant_accepted");
+            } else if (selectedStatus === "ready_for_pickup") {
+                matchesStatus = (orderStatus === "ready_for_pickup" || orderStatus === "cooked");
+            } else {
+                matchesStatus = (orderStatus === selectedStatus);
+            }
+
+            if (matchesSearch && matchesStatus) {
+                row.style.display = "";
+                visibleCount++;
+            } else {
+                row.style.display = "none";
+            }
+        });
+
+        if (visibleOrdersCount) {
+            visibleOrdersCount.textContent = `Hiển thị: ${visibleCount} đơn`;
+        }
+    }
+
+    if (orderSearchInput) orderSearchInput.addEventListener("input", updateOrdersList);
+    if (orderStatusFilter) orderStatusFilter.addEventListener("change", updateOrdersList);
+
     // 1. Xem chi tiết đơn hàng
     const viewButtons = document.querySelectorAll(".btn-view-details");
     viewButtons.forEach(button => {
@@ -442,6 +536,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const phone = this.getAttribute("data-phone");
             const address = this.getAttribute("data-address");
             const note = this.getAttribute("data-note");
+            const status = this.getAttribute("data-status");
             const statusText = this.getAttribute("data-status-text");
             const statusClass = this.getAttribute("data-status-class");
             const subtotal = this.getAttribute("data-subtotal");
@@ -474,10 +569,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // Shipper
             const shipperContainer = document.getElementById("modalShipperContainer");
-            if (shipper && shipper !== "Chưa có") {
+            const isHandedOver = (status === "delivering" || status === "completed");
+            if (isHandedOver && shipper && shipper !== "Chưa có") {
                 document.getElementById("modalShipperName").textContent = shipper;
                 document.getElementById("modalShipperPhone").innerHTML = shipperPhone ? `<i class="fas fa-phone-alt me-1 text-sm"></i>${shipperPhone}` : "Không có SĐT";
-                shipperContainer.style.display = "flex";
             } else {
                 document.getElementById("modalShipperName").textContent = "Chưa nhận shipper";
                 document.getElementById("modalShipperPhone").textContent = "";
@@ -735,7 +830,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 
                 <div class="mb-2">
                     <small class="text-muted fw-bold d-block" style="font-size: 0.75rem;">Khách hàng</small>
-                    <div class="fw-bold text-dark" style="font-size: 0.9rem;">${order.user ? order.user.fullName : 'Khách hàng ẩn danh'}</div>
+                    <div class="fw-bold text-dark" style="font-size: 0.9rem;">${order.customerName || 'Khách hàng'}</div>
                 </div>
                 
                 <div class="mb-2">

@@ -48,17 +48,34 @@ namespace _225DAPM32.Areas.Restaurant
                 ? new List<Food>()
                 : await _apiClient.GetResultAsync<List<Food>>($"Food/restaurant/{restaurant.IdRestaurant}", false) ?? new List<Food>();
             
-            var orders = restaurant == null
-                ? new List<Order>()
-                : await _apiClient.GetResultAsync<List<Order>>($"Orders/restaurant/{restaurant.IdRestaurant}") ?? new List<Order>();
+            var stats = restaurant == null
+                ? null
+                : await _apiClient.GetResultAsync<BackendDashboardStats>($"Restaurants/{restaurant.IdRestaurant}/dashboard");
+
+            if (stats == null)
+            {
+                stats = new BackendDashboardStats
+                {
+                    TotalOrdersToday = 0,
+                    RevenueToday = 0,
+                    PreparingOrders = 0,
+                    Rating = 5.0m,
+                    RecentOrders = new List<BackendRecentOrder>(),
+                    PopularItems = new List<BackendPopularItem>()
+                };
+            }
+
+            ViewBag.TotalOrdersToday = stats.TotalOrdersToday;
+            ViewBag.RecentOrders = stats.RecentOrders ?? new List<BackendRecentOrder>();
+            ViewBag.PopularItems = stats.PopularItems ?? new List<BackendPopularItem>();
 
             ViewData["Title"] = "Dashboard Nhà hàng";
             return View(new RestaurantDashboardViewModel
             {
-                ActiveOrders = orders.Count(o => o.Status != "completed" && o.Status != "canceled"),
-                RevenueToday = orders.Where(o => o.CreatedAt.Date == DateTime.Today).Sum(o => o.FinalTotal),
+                ActiveOrders = stats.PreparingOrders,
+                RevenueToday = stats.RevenueToday,
                 MenuItems = foods.Count,
-                Rating = 4.7m
+                Rating = stats.Rating
             });
         }
 
@@ -73,7 +90,16 @@ namespace _225DAPM32.Areas.Restaurant
             if (restaurant == null)
                 return View(new List<Order>());
 
-            return View(await _apiClient.GetResultAsync<List<Order>>($"Orders/restaurant/{restaurant.IdRestaurant}") ?? new List<Order>());
+            var orders = await _apiClient.GetResultAsync<List<Order>>($"Orders/restaurant/{restaurant.IdRestaurant}") ?? new List<Order>();
+
+            // Sort orders: Active orders (Status != "completed") sorted by CreatedAt Descending first,
+            // then Completed orders (Status == "completed") sorted by CreatedAt Descending.
+            var sortedOrders = orders
+                .OrderBy(o => o.Status == "completed" ? 1 : 0)
+                .ThenByDescending(o => o.CreatedAt)
+                .ToList();
+
+            return View(sortedOrders);
         }
         
         public IActionResult Chat()
@@ -239,30 +265,7 @@ namespace _225DAPM32.Areas.Restaurant
             return RedirectToAction("Orders", new { area = "Restaurant" });
         }
 
-        [HttpPost]
-        public async Task<IActionResult> SimulateOrder()
-        {
-            var client = GetApiClient();
-            try
-            {
-                var response = await client.PostAsync("Orders/seed", null);
 
-                if (response.IsSuccessStatusCode)
-                {
-                    TempData["Success"] = "Tạo đơn hàng giả lập thành công!";
-                }
-                else
-                {
-                    TempData["Error"] = "Tạo đơn hàng giả lập thất bại!";
-                }
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Lỗi: {ex.Message}";
-            }
-
-            return RedirectToAction("Orders", new { area = "Restaurant" });
-        }
 
         public async Task<IActionResult> Analytics()
         {
