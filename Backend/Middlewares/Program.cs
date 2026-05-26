@@ -81,25 +81,23 @@ builder.Services.AddSwaggerGen(options =>
 // Database
 // ==============================
 
-// builder.Services.AddDbContext<AppDbContext>(options =>
-//     options.UseMySql(
-//         builder.Configuration.GetConnectionString("MySqlConnection"),
-//         new MySqlServerVersion(new Version(8, 0, 21)),
-//         mySqlOptions => mySqlOptions.EnableRetryOnFailure(
-//             maxRetryCount: 5,
-//             maxRetryDelay: TimeSpan.FromSeconds(10),
-//             errorNumbersToAdd: null
-//         )
-//     )
-// );
+// // builder.Services.AddDbContext<AppDbContext>(options =>
+// //     options.UseMySql(
+// //         builder.Configuration.GetConnectionString("MySqlConnection"),
+// //         new MySqlServerVersion(new Version(8, 0, 21)),
+// //         mySqlOptions => mySqlOptions.EnableRetryOnFailure(
+// //             maxRetryCount: 5,
+// //             maxRetryDelay: TimeSpan.FromSeconds(10),
+// //             errorNumbersToAdd: null
+// //         )
+// //     )
+// // );
 
 // Change to SQL Server if needed
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    var connectionString = builder.Configuration.GetConnectionString("MySqlConnection");
-    
-    
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    options.UseSqlServer(connectionString);
 });
 
 // ==============================

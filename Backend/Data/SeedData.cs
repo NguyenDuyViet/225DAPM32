@@ -9,8 +9,12 @@ namespace Backend.Data
 {
     public static class SeedData
     {
-        private static string UploadToCloudinary(Cloudinary cloudinary, string url, string folder, string name)
+        private static string UploadToCloudinary(Cloudinary? cloudinary, string url, string folder, string name)
         {
+            if (cloudinary == null)
+            {
+                return url;
+            }
             try
             {
                 using var client = new HttpClient();
@@ -69,11 +73,23 @@ namespace Backend.Data
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .Build();
 
-            var cloudName = config["Cloudinary:CloudName"];
-            var apiKey = config["Cloudinary:ApiKey"];
-            var apiSecret = config["Cloudinary:ApiSecret"];
-            var account = new Account(cloudName, apiKey, apiSecret);
-            var cloudinary = new Cloudinary(account);
+            Cloudinary? cloudinary = null;
+            try
+            {
+                var cloudName = config["Cloudinary:CloudName"];
+                var apiKey = config["Cloudinary:ApiKey"];
+                var apiSecret = config["Cloudinary:ApiSecret"];
+                if (!string.IsNullOrEmpty(cloudName))
+                {
+                    var account = new Account(cloudName, apiKey, apiSecret);
+                    cloudinary = new Cloudinary(account);
+                }
+            }
+            catch
+            {
+                // Ignore and fallback to null Cloudinary client
+            }
+
             var defaultAvatarUrl = UploadToCloudinary(
                 cloudinary,
                 "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300&auto=format&fit=crop&q=80",
