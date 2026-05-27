@@ -18,6 +18,7 @@ namespace Backend.Models
         public decimal? CurrentLng { get; set; }
         public float? CancelRate { get; set; }
 
+        // Navigation properties
         public Role Role { get; set; }
         public ICollection<Notification> Notifications { get; set; }
         public ICollection<Voucher> Vouchers { get; set; }

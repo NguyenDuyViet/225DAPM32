@@ -4,6 +4,7 @@
 @{
     ViewData["Title"] = "Giỏ hàng";
     var user = ViewBag.User as User;
+    var vouchers = ViewBag.Vouchers as List<Voucher> ?? new List<Voucher>();
     var restaurantName = Model.Items.FirstOrDefault()?.RestaurantName ?? "Nhà hàng";
     const decimal shippingFee = 15000m;
 
@@ -77,6 +78,10 @@
                 <form asp-area="" asp-controller="Cart" asp-action="Checkout" method="post" class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 space-y-5">
                     <h2 class="text-lg font-semibold">Thông tin đặt hàng</h2>
                     <div>
+                        <label for="phoneNumber" class="block text-sm font-medium text-gray-700 mb-2">Số điện thoại</label>
+                        <input type="tel" id="phoneNumber" name="phoneNumber" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="Nhập số điện thoại" value="@(user?.Phone ?? string.Empty)" />
+                    </div>
+                    <div>
                         <label for="deliveryAddress" class="block text-sm font-medium text-gray-700 mb-2">Địa chỉ giao hàng</label>
                         <textarea id="deliveryAddress" name="deliveryAddress" required rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="Nhập địa chỉ nhận món">@(user?.Address ?? string.Empty)</textarea>
                     </div>
@@ -89,13 +94,30 @@
                         </select>
                     </div>
                     <div>
+                        <label for="idVoucher" class="block text-sm font-medium text-gray-700 mb-2">Voucher</label>
+                        <select id="idVoucher" name="idVoucher" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            <option value="" data-value="0">Không sử dụng voucher</option>
+                            @foreach (var voucher in vouchers)
+                            {
+                                <option value="@voucher.IdVoucher" data-value="@voucher.Value">
+                                    @voucher.Code - giảm @voucher.Value.ToString("N0")đ (hạn @voucher.Expiry.ToString("dd/MM/yyyy"))
+                                </option>
+                            }
+                        </select>
+                        @if (!vouchers.Any())
+                        {
+                            <p class="mt-2 text-xs text-gray-500">Bạn chưa có voucher khả dụng.</p>
+                        }
+                    </div>
+                    <div>
                         <label for="orderNote" class="block text-sm font-medium text-gray-700 mb-2">Ghi chú đơn hàng</label>
                         <textarea id="orderNote" name="note" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="Ghi chú giao hàng"></textarea>
                     </div>
                     <div class="border-t border-gray-100 pt-4 space-y-3 text-sm">
                         <div class="flex justify-between text-gray-600"><span>Tạm tính (@Model.TotalQuantity món)</span><span>@Model.TotalAmount.ToString("N0")đ</span></div>
                         <div class="flex justify-between text-gray-600"><span>Phí vận chuyển</span><span>@shippingFee.ToString("N0")đ</span></div>
-                        <div class="flex justify-between text-lg font-semibold pt-2"><span>Tổng cộng</span><span class="text-orange-600">@((Model.TotalAmount + shippingFee).ToString("N0"))đ</span></div>
+                        <div class="flex justify-between text-green-700"><span>Voucher</span><span id="voucherDiscount">-0đ</span></div>
+                        <div class="flex justify-between text-lg font-semibold pt-2"><span>Tổng cộng</span><span id="checkoutTotal" class="text-orange-600">@((Model.TotalAmount + shippingFee).ToString("N0"))đ</span></div>
                     </div>
                     <button type="submit" class="w-full bg-orange-600 text-white font-semibold py-3 rounded-xl hover:bg-orange-700">Đặt hàng ngay</button>
                 </form>
@@ -103,3 +125,24 @@
         </div>
     }
 </main>
+
+@if (Model.Items.Any())
+{
+    <script>
+        (() => {
+            const voucherSelect = document.getElementById("idVoucher");
+            const discountOutput = document.getElementById("voucherDiscount");
+            const totalOutput = document.getElementById("checkoutTotal");
+            const foodAmount = @Model.TotalAmount.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            const totalBeforeDiscount = @((Model.TotalAmount + shippingFee).ToString(System.Globalization.CultureInfo.InvariantCulture));
+            const money = value => value.toLocaleString("vi-VN") + "đ";
+
+            voucherSelect?.addEventListener("change", () => {
+                const value = Number(voucherSelect.selectedOptions[0]?.dataset.value ?? 0);
+                const discount = Math.min(value, foodAmount);
+                discountOutput.textContent = "-" + money(discount);
+                totalOutput.textContent = money(Math.max(0, totalBeforeDiscount - discount));
+            });
+        })();
+    </script>
+}

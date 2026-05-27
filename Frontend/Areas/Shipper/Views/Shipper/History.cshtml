@@ -68,16 +68,23 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var order in Model)
+                                @if (!Model.Any())
                                 {
                                     <tr>
+                                        <td colspan="5" class="text-center text-muted py-5">Chưa có lịch sử giao hàng.</td>
+                                    </tr>
+                                }
+                                @foreach (var order in Model)
+                                {
+                                    var canceled = order.Status == "cancelled" || order.Status == "canceled";
+                                    <tr>
                                         <td>
-                                            <strong>#@order.IdOrder</strong>
+                                            <strong>@order.OrderCode</strong>
                                         </td>
 
                                         <td>
-                                            <span class="badge bg-success">
-                                                @order.Status
+                                            <span class="badge @(canceled ? "bg-danger" : "bg-success")">
+                                                @(canceled ? "Đã hủy" : "Hoàn thành")
                                             </span>
                                         </td>
 
@@ -86,7 +93,7 @@
                                         </td>
 
                                         <td>
-                                            @order.DeliveredAt?.ToString("HH:mm dd/MM")
+                                            @order.UpdatedAt?.ToString("HH:mm dd/MM")
                                         </td>
 
                                         <td>

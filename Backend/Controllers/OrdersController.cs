@@ -189,7 +189,7 @@ namespace Backend.Controllers
         }
 
         [HttpDelete("{idOrder}")]
-        [Authorize(Roles = "admin,restaurant")]
+        [Authorize(Roles = "admin")]
         public async Task<ActionResult<ApiResponse<bool>>> DeleteOrder(int idOrder)
         {
             var result = await _orderService.DeleteOrderAsync(idOrder);

@@ -49,7 +49,7 @@
     <div class="row">
         <!-- Sidebar (đồng bộ với các trang khác) -->
         <div class="col-md-2">
-            <div class="restaurant-sidebar shadow-sm">
+            <div class="restaurant-sidebar chat-page-sidebar shadow-sm">
                 <nav class="nav flex-column">
                     <a class="nav-link" href="@Url.Action("Index", "Restaurant", new { area = "Restaurant" })">
                         <i class="fas fa-tachometer-alt me-2"></i>Dashboard
@@ -59,7 +59,8 @@
                     </a>
                     <a class="nav-link active" href="@Url.Action("Chat", "Restaurant", new { area = "Restaurant" })">
                         <i class="fas fa-comments me-2"></i>Chat
-                        <span class="badge bg-success ms-1" id="totalUnreadBadge" style="display:none;"></span>
+                        <span class="chat-new-dot js-restaurant-chat-dot d-none" title="Có tin nhắn mới"></span>
+                        <span class="badge bg-danger ms-1 d-none" id="totalUnreadBadge">0</span>
                     </a>
                     <a class="nav-link" href="@Url.Action("Analytics", "Restaurant", new { area = "Restaurant" })">
                         <i class="fas fa-chart-line me-2"></i>Thống kê
@@ -76,11 +77,11 @@
 
         <!-- Chat content (col-md-10) -->
         <div class="col-md-10 ps-0">
-            <div class="card border-0 shadow-sm bg-white rounded-3 overflow-hidden" style="height: calc(100vh - 160px);">
+            <div class="restaurant-chat-card card border-0 shadow-sm bg-white rounded-4 overflow-hidden">
                 <div class="d-flex h-100">
 
                     <!-- Danh sách phòng chat -->
-                    <div class="chat-room-list border-end" style="width:300px; min-width:280px;">
+                    <div class="chat-room-list border-end">
                         <div class="p-3 border-bottom">
                             <h6 class="mb-2 fw-bold text-dark">
                                 <i class="fas fa-comments me-2 text-success"></i>Tin nhắn
@@ -105,7 +106,7 @@
                             </button>
                         </div>
 
-                        <div class="overflow-auto" id="roomList" style="height: calc(100% - 120px);">
+                        <div class="overflow-auto" id="roomList">
                             @if (!chatRooms.Any())
                             {
                                 <div class="text-center py-5 text-muted">
@@ -162,7 +163,7 @@
                                         </div>
                                         <div class="text-end flex-shrink-0">
                                             <div class="text-muted mb-1" id="time-@room.RoomId" style="font-size:11px;">
-                                                @room.LastTime.AddHours(7).ToString("HH:mm")
+                                                @room.LastTime.ToString("HH:mm")
                                             </div>
                                             <span class="badge @statusClass bg-opacity-75" style="font-size:10px;">@statusText</span>
                                         </div>
@@ -173,12 +174,11 @@
                     </div>
 
                     <!-- Khu vực chat -->
-                    <div class="d-flex flex-column flex-fill">
+                    <div class="chat-panel d-flex flex-column flex-fill">
 
                         <!-- Empty state -->
-                        <div id="chatEmpty" class="d-flex flex-column align-items-center justify-content-center flex-fill text-muted">
-                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-3"
-                                 style="width:80px;height:80px;font-size:36px;">💬</div>
+                        <div id="chatEmpty" class="chat-empty d-flex flex-column align-items-center justify-content-center flex-fill text-muted">
+                            <div class="chat-empty-icon d-flex align-items-center justify-content-center mb-3">💬</div>
                             <h5 class="text-secondary fw-semibold">Chọn cuộc trò chuyện</h5>
                             <p class="text-muted text-center" style="font-size:14px;">
                                 Chọn một đơn hàng bên trái để bắt đầu<br/>chat với khách hàng hoặc shipper
@@ -186,9 +186,9 @@
                         </div>
 
                         <!-- Chat view -->
-                        <div id="chatView" style="display:none; height:100%;" class="d-flex flex-column">
+                        <div id="chatView" class="d-none flex-column">
                             <!-- Header -->
-                            <div class="d-flex align-items-center gap-3 px-4 py-3 border-bottom bg-light">
+                            <div class="chat-header d-flex align-items-center gap-3 px-4 py-3 border-bottom">
                                 <div class="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold"
                                      id="chatHeaderAvatar"
                                      style="width:40px;height:40px;font-size:20px;background:#3b82f6;flex-shrink:0;">
@@ -207,8 +207,7 @@
                             </div>
 
                             <!-- Messages -->
-                            <div class="flex-fill overflow-auto p-4" id="messagesContainer"
-                                 style="background:#f8fafc; display:flex; flex-direction:column; gap:12px;">
+                            <div class="flex-fill overflow-auto p-4" id="messagesContainer">
                                 <div class="text-center text-muted" id="dateDivider" style="font-size:12px;">
                                     <span class="badge bg-light text-secondary border px-3">Hôm nay</span>
                                 </div>
@@ -225,8 +224,8 @@
                             </div>
 
                             <!-- Input -->
-                            <div class="p-3 border-top bg-white">
-                                <div class="input-group rounded-pill border overflow-hidden shadow-sm">
+                            <div class="chat-composer p-3 border-top bg-white">
+                                <div class="chat-input input-group rounded-pill border overflow-hidden">
                                     <textarea id="msgInput"
                                               class="form-control border-0 bg-white"
                                               placeholder="Nhập tin nhắn... (Enter để gửi)"
@@ -284,8 +283,80 @@
     color: white;
 }
 
+.chat-page-sidebar {
+    min-height: 0;
+}
+
+.restaurant-chat-card {
+    height: clamp(480px, calc(100vh - 300px), 680px);
+    border: 1px solid #e5e7eb !important;
+}
+
 .chat-room-list {
     background: #fff;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    width: 310px;
+    min-width: 285px;
+}
+
+#roomList {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.chat-panel,
+#chatView,
+#messagesContainer {
+    min-height: 0;
+}
+
+#chatView {
+    flex: 1 1 auto;
+    height: 100%;
+    overflow: hidden;
+}
+
+#messagesContainer {
+    background: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+}
+
+.chat-empty {
+    background: radial-gradient(circle at center, #ffffff 0, #f8fafc 100%);
+}
+
+.chat-empty-icon {
+    width: 76px;
+    height: 76px;
+    border-radius: 24px;
+    color: #10b981;
+    background: #ecfdf5;
+    font-size: 32px;
+}
+
+.chat-header {
+    background: #fff;
+}
+
+.chat-composer {
+    box-shadow: 0 -8px 20px rgba(15, 23, 42, .03);
+}
+
+.chat-input {
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, .06);
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.chat-input:focus-within {
+    border-color: #10b981 !important;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, .12);
 }
 
 .room-item:hover {
@@ -297,7 +368,17 @@
     border-left: 3px solid #10b981 !important;
 }
 
+.room-item {
+    min-height: 68px;
+}
+
 /* Bubble messages */
+.msg-mine,
+.msg-theirs {
+    width: fit-content;
+    max-width: min(70%, 560px);
+}
+
 .msg-mine .bubble {
     background: #10b981;
     color: #fff;
@@ -313,10 +394,13 @@
 
 .bubble {
     padding: 10px 16px;
-    max-width: 65%;
+    width: max-content;
+    min-width: 54px;
+    max-width: 100%;
     font-size: 14px;
     line-height: 1.5;
-    word-break: break-word;
+    word-break: normal;
+    overflow-wrap: break-word;
     display: inline-block;
 }
 
@@ -349,19 +433,28 @@
     border-color: #10b981 !important;
     color: #fff !important;
 }
+
+@@media (max-height: 780px) {
+    .restaurant-chat-card {
+        height: clamp(400px, calc(100vh - 240px), 520px);
+    }
+}
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
 
 <script>
+    window.restaurantChatPageOwnsUnread = true;
     const RESTAURANT_ID = @restaurantId;
     const SENDER_ROLE = "restaurant";
     const SENDER_NAME = "Nhà hàng";
+    const API_ROOT = "@apiRootUrl";
     let currentRoomId = null;
     let currentOrderId = null;
     let connection = null;
     let typingTimer = null;
     let typingHideTimer = null;
+    let unreadRefreshTimer = null;
 
     // ---- SignalR ----
     async function initSignalR() {
@@ -378,6 +471,9 @@
             if (msg.roomId === currentRoomId) {
                 appendMessage(msg);
                 scrollToBottom();
+                if (msg.senderRole !== SENDER_ROLE) {
+                    markRoomAsRead(msg.roomId);
+                }
             }
             updatePreview(msg.roomId, msg.content, msg.sentAt);
         });
@@ -397,6 +493,8 @@
         try {
             await connection.start();
             setStatus('success', 'Đã kết nối');
+            await loadUnreadCounts();
+            unreadRefreshTimer = setInterval(loadUnreadCounts, 15000);
         } catch {
             setStatus('danger', 'Không kết nối được');
         }
@@ -435,9 +533,12 @@
         avatar.style.background = role === 'shipper' ? '#f59e0b' : '#3b82f6';
 
         // Show chat view
-        document.getElementById('chatEmpty').style.display = 'none';
+        const empty = document.getElementById('chatEmpty');
+        empty.classList.remove('d-flex');
+        empty.classList.add('d-none');
         const view = document.getElementById('chatView');
-        view.style.display = 'flex';
+        view.classList.remove('d-none');
+        view.classList.add('d-flex');
 
         // Loading
         const mc = document.getElementById('messagesContainer');
@@ -448,9 +549,8 @@
             await connection.invoke("JoinRoom", roomId, RESTAURANT_ID, SENDER_ROLE).catch(console.error);
         }
 
-        // Clear badge
-        const badge = document.getElementById(`badge-${roomId}`);
-        if (badge) badge.classList.add('d-none');
+        await markRoomAsRead(roomId);
+        await loadUnreadCounts();
 
         document.getElementById('msgInput').focus();
     }
@@ -504,6 +604,47 @@
         const t = document.getElementById(`time-${roomId}`);
         if (p) p.textContent = content.length > 30 ? content.slice(0, 30) + '...' : content;
         if (t) t.textContent = formatTime(sentAt);
+    }
+
+    async function loadUnreadCounts() {
+        const rooms = Array.from(document.querySelectorAll('.room-item')).map(item => item.dataset.room);
+        const counts = await Promise.all(rooms.map(async roomId => {
+            try {
+                const response = await fetch(`${API_ROOT}/api/Chat/rooms/${encodeURIComponent(roomId)}/unread?role=restaurant`);
+                const data = await response.json();
+                return [roomId, Number(data.results ?? data.Results ?? 0)];
+            } catch {
+                return [roomId, 0];
+            }
+        }));
+
+        counts.forEach(([roomId, count]) => {
+            setRoomUnread(roomId, roomId === currentRoomId ? 0 : count);
+        });
+    }
+
+    async function markRoomAsRead(roomId) {
+        await fetch(`${API_ROOT}/api/Chat/rooms/${encodeURIComponent(roomId)}/read?role=restaurant`, {
+            method: 'POST'
+        }).catch(() => {});
+        setRoomUnread(roomId, 0);
+    }
+
+    function setRoomUnread(roomId, count) {
+        const badge = document.getElementById(`badge-${roomId}`);
+        if (badge) {
+            badge.textContent = count > 99 ? '99+' : String(count);
+            badge.dataset.count = String(count);
+            badge.classList.toggle('d-none', count === 0);
+        }
+
+        const total = Array.from(document.querySelectorAll('[id^="badge-"]'))
+            .reduce((sum, item) => sum + Number(item.dataset.count || 0), 0);
+        const totalBadge = document.getElementById('totalUnreadBadge');
+        totalBadge.textContent = total > 99 ? '99+' : String(total);
+        totalBadge.classList.toggle('d-none', total === 0);
+        document.querySelectorAll('.js-restaurant-chat-dot')
+            .forEach(dot => dot.classList.toggle('d-none', total === 0));
     }
 
     // ---- Send ----
@@ -586,10 +727,12 @@
     function formatTime(iso) {
         if (!iso) return '';
         try {
-            const d = new Date(iso);
-            const h = d.getUTCHours().toString().padStart(2, '0');
-            const m = d.getUTCMinutes().toString().padStart(2, '0');
-            return `${h}:${m}`;
+            return new Date(iso).toLocaleTimeString('vi-VN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+                timeZone: 'Asia/Bangkok'
+            });
         } catch { return ''; }
     }
 

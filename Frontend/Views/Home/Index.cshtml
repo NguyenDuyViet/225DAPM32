@@ -90,10 +90,10 @@
                     Kết nối thực khách với các nhà hàng uy tín, mang trải nghiệm ẩm thực cao cấp về căn bếp của bạn.
                 </p>
                 <div class="d-flex flex-wrap gap-3">
-                    <a href="@Url.Action("Index", "Restaurants")" class="btn btn-brand btn-lg px-4 py-3 shadow-sm">
+                    <a href="@Url.Action("Index", "Restaurants", new { area = "" })" class="btn btn-brand btn-lg px-4 py-3 shadow-sm">
                         <i class="fas fa-utensils me-2"></i>Chọn Nhà Hàng
                     </a>
-                    <a href="@Url.Action("Index", "Restaurants")" class="btn btn-outline-brand btn-lg px-4 py-3">
+                    <a href="@Url.Action("Index", "Restaurant", new { area = "Restaurant" })" class="btn btn-outline-brand btn-lg px-4 py-3">
                         <i class="fas fa-store me-2"></i>Hệ Thống Nhà Hàng
                     </a>
                 </div>
@@ -192,7 +192,7 @@
                             <h3 class="card-title fw-bold mb-3">Đối Tác Cung Cấp</h3>
                             <p class="card-text text-muted mb-4">Hệ thống quản lý và hỗ trợ các nhà hàng cung cấp dịch vụ trên nền tảng.</p>
                             <div class="mt-auto">
-                                <a href="@Url.Action("Index", "Restaurants")" class="btn btn-outline-warning text-dark px-4 rounded-pill fw-bold border-2">
+                                <a href="@Url.Action("Index", "Restaurant", new { area = "Restaurant" })" class="btn btn-outline-warning text-dark px-4 rounded-pill fw-bold border-2">
                                     Đến Khu Vực Đối Tác <i class="fas fa-arrow-right ms-2"></i>
                                 </a>
                             </div>

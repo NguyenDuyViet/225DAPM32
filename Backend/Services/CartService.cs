@@ -21,6 +21,21 @@ namespace Backend.Services
             return ToCartResponse(cart);
         }
 
+        public async Task<List<VoucherResponse>> GetAvailableVouchersAsync(int userId)
+        {
+            return await _context.Vouchers
+                .Where(v => v.IdUser == userId && !v.Used && v.Expiry >= DateTime.Now)
+                .OrderBy(v => v.Expiry)
+                .Select(v => new VoucherResponse
+                {
+                    IdVoucher = v.IdVoucher,
+                    Code = v.Code,
+                    Value = v.Value,
+                    Expiry = v.Expiry
+                })
+                .ToListAsync();
+        }
+
         public async Task<CartResponse> AddItemAsync(int userId, CartItemRequest request)
         {
             if (request.Quantity <= 0)

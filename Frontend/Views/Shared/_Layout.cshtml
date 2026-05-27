@@ -18,6 +18,16 @@
             display: inline-block;
             vertical-align: middle;
         }
+        .chat-new-dot {
+            display: inline-block;
+            width: 9px;
+            height: 9px;
+            margin-left: 6px;
+            border-radius: 999px;
+            background: #ef4444;
+            box-shadow: 0 0 0 2px #fff;
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body>
@@ -65,6 +75,20 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        (function refreshCustomerChatDot() {
+            if (window.customerChatPageOwnsUnread) return;
+            const dots = document.querySelectorAll('.js-customer-chat-dot');
+            if (dots.length === 0) return;
+
+            fetch('@Url.Action("ChatUnread", "Profile", new { area = "" })')
+                .then(response => response.ok ? response.json() : { count: 0 })
+                .then(data => dots.forEach(dot => dot.classList.toggle('d-none', Number(data.count || 0) === 0)))
+                .catch(() => {});
+
+            window.setTimeout(refreshCustomerChatDot, 15000);
+        })();
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

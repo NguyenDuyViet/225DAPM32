@@ -3,6 +3,7 @@ using Backend.DTOs.Response;
 using Backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Backend.Controllers
 {
@@ -16,6 +17,32 @@ namespace Backend.Controllers
         public ShipperController(OrderService orderService)
         {
             _orderService = orderService;
+        }
+
+        [HttpGet("orders")]
+        public async Task<ActionResult<ApiResponse<List<OrderResponse>>>> GetMyCurrentOrders()
+        {
+            var orders = await _orderService.GetOrdersByDriverUserIdAsync(GetUserId(), history: false);
+
+            return Ok(new ApiResponse<List<OrderResponse>>
+            {
+                Code = 1000,
+                Message = "Lấy danh sách đơn đang giao thành công",
+                Results = orders
+            });
+        }
+
+        [HttpGet("history")]
+        public async Task<ActionResult<ApiResponse<List<OrderResponse>>>> GetMyHistory()
+        {
+            var orders = await _orderService.GetOrdersByDriverUserIdAsync(GetUserId(), history: true);
+
+            return Ok(new ApiResponse<List<OrderResponse>>
+            {
+                Code = 1000,
+                Message = "Lấy lịch sử giao hàng thành công",
+                Results = orders
+            });
         }
 
         [HttpGet("{idDriver}/orders")]
@@ -48,21 +75,21 @@ namespace Backend.Controllers
         public async Task<ActionResult<ApiResponse<OrderResponse>>> MarkDelivering(int idOrder, [FromBody] UpdateOrderStatusRequest request)
         {
             request.Status = "delivering";
-            return await UpdateStatus(idOrder, request, "Cập nhật đơn đang giao thành công");
+            return await UpdateMyStatus(idOrder, request, "Cập nhật đơn đang giao thành công");
         }
 
         [HttpPut("orders/{idOrder}/completed")]
         public async Task<ActionResult<ApiResponse<OrderResponse>>> MarkCompleted(int idOrder, [FromBody] UpdateOrderStatusRequest request)
         {
             request.Status = "completed";
-            return await UpdateStatus(idOrder, request, "Hoàn tất đơn hàng thành công");
+            return await UpdateMyStatus(idOrder, request, "Hoàn tất đơn hàng thành công");
         }
 
-        private async Task<ActionResult<ApiResponse<OrderResponse>>> UpdateStatus(int idOrder, UpdateOrderStatusRequest request, string message)
+        private async Task<ActionResult<ApiResponse<OrderResponse>>> UpdateMyStatus(int idOrder, UpdateOrderStatusRequest request, string message)
         {
             try
             {
-                var order = await _orderService.UpdateOrderStatusAsync(idOrder, request);
+                var order = await _orderService.UpdateOrderStatusForDriverAsync(GetUserId(), idOrder, request);
 
                 return Ok(new ApiResponse<OrderResponse>
                 {
@@ -89,6 +116,15 @@ namespace Backend.Controllers
                     Results = default!
                 });
             }
+        }
+
+        private int GetUserId()
+        {
+            var userIdValue = User.FindFirstValue("UserId");
+            if (!int.TryParse(userIdValue, out var userId))
+                throw new UnauthorizedAccessException("Token khong hop le.");
+
+            return userId;
         }
     }
 }

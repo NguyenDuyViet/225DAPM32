@@ -1,0 +1,427 @@
+@model _225DAPM32.Models.Order?
+@using System.Text.Json
+@inject IConfiguration Configuration
+@{
+    ViewData["Title"] = "Chat với nhà hàng";
+    var orders = ViewBag.Orders as List<_225DAPM32.Models.Order> ?? new();
+    var user = ViewBag.User as _225DAPM32.Models.User;
+    var customerId = user?.IdUser ?? 0;
+    var customerName = !string.IsNullOrWhiteSpace(user?.FullName) ? user!.FullName! : (user?.Username ?? "Khách hàng");
+    var apiRootUrl = new Uri(Configuration["Api:BaseUrl"] ?? "http://localhost:8000/api/")
+        .GetLeftPart(UriPartial.Authority);
+}
+
+<div class="py-4">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="profile-nav p-3 mb-3">
+                <h5 class="mb-3">Tài khoản</h5>
+                <nav class="nav flex-column">
+                    <a class="nav-link" asp-area="" asp-controller="Profile" asp-action="Index"><i class="fas fa-user me-2"></i>Tổng quan</a>
+                    <a class="nav-link" asp-area="" asp-controller="Profile" asp-action="Orders"><i class="fas fa-shopping-bag me-2"></i>Đơn hàng</a>
+                    <a class="nav-link active d-flex align-items-center" asp-area="" asp-controller="Profile" asp-action="Chat">
+                        <i class="fas fa-comments me-2"></i>Chat nhà hàng
+                        <span class="chat-new-dot js-customer-chat-dot d-none" title="Có tin nhắn mới"></span>
+                        <span id="customerTotalUnread" class="badge bg-danger ms-auto d-none">0</span>
+                    </a>
+                    <a class="nav-link" asp-area="" asp-controller="Profile" asp-action="Settings"><i class="fas fa-cog me-2"></i>Cài đặt</a>
+                </nav>
+            </div>
+
+            <div class="card border-0 shadow-sm overflow-hidden">
+                <div class="card-header bg-white fw-bold py-3">
+                    <i class="fas fa-receipt text-success me-2"></i>Đơn để trao đổi
+                </div>
+                <div class="customer-chat-orders">
+                    @if (!orders.Any())
+                    {
+                        <div class="text-muted text-center p-4 small">Bạn chưa có đơn hàng để chat.</div>
+                    }
+                    else
+                    {
+                        @foreach (var order in orders)
+                        {
+                            var selected = Model?.IdOrder == order.IdOrder;
+                            <a asp-area="" asp-controller="Profile" asp-action="Chat" asp-route-orderId="@order.IdOrder"
+                               class="customer-room position-relative @(selected ? "active" : "")" data-room="order_@order.IdOrder">
+                                <div class="fw-semibold text-dark">@(string.IsNullOrWhiteSpace(order.OrderCode) ? $"#{order.IdOrder}" : order.OrderCode)</div>
+                                <div class="small text-muted text-truncate">@order.RestaurantName</div>
+                                <span class="badge bg-@order.StatusColor mt-2">@order.StatusText</span>
+                                <span id="customerUnread-order_@order.IdOrder"
+                                      class="badge rounded-pill bg-danger customer-room-unread d-none">0</span>
+                            </a>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            @if (Model == null)
+            {
+                <div class="card border-0 shadow-sm customer-chat-panel d-flex align-items-center justify-content-center text-muted">
+                    <div class="text-center">
+                        <i class="fas fa-comments fa-3x mb-3 text-success opacity-50"></i>
+                        <h5>Chưa có cuộc trò chuyện</h5>
+                        <p class="mb-0">Đặt món để liên hệ trực tiếp với nhà hàng.</p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card border-0 shadow-sm customer-chat-panel overflow-hidden">
+                    <div class="chat-header px-4 py-3 d-flex align-items-center gap-3">
+                        <div class="restaurant-avatar"><i class="fas fa-store"></i></div>
+                        <div class="flex-fill">
+                            <h5 class="mb-0 fw-bold">@Model.RestaurantName</h5>
+                            <small class="text-muted">
+                                Đơn @(string.IsNullOrWhiteSpace(Model.OrderCode) ? $"#{Model.IdOrder}" : Model.OrderCode)
+                                <span class="mx-1">|</span> @Model.StatusText
+                            </small>
+                        </div>
+                        <span id="connectionStatus" class="badge bg-secondary">Đang kết nối...</span>
+                    </div>
+
+                    <div class="chat-messages" id="messagesContainer">
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-spinner fa-spin me-2"></i>Đang tải tin nhắn...
+                        </div>
+                    </div>
+
+                    <div id="typingIndicator" class="chat-typing px-4 py-2 text-muted small d-none">
+                        Nhà hàng đang nhập...
+                    </div>
+
+                    <div class="chat-composer p-3 border-top bg-white">
+                        <div class="input-group">
+                            <textarea id="messageInput" class="form-control" rows="1"
+                                      placeholder="Nhập tin nhắn gửi nhà hàng..."
+                                      onkeydown="handleMessageKeydown(event)"
+                                      oninput="toggleSendButton()"></textarea>
+                            <button type="button" id="sendButton" class="btn btn-success px-4" onclick="sendMessage()" disabled>
+                                <i class="fas fa-paper-plane me-1"></i>Gửi
+                            </button>
+                        </div>
+                        <small class="text-muted">Nhấn Enter để gửi, Shift+Enter để xuống dòng.</small>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .customer-chat-orders {
+        max-height: 520px;
+        overflow-y: auto;
+    }
+
+    .customer-room {
+        display: block;
+        padding: 14px 16px;
+        border-bottom: 1px solid #eef2f7;
+        text-decoration: none;
+        transition: background-color .15s, border-color .15s;
+    }
+
+    .customer-room:hover,
+    .customer-room.active {
+        background: #ecfdf5;
+    }
+
+    .customer-room.active {
+        border-left: 4px solid #10b981;
+        padding-left: 12px;
+    }
+
+    .customer-room-unread {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+    }
+
+    .customer-chat-panel {
+        height: min(680px, calc(100vh - 180px));
+        min-height: 530px;
+    }
+
+    .chat-header {
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .restaurant-avatar {
+        background: #10b981;
+        color: #fff;
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 20px;
+    }
+
+    .chat-messages {
+        flex: 1;
+        padding: 22px;
+        background: #f8fafc;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .customer-chat-panel:not(.d-flex) {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .message-row {
+        display: flex;
+        flex-direction: column;
+        width: fit-content;
+        max-width: min(76%, 560px);
+    }
+
+    .message-row.mine {
+        align-self: flex-end;
+        align-items: flex-end;
+    }
+
+    .message-row.theirs {
+        align-self: flex-start;
+    }
+
+    .message-bubble {
+        display: inline-block;
+        width: max-content;
+        min-width: 54px;
+        max-width: 100%;
+        border-radius: 18px;
+        padding: 10px 15px;
+        line-height: 1.45;
+        white-space: pre-wrap;
+        overflow-wrap: break-word;
+        word-break: normal;
+    }
+
+    .mine .message-bubble {
+        color: #fff;
+        background: #10b981;
+        border-bottom-right-radius: 5px;
+    }
+
+    .theirs .message-bubble {
+        color: #1e293b;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-bottom-left-radius: 5px;
+    }
+
+    .message-meta {
+        color: #94a3b8;
+        font-size: 11px;
+        margin-top: 3px;
+    }
+
+    .chat-composer textarea {
+        resize: none;
+        min-height: 45px;
+        max-height: 100px;
+    }
+</style>
+
+@if (Model != null)
+{
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script>
+        window.customerChatPageOwnsUnread = true;
+        const roomId = "order_@Model.IdOrder";
+        const orderId = @Model.IdOrder;
+        const customerId = @customerId;
+        const customerName = @Html.Raw(JsonSerializer.Serialize(customerName));
+        const apiRoot = @Html.Raw(JsonSerializer.Serialize(apiRootUrl));
+        const customerRoomIds = @Html.Raw(JsonSerializer.Serialize(orders.Select(order => $"order_{order.IdOrder}").ToList()));
+        let connection = null;
+        let typingTimeout = null;
+        let unreadRefreshTimer = null;
+
+        async function connectChat() {
+            connection = new signalR.HubConnectionBuilder()
+                .withUrl("@apiRootUrl/chatHub", {
+                    withCredentials: true,
+                    transport: signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.LongPolling
+                })
+                .withAutomaticReconnect([0, 2000, 5000, 10000])
+                .configureLogging(signalR.LogLevel.Warning)
+                .build();
+
+            connection.on("LoadHistory", renderMessages);
+            connection.on("ReceiveMessage", function (message) {
+                if (message.roomId === roomId) {
+                    appendMessage(message);
+                    scrollMessages();
+                    if (message.senderRole !== "customer") {
+                        markCurrentRoomAsRead();
+                    }
+                }
+            });
+            connection.on("UserTyping", function (name) {
+                if (name !== customerName) {
+                    const indicator = document.getElementById("typingIndicator");
+                    indicator.classList.remove("d-none");
+                    clearTimeout(typingTimeout);
+                    typingTimeout = setTimeout(() => indicator.classList.add("d-none"), 2500);
+                }
+            });
+            connection.onreconnecting(() => updateStatus("Đang kết nối lại...", "bg-warning text-dark"));
+            connection.onreconnected(async () => {
+                updateStatus("Đang hoạt động", "bg-success");
+                await joinRoom();
+                await loadUnreadCounts();
+            });
+            connection.onclose(() => updateStatus("Mất kết nối", "bg-danger"));
+
+            try {
+                await connection.start();
+                updateStatus("Đang hoạt động", "bg-success");
+                await joinRoom();
+                await loadUnreadCounts();
+                unreadRefreshTimer = setInterval(loadUnreadCounts, 15000);
+            } catch {
+                updateStatus("Không thể kết nối", "bg-danger");
+            }
+        }
+
+        async function joinRoom() {
+            await connection.invoke("JoinRoom", roomId, customerId, "customer");
+            await markCurrentRoomAsRead();
+        }
+
+        async function markCurrentRoomAsRead() {
+            await fetch(`${apiRoot}/api/Chat/rooms/${encodeURIComponent(roomId)}/read?role=customer`, {
+                method: "POST"
+            }).catch(() => {});
+            setUnreadBadge(roomId, 0);
+        }
+
+        async function loadUnreadCounts() {
+            const counts = await Promise.all(customerRoomIds.map(async currentRoom => {
+                try {
+                    const response = await fetch(`${apiRoot}/api/Chat/rooms/${encodeURIComponent(currentRoom)}/unread?role=customer`);
+                    const data = await response.json();
+                    return [currentRoom, Number(data.results ?? data.Results ?? 0)];
+                } catch {
+                    return [currentRoom, 0];
+                }
+            }));
+
+            counts.forEach(([currentRoom, count]) => {
+                setUnreadBadge(currentRoom, currentRoom === roomId ? 0 : count);
+            });
+        }
+
+        function setUnreadBadge(currentRoom, count) {
+            const badge = document.getElementById(`customerUnread-${currentRoom}`);
+            if (badge) {
+                badge.textContent = count > 99 ? "99+" : String(count);
+                badge.classList.toggle("d-none", count === 0);
+                badge.dataset.count = String(count);
+            }
+
+            const total = Array.from(document.querySelectorAll(".customer-room-unread"))
+                .reduce((sum, item) => sum + Number(item.dataset.count || 0), 0);
+            const totalBadge = document.getElementById("customerTotalUnread");
+            totalBadge.textContent = total > 99 ? "99+" : String(total);
+            totalBadge.classList.toggle("d-none", total === 0);
+            document.querySelectorAll(".js-customer-chat-dot")
+                .forEach(dot => dot.classList.toggle("d-none", total === 0));
+        }
+
+        function renderMessages(messages) {
+            const container = document.getElementById("messagesContainer");
+            container.innerHTML = "";
+            if (!messages || messages.length === 0) {
+                container.innerHTML = '<div class="text-center text-muted py-5">Chưa có tin nhắn. Hãy bắt đầu trao đổi với nhà hàng.</div>';
+                return;
+            }
+            messages.forEach(appendMessage);
+            scrollMessages();
+        }
+
+        function appendMessage(message) {
+            const container = document.getElementById("messagesContainer");
+            const placeholder = container.querySelector(".text-center");
+            if (placeholder) {
+                container.innerHTML = "";
+            }
+
+            const mine = message.senderRole === "customer";
+            const row = document.createElement("div");
+            row.className = `message-row ${mine ? "mine" : "theirs"}`;
+
+            const bubble = document.createElement("div");
+            bubble.className = "message-bubble";
+            bubble.textContent = message.content || "";
+            row.appendChild(bubble);
+
+            const meta = document.createElement("div");
+            meta.className = "message-meta";
+            meta.textContent = `${mine ? "Bạn" : (message.senderName || "Nhà hàng")} - ${formatTime(message.sentAt)}`;
+            row.appendChild(meta);
+            container.appendChild(row);
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById("messageInput");
+            const content = input.value.trim();
+            if (!content || connection?.state !== signalR.HubConnectionState.Connected) return;
+
+            input.value = "";
+            toggleSendButton();
+            try {
+                await connection.invoke("SendMessage", roomId, content, customerId, "customer", customerName, orderId);
+            } catch {
+                alert("Không thể gửi tin nhắn. Vui lòng thử lại.");
+            }
+        }
+
+        function handleMessageKeydown(event) {
+            if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            } else if (connection?.state === signalR.HubConnectionState.Connected) {
+                connection.invoke("Typing", roomId, customerName).catch(() => {});
+            }
+        }
+
+        function toggleSendButton() {
+            document.getElementById("sendButton").disabled =
+                document.getElementById("messageInput").value.trim().length === 0;
+        }
+
+        function updateStatus(text, cssClass) {
+            const status = document.getElementById("connectionStatus");
+            status.textContent = text;
+            status.className = `badge ${cssClass}`;
+        }
+
+        function formatTime(value) {
+            if (!value) return "";
+            return new Date(value).toLocaleTimeString("vi-VN", {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+                timeZone: "Asia/Bangkok"
+            });
+        }
+
+        function scrollMessages() {
+            const container = document.getElementById("messagesContainer");
+            requestAnimationFrame(() => container.scrollTop = container.scrollHeight);
+        }
+
+        connectChat();
+    </script>
+}

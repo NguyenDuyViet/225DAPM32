@@ -20,6 +20,7 @@ namespace _225DAPM32.Controllers
 
             var cart = await _apiClient.GetResultAsync<CartResponse>("Cart") ?? new CartResponse();
             ViewBag.User = await GetCurrentUserAsync();
+            ViewBag.Vouchers = await _apiClient.GetResultAsync<List<Voucher>>("Cart/vouchers") ?? new List<Voucher>();
             return View(cart);
         }
 
@@ -72,7 +73,7 @@ namespace _225DAPM32.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Checkout(string deliveryAddress, string paymentMethod = "cash", string? note = null)
+        public async Task<IActionResult> Checkout(string deliveryAddress, string paymentMethod = "cash", int? idVoucher = null, string? note = null)
         {
             if (!IsLoggedIn())
                 return RedirectToAction("Index", "Home", new { area = "", loginRequired = true });
@@ -81,6 +82,7 @@ namespace _225DAPM32.Controllers
             {
                 DeliveryAddress = deliveryAddress,
                 PaymentMethod = paymentMethod,
+                IdVoucher = idVoucher,
                 ShippingFee = 15000m,
                 Note = note
             });

@@ -41,6 +41,8 @@ namespace _225DAPM32.Models
         public string? TrackingNumber { get; set; }
         public string? DriverName { get; set; }
         public string? DriverPhone { get; set; }
+        public string? CustomerName { get; set; }
+        public string? CustomerPhone { get; set; }
         public DateTime? EstimatedDelivery { get; set; }
 
         [ForeignKey("IdUser")]
@@ -54,8 +56,13 @@ namespace _225DAPM32.Models
         {
             "completed" => "Hoàn thành",
             "delivering" => "Đang giao",
-            "confirmed" => "Đã xác nhận",
+            "confirmed" => "Đang nấu",
+            "restaurant_accepted" => "Đang nấu",
+            "preparing" => "Đang nấu",
+            "ready_for_pickup" => "Chờ shipper nhận đơn",
+            "cooked" => "Chờ shipper nhận đơn",
             "pending" => "Chờ xử lý",
+            "cancelled" => "Đã hủy",
             "canceled" => "Đã hủy",
             _ => "Không xác định"
         };
@@ -65,7 +72,12 @@ namespace _225DAPM32.Models
             "completed" => "success",
             "delivering" => "warning",
             "confirmed" => "info",
+            "restaurant_accepted" => "info",
+            "preparing" => "info",
+            "ready_for_pickup" => "primary",
+            "cooked" => "primary",
             "pending" => "primary",
+            "cancelled" => "danger",
             "canceled" => "danger",
             _ => "secondary"
         };
