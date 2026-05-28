@@ -16,7 +16,8 @@ namespace Backend.Mapper
             // Response mapping
             CreateMap<Food, FoodResponse>()
                 .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : null))
-                .ForMember(dest => dest.RestaurantName, opt => opt.MapFrom(src => src.Restaurant != null ? src.Restaurant.NameRestaurant : null));
+                .ForMember(dest => dest.RestaurantName, opt => opt.MapFrom(src => src.Restaurant != null ? src.Restaurant.NameRestaurant : null))
+                .ForMember(dest => dest.SoldQuantity, opt => opt.Ignore());
         }
     }
 }

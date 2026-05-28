@@ -253,41 +253,6 @@ namespace Backend.Controllers
             }
         }
 
-        [HttpPost("{idOrder}/simulate-delivery-and-review")]
-        [Authorize(Roles = "admin,restaurant")]
-        public async Task<ActionResult<ApiResponse<object>>> SimulateDeliveryAndReview(int idOrder)
-        {
-            try
-            {
-                var result = await _orderService.SimulateDeliveryAndReviewAsync(idOrder);
-                if (!result)
-                {
-                    return NotFound(new ApiResponse<object>
-                    {
-                        Code = 404,
-                        Message = "Order not found or simulation failed",
-                        Results = null
-                    });
-                }
-
-                return Ok(new ApiResponse<object>
-                {
-                    Code = 200,
-                    Message = "Success",
-                    Results = true
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new ApiResponse<object>
-                {
-                    Code = 500,
-                    Message = $"Simulation error: {ex.Message}",
-                    Results = ex.ToString()
-                });
-            }
-        }
-
         private int GetUserId()
         {
             var userIdValue = User.FindFirstValue("UserId");

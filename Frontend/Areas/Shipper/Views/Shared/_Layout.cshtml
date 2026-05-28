@@ -1,24 +1,110 @@
+@{
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Shipper Panel</title>
-    <script type="importmap"></script>
     <link rel="icon" href="@Url.Content("~/LoGo_MNTN.png")" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/_225DAPM32.styles.css" asp-append-version="true" />
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .shipper-header {
+            background: #20252a;
+        }
+
+        .shipper-sidebar {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px 0;
+            min-height: calc(100vh - 170px);
+        }
+
+        .shipper-sidebar .nav-link {
+            color: #495057;
+            padding: 12px 20px;
+            margin: 5px 15px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .shipper-sidebar .nav-link:hover {
+            background: #e9ecef;
+            color: #212529;
+        }
+
+        .shipper-sidebar .nav-link.active {
+            background: #ffc107;
+            color: #212529;
+        }
+    </style>
 </head>
 <body>
-    <div class="container-fluid px-0">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+    <header class="shipper-header text-white py-4 mb-4">
+        <div class="container-fluid px-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="h2 mb-1"><i class="fas fa-motorcycle me-3"></i>Dashboard Shipper</h1>
+                    <p class="mb-0 opacity-75">Theo dõi và cập nhật đơn giao được phân công</p>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center justify-content-end gap-3">
+                        <div class="text-end">
+                            <small class="opacity-75 d-block">Hôm nay</small>
+                            <div class="fw-bold">@DateTime.Now.ToString("dd/MM/yyyy")</div>
+                        </div>
+                        <div><i class="fas fa-circle text-success me-1"></i> Online</div>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user me-2"></i>Shipper
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" asp-area="Shipper" asp-controller="Shipper" asp-action="Profile"><i class="fas fa-user me-2"></i>Thông tin cá nhân</a></li>
+                                <li><a class="dropdown-item" asp-area="Shipper" asp-controller="Shipper" asp-action="Earnings"><i class="fas fa-wallet me-2"></i>Thu nhập</a></li>
+                                <li><a class="dropdown-item" asp-area="Shipper" asp-controller="Shipper" asp-action="Settings"><i class="fas fa-cog me-2"></i>Cài đặt</a></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <form asp-area="" asp-controller="Auth" asp-action="Logout" method="post">
+                                        <button class="dropdown-item text-danger" type="submit"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container-fluid px-4">
+        <div class="row g-4">
+            <aside class="col-md-2">
+                <div class="shipper-sidebar shadow-sm">
+                    <nav class="nav flex-column">
+                        <a class="nav-link @(currentAction == "Index" ? "active" : "")" asp-area="Shipper" asp-controller="Shipper" asp-action="Index"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+                        <a class="nav-link @(currentAction == "Orders" ? "active" : "")" asp-area="Shipper" asp-controller="Shipper" asp-action="Orders"><i class="fas fa-clipboard-list me-2"></i>Đơn hàng</a>
+                        <a class="nav-link @(currentAction == "History" ? "active" : "")" asp-area="Shipper" asp-controller="Shipper" asp-action="History"><i class="fas fa-history me-2"></i>Lịch sử</a>
+                        <a class="nav-link @(currentAction == "Earnings" ? "active" : "")" asp-area="Shipper" asp-controller="Shipper" asp-action="Earnings"><i class="fas fa-wallet me-2"></i>Thu nhập</a>
+                        <a class="nav-link @(currentAction == "Profile" ? "active" : "")" asp-area="Shipper" asp-controller="Shipper" asp-action="Profile"><i class="fas fa-user me-2"></i>Hồ sơ</a>
+                        <a class="nav-link @(currentAction == "Settings" ? "active" : "")" asp-area="Shipper" asp-controller="Shipper" asp-action="Settings"><i class="fas fa-cog me-2"></i>Cài đặt</a>
+                    </nav>
+                </div>
+            </aside>
+
+            <main class="col-md-10 pb-4">
+                @RenderBody()
+            </main>
+        </div>
     </div>
 
-    @await Html.PartialAsync("~/Views/Shared/_Footer.cshtml")
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

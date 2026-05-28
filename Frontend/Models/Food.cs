@@ -18,6 +18,7 @@ namespace _225DAPM32.Models
         public int? CookCount { get; set; }
         public int? PrepTime { get; set; }
         public int DailyQuantity { get; set; }
+        public int SoldQuantity { get; set; }
         public string? CategoryName { get; set; }
         public string? RestaurantName { get; set; }
         public decimal FinalPrice => Price - (Discount ?? 0);

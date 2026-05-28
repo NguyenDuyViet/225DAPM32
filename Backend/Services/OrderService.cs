@@ -49,7 +49,7 @@ namespace Backend.Services
         {
             var statuses = history
                 ? new[] { "completed", "cancelled", "canceled" }
-                : new[] { "confirmed", "delivering", "restaurant_accepted" };
+                : new[] { "confirmed", "preparing", "ready_for_pickup", "cooked", "delivering" };
 
             var orders = await GetOrdersQuery()
                 .Where(o => o.IdDriver == idDriver && statuses.Contains(o.Status))
@@ -69,6 +69,26 @@ namespace Backend.Services
             return driverId.HasValue
                 ? await GetOrdersByDriverAsync(driverId.Value, history)
                 : new List<OrderResponse>();
+        }
+
+        public async Task<List<OrderResponse>> GetAvailableOrdersForDriverUserIdAsync(int userId)
+        {
+            var driver = await _context.Drivers.FirstOrDefaultAsync(d => d.IdUser == userId);
+            if (driver == null || driver.IsBusy)
+                return new List<OrderResponse>();
+
+            var pendingOrders = await GetOrdersQuery()
+                .Where(o => o.Status == "pending" && o.IdDriver == null)
+                .ToListAsync();
+
+            const double radiusKm = 12;
+            return pendingOrders
+                .Select(order => new { Order = order, Distance = DistanceKm(driver.CurrentLat, driver.CurrentLng, order.Restaurant.Lat, order.Restaurant.Lng) })
+                .Where(item => item.Distance <= radiusKm)
+                .OrderBy(item => item.Distance)
+                .ThenBy(item => item.Order.CreatedAt)
+                .Select(item => ToOrderResponse(item.Order))
+                .ToList();
         }
 
         public async Task<OrderResponse> GetOrderByIdAsync(int userId, int idOrder)
@@ -187,7 +207,9 @@ namespace Backend.Services
 
             var oldStatus = order.Status;
             var assignedDriver = order.Driver;
-            order.Status = NormalizeStatus(request.Status);
+            var newStatus = NormalizeStatus(request.Status);
+            ValidateStatusTransition(order, newStatus);
+            order.Status = newStatus;
             order.UpdatedAt = DateTime.Now;
 
             if (request.IdDriver.HasValue)
@@ -200,27 +222,14 @@ namespace Backend.Services
                 order.Driver = driver;
                 driver.IsBusy = order.Status is "delivering" or "confirmed";
             }
-            else if ((order.Status == "delivering" || order.Status == "completed") && order.IdDriver == null)
-            {
-                var driver = await _context.Drivers
-                    .Include(d => d.User)
-                    .OrderBy(d => d.IsBusy)
-                    .ThenBy(d => d.TotalOrders)
-                    .FirstOrDefaultAsync();
-                if (driver != null)
-                {
-                    order.IdDriver = driver.IdDriver;
-                    order.Driver = driver;
-                    driver.IsBusy = order.Status == "delivering";
-                }
-            }
-            else if (order.Status != "delivering" && order.Status != "completed")
+            else if (order.Status is "cancelled" or "canceled")
             {
                 if (assignedDriver != null)
                     assignedDriver.IsBusy = false;
-
-                order.IdDriver = null;
             }
+
+            if (order.Status == "delivering" && order.Driver != null)
+                order.Driver.IsBusy = true;
 
             if (order.Status is "cancelled" or "canceled")
                 order.CancelReason = request.CancelReason;
@@ -233,6 +242,35 @@ namespace Backend.Services
             }
 
             await AdjustFoodDailyQuantityAsync(order, oldStatus, order.Status);
+            await _context.SaveChangesAsync();
+            return ToOrderResponse(order);
+        }
+
+        public async Task<OrderResponse> AcceptOrderForDriverAsync(int userId, int idOrder)
+        {
+            var driver = await _context.Drivers
+                .Include(d => d.User)
+                .FirstOrDefaultAsync(d => d.IdUser == userId);
+            if (driver == null)
+                throw new KeyNotFoundException("Khong tim thay thong tin shipper.");
+            if (driver.IsBusy)
+                throw new InvalidOperationException("Ban dang co don hang can hoan thanh truoc.");
+
+            var order = await GetOrdersQuery().FirstOrDefaultAsync(o => o.IdOrder == idOrder);
+            if (order == null)
+                throw new KeyNotFoundException("Khong tim thay don hang.");
+            if (order.Status != "pending" || order.IdDriver.HasValue)
+                throw new InvalidOperationException("Don hang nay da duoc shipper khac nhan.");
+
+            var distance = DistanceKm(driver.CurrentLat, driver.CurrentLng, order.Restaurant.Lat, order.Restaurant.Lng);
+            if (distance > 12)
+                throw new InvalidOperationException("Don hang nam ngoai pham vi nhan don cua ban.");
+
+            order.IdDriver = driver.IdDriver;
+            order.Driver = driver;
+            order.Status = "confirmed";
+            order.UpdatedAt = DateTime.Now;
+            driver.IsBusy = true;
             await _context.SaveChangesAsync();
             return ToOrderResponse(order);
         }
@@ -251,6 +289,25 @@ namespace Backend.Services
 
             request.Status = status;
             return await UpdateOrderStatusAsync(idOrder, request);
+        }
+
+        public async Task UpdateDriverLocationAsync(int userId, DriverLocationRequest request)
+        {
+            if (request.Latitude is < -90 or > 90 || request.Longitude is < -180 or > 180)
+                throw new InvalidOperationException("Toa do khong hop le.");
+
+            var driver = await _context.Drivers
+                .Include(d => d.User)
+                .FirstOrDefaultAsync(d => d.IdUser == userId);
+            if (driver == null)
+                throw new KeyNotFoundException("Khong tim thay thong tin shipper.");
+
+            driver.CurrentLat = request.Latitude;
+            driver.CurrentLng = request.Longitude;
+            driver.User.CurrentLat = request.Latitude;
+            driver.User.CurrentLng = request.Longitude;
+            driver.User.LastOnline = DateTime.Now;
+            await _context.SaveChangesAsync();
         }
 
         public async Task<bool> UpdateOrderStatusAsync(int orderId, string status)
@@ -276,9 +333,8 @@ namespace Backend.Services
 
             if (dto.Status != null)
             {
-                var oldStatus = order.Status;
-                order.Status = NormalizeStatus(dto.Status);
-                await AdjustFoodDailyQuantityAsync(order, oldStatus, order.Status);
+                await UpdateOrderStatusAsync(orderId, new UpdateOrderStatusRequest { Status = dto.Status });
+                return true;
             }
 
             order.UpdatedAt = DateTime.Now;
@@ -608,69 +664,6 @@ namespace Backend.Services
             }).ToList();
         }
 
-        public async Task<bool> SimulateDeliveryAndReviewAsync(int orderId)
-        {
-            var order = await _context.Orders
-                .Include(o => o.OrderFoods)
-                .FirstOrDefaultAsync(o => o.IdOrder == orderId);
-
-            if (order == null)
-                return false;
-
-            var oldStatus = order.Status;
-            order.Status = "completed";
-            order.UpdatedAt = DateTime.Now;
-
-            if (order.IdDriver == null)
-            {
-                var driver = await _context.Drivers.FirstOrDefaultAsync();
-                if (driver != null)
-                    order.IdDriver = driver.IdDriver;
-            }
-
-            await AdjustFoodDailyQuantityAsync(order, oldStatus, order.Status);
-            await _context.SaveChangesAsync();
-
-            var existingReview = await _context.Reviews.FirstOrDefaultAsync(r => r.IdOrder == orderId);
-            if (existingReview != null)
-                return true;
-
-            var nextReviewId = await _context.Reviews.AnyAsync() ? await _context.Reviews.MaxAsync(r => r.IdReview) + 1 : 1;
-            var review = new Review
-            {
-                IdReview = nextReviewId,
-                IdUser = order.IdUser,
-                IdOrder = order.IdOrder,
-                IdRestaurant = order.IdRestaurant,
-                FoodRating = 5.0f,
-                DriverRating = 4.8f,
-                CommentForRes = "Giao hang nhanh, do an nong hoi va rat ngon.",
-                CommentForShipper = "Tai xe than thien, giao hang nhanh chong va lich su.",
-                CreatedAt = DateTime.Now
-            };
-
-            _context.Reviews.Add(review);
-            await _context.SaveChangesAsync();
-
-            var nextReviewFoodId = await _context.ReviewFoods.AnyAsync() ? await _context.ReviewFoods.MaxAsync(rf => rf.IdReviewFood) + 1 : 1;
-            foreach (var orderFood in order.OrderFoods)
-            {
-                _context.ReviewFoods.Add(new ReviewFood
-                {
-                    IdReviewFood = nextReviewFoodId++,
-                    IdReview = nextReviewId,
-                    IdFood = orderFood.IdFood,
-                    Rating = 5.0f,
-                    Comment = "Ngon tuyet hao, chuan vi nha lam!",
-                    Image = "",
-                    Video = ""
-                });
-            }
-
-            await _context.SaveChangesAsync();
-            return true;
-        }
-
         private async Task<decimal> GetVoucherDiscountAsync(int userId, int? idVoucher, decimal foodAmount)
         {
             if (!idVoucher.HasValue)
@@ -719,6 +712,9 @@ namespace Backend.Services
                 IdUser = order.IdUser,
                 IdRestaurant = order.IdRestaurant,
                 RestaurantName = order.Restaurant?.NameRestaurant ?? string.Empty,
+                RestaurantAddress = order.Restaurant?.Address ?? string.Empty,
+                RestaurantLat = order.Restaurant?.Lat,
+                RestaurantLng = order.Restaurant?.Lng,
                 DeliveryAddress = order.DeliveryAddress,
                 DeliveryLat = order.DeliveryLat,
                 DeliveryLng = order.DeliveryLng,
@@ -736,9 +732,14 @@ namespace Backend.Services
                 CancelReason = order.CancelReason,
                 DriverName = order.Driver?.User?.FullName,
                 DriverPhone = order.Driver?.User?.Phone,
+                DriverLat = order.Driver == null ? null : order.Driver.CurrentLat,
+                DriverLng = order.Driver == null ? null : order.Driver.CurrentLng,
                 EstimatedDelivery = EstimateDelivery(order),
                 CreatedAt = order.CreatedAt,
                 UpdatedAt = order.UpdatedAt,
+                DriverRating = order.Review?.DriverRating,
+                CommentForShipper = order.Review?.CommentForShipper,
+                ReviewedAt = order.Review?.CreatedAt,
                 Items = (order.OrderFoods ?? new List<OrderFood>()).Select(of => new OrderItemResponse
                 {
                     IdOrderFood = of.IdOrderFood,
@@ -761,7 +762,8 @@ namespace Backend.Services
                 .Include(o => o.Driver)
                     .ThenInclude(d => d.User)
                 .Include(o => o.OrderFoods)
-                    .ThenInclude(of => of.Food);
+                    .ThenInclude(of => of.Food)
+                .Include(o => o.Review);
         }
 
         private static DateTime? EstimateDelivery(Order order)
@@ -780,6 +782,42 @@ namespace Backend.Services
                 "restaurant_accepted" => "confirmed",
                 var value => value
             };
+        }
+
+        private static void ValidateStatusTransition(Order order, string newStatus)
+        {
+            if (newStatus == order.Status)
+                return;
+
+            if (newStatus == "confirmed")
+                throw new InvalidOperationException("Chi shipper moi co the nhan don hang.");
+            if (newStatus == "preparing" && (order.Status != "confirmed" || order.IdDriver == null))
+                throw new InvalidOperationException("Can co shipper xac nhan don truoc khi nha hang nau.");
+            if (newStatus == "ready_for_pickup" && order.Status != "preparing")
+                throw new InvalidOperationException("Chi co the bao nau xong khi mon dang duoc chuan bi.");
+            if (newStatus == "delivering" && order.Status is not "ready_for_pickup" and not "cooked")
+                throw new InvalidOperationException("Shipper chi bat dau giao sau khi nha hang nau xong.");
+            if (newStatus == "completed" && order.Status != "delivering")
+                throw new InvalidOperationException("Chi co the hoan thanh don dang giao.");
+            if (newStatus is "cancelled" or "canceled")
+            {
+                if (order.Status == "pending" && DateTime.Now - order.CreatedAt < TimeSpan.FromMinutes(5))
+                    throw new InvalidOperationException("Nha hang chi duoc huy neu sau 5 phut chua co shipper nhan don.");
+                if (order.Status is "delivering" or "completed")
+                    throw new InvalidOperationException("Khong the huy don dang giao hoac da hoan thanh.");
+            }
+        }
+
+        private static double DistanceKm(decimal fromLat, decimal fromLng, decimal toLat, decimal toLng)
+        {
+            const double earthRadiusKm = 6371;
+            var dLat = (double)(toLat - fromLat) * Math.PI / 180;
+            var dLng = (double)(toLng - fromLng) * Math.PI / 180;
+            var lat1 = (double)fromLat * Math.PI / 180;
+            var lat2 = (double)toLat * Math.PI / 180;
+            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                    Math.Cos(lat1) * Math.Cos(lat2) * Math.Sin(dLng / 2) * Math.Sin(dLng / 2);
+            return earthRadiusKm * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
         }
 
         private async Task<int> GetNextOrderIdAsync()

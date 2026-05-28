@@ -123,6 +123,85 @@ namespace Backend.Repositories
             };
         }
 
+        public async Task SubmitOrderReview(OrderReviewRequest request, int idUser)
+        {
+            ValidateRating(request.RestaurantRating, "nhà hàng");
+            ValidateRating(request.DriverRating, "shipper");
+
+            var order = await _context.Orders
+                .Include(o => o.OrderFoods)
+                .FirstOrDefaultAsync(o =>
+                    o.IdOrder == request.IdOrder &&
+                    o.IdUser == idUser &&
+                    o.Status == "completed");
+
+            if (order == null)
+                throw new InvalidOperationException("Chỉ có thể đánh giá đơn hàng đã giao thành công.");
+
+            if (order.IdDriver == null)
+                throw new InvalidOperationException("Đơn hàng chưa có thông tin shipper để đánh giá.");
+
+            var review = await _context.Reviews
+                .Include(r => r.ReviewFoods)
+                .FirstOrDefaultAsync(r => r.IdOrder == request.IdOrder && r.IdUser == idUser);
+
+            if (review == null)
+            {
+                review = new Review
+                {
+                    IdReview = await GetNextReviewIdAsync(),
+                    IdUser = idUser,
+                    IdOrder = order.IdOrder,
+                    IdRestaurant = order.IdRestaurant,
+                    CreatedAt = DateTime.Now,
+                    ReviewFoods = new List<ReviewFood>()
+                };
+                await _context.Reviews.AddAsync(review);
+            }
+
+            review.FoodRating = request.RestaurantRating;
+            review.DriverRating = request.DriverRating;
+            review.CommentForRes = request.CommentForRestaurant?.Trim() ?? string.Empty;
+            review.CommentForShipper = request.CommentForShipper?.Trim() ?? string.Empty;
+            review.ReviewFoods ??= new List<ReviewFood>();
+
+            var foodIdsInOrder = order.OrderFoods.Select(item => item.IdFood).ToHashSet();
+            if (!foodIdsInOrder.SetEquals(request.Foods.Select(item => item.IdFood)))
+                throw new InvalidOperationException("Vui lòng đánh giá đầy đủ các món ăn trong đơn hàng.");
+
+            var nextReviewFoodId = await GetNextReviewFoodIdAsync();
+            foreach (var foodReview in request.Foods)
+            {
+                if (!foodIdsInOrder.Contains(foodReview.IdFood))
+                    throw new InvalidOperationException("Món ăn đánh giá không thuộc đơn hàng này.");
+
+                ValidateRating(foodReview.Rating, "món ăn");
+                var existing = review.ReviewFoods.FirstOrDefault(item => item.IdFood == foodReview.IdFood);
+                if (existing == null)
+                {
+                    existing = new ReviewFood
+                    {
+                        IdReviewFood = nextReviewFoodId++,
+                        IdReview = review.IdReview,
+                        IdFood = foodReview.IdFood
+                    };
+                    review.ReviewFoods.Add(existing);
+                    await _context.ReviewFoods.AddAsync(existing);
+                }
+
+                existing.Rating = foodReview.Rating;
+                existing.Comment = foodReview.Comment?.Trim();
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
+        private static void ValidateRating(float rating, string subject)
+        {
+            if (rating < 1 || rating > 5)
+                throw new InvalidOperationException($"Điểm đánh giá {subject} phải từ 1 đến 5.");
+        }
+
         private async Task<int> GetNextReviewIdAsync()
         {
             return await _context.Reviews.AnyAsync()

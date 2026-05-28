@@ -3,6 +3,7 @@ using Backend.DTOs.Request;
 using Backend.DTOs.Response;
 using Backend.Models;
 using Backend.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services
 {
@@ -10,11 +11,13 @@ namespace Backend.Services
     {
         private readonly UserRepository _userRepository;
         private readonly IMapper _mapper;
+        private readonly AppDbContext _context;
 
-        public UserService(UserRepository userRepository, IMapper mapper)
+        public UserService(UserRepository userRepository, IMapper mapper, AppDbContext context)
         {
             _userRepository = userRepository;
             _mapper = mapper;
+            _context = context;
         }
 
         public async Task<UserResponse?> CreateUserAsync(CreateUserDto dto)
@@ -26,6 +29,7 @@ namespace Backend.Services
                 return null;
 
             var user = _mapper.Map<User>(dto);
+            user.IdUser = await GetNextUserIdAsync();
             user.IdRole = 2; // Default role: User
             user.Password = BCrypt.Net.BCrypt.HashPassword(dto.Password);
             user.CreatedAt = DateTime.UtcNow;
@@ -37,6 +41,59 @@ namespace Backend.Services
 
             var createdUser = await _userRepository.GetByIdWithRoleAsync(user.IdUser);
             return _mapper.Map<UserResponse>(createdUser ?? user);
+        }
+
+        public async Task<UserResponse?> CreateShipperAsync(CreateShipperRequest dto)
+        {
+            if (await _userRepository.GetUserByUsernameAsync(dto.Username) != null ||
+                await _userRepository.GetUserByEmailAsync(dto.Email) != null)
+            {
+                return null;
+            }
+
+            var role = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "shipper");
+            if (role == null)
+                throw new InvalidOperationException("Khong tim thay vai tro shipper.");
+
+            var user = new User
+            {
+                IdUser = await GetNextUserIdAsync(),
+                IdRole = role.IdRole,
+                Username = dto.Username.Trim(),
+                Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                FullName = dto.FullName?.Trim(),
+                Phone = dto.Phone?.Trim(),
+                Email = dto.Email.Trim(),
+                Address = dto.Address?.Trim(),
+                Avatar = string.Empty,
+                Status = "active",
+                CreatedAt = DateTime.UtcNow,
+                CancelRate = 0
+            };
+
+            var driver = new Driver
+            {
+                IdDriver = await _context.Drivers.AnyAsync()
+                    ? await _context.Drivers.MaxAsync(d => d.IdDriver) + 1
+                    : 1,
+                IdUser = user.IdUser,
+                LicensePlate = dto.LicensePlate.Trim(),
+                Address = dto.Address?.Trim() ?? string.Empty,
+                ExpRank = "New",
+                DescStatus = "San sang giao hang",
+                CurrentLat = 0,
+                CurrentLng = 0,
+                IsBusy = false,
+                RateAvg = 5.0m,
+                TotalOrders = 0
+            };
+
+            _context.Users.Add(user);
+            _context.Drivers.Add(driver);
+            await _context.SaveChangesAsync();
+
+            user.Role = role;
+            return _mapper.Map<UserResponse>(user);
         }
 
         public async Task<UserResponse?> UpdateUserAsync(int id, UpdateUserDto dto)
@@ -107,6 +164,13 @@ namespace Backend.Services
 
             var updatedUser = await _userRepository.GetByIdWithRoleAsync(id);
             return _mapper.Map<UserResponse>(updatedUser ?? user);
+        }
+
+        private async Task<int> GetNextUserIdAsync()
+        {
+            return await _context.Users.AnyAsync()
+                ? await _context.Users.MaxAsync(u => u.IdUser) + 1
+                : 1;
         }
     }
 }

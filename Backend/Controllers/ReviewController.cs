@@ -57,6 +57,31 @@ namespace Backend.Controllers
             }
         }
 
+        [Authorize]
+        [HttpPost("order")]
+        public async Task<ActionResult<ApiResponse<bool>>> SubmitOrderReview([FromBody] OrderReviewRequest request)
+        {
+            try
+            {
+                await _reviewService.SubmitOrderReview(request, GetUserId());
+                return Ok(new ApiResponse<bool>
+                {
+                    Code = 1000,
+                    Message = "Đánh giá đơn hàng thành công",
+                    Results = true
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new ApiResponse<bool>
+                {
+                    Code = 1003,
+                    Message = ex.Message,
+                    Results = false
+                });
+            }
+        }
+
         private int GetUserId()
         {
             var userIdValue = User.FindFirstValue("UserId");

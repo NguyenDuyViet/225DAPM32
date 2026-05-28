@@ -220,18 +220,35 @@ namespace _225DAPM32.Controllers
                 if (apiResponse?.Results == null)
                     return NotFound();
 
-                // Fetch foods by restaurant
+                // Fetch foods and public reviews shown on the restaurant page.
+                var foods = new List<Food>();
                 var foodResponse = await client.GetAsync($"Food/restaurant/{id}");
                 if (foodResponse.IsSuccessStatusCode)
                 {
                     var foodContent = await foodResponse.Content.ReadAsStringAsync();
                     var foodApiResponse = JsonSerializer.Deserialize<ApiResponse<List<Food>>>(foodContent, _jsonOptions);
-                    ViewBag.Foods = foodApiResponse?.Results ?? new List<Food>();
+                    foods = foodApiResponse?.Results ?? new List<Food>();
                 }
-                else
+
+                ViewBag.Foods = foods;
+
+                var restaurantReviewResponse = await client.GetAsync($"Restaurants/{id}/reviews");
+                ViewBag.RestaurantReviews = restaurantReviewResponse.IsSuccessStatusCode
+                    ? JsonSerializer.Deserialize<ApiResponse<List<RestaurantReview>>>(
+                        await restaurantReviewResponse.Content.ReadAsStringAsync(), _jsonOptions)?.Results ?? new List<RestaurantReview>()
+                    : new List<RestaurantReview>();
+
+                var foodReviewTasks = foods.Select(async food =>
                 {
-                    ViewBag.Foods = new List<Food>();
-                }
+                    var reviewResponse = await client.GetAsync($"Review/food/{food.IdFood}");
+                    var reviews = reviewResponse.IsSuccessStatusCode
+                        ? JsonSerializer.Deserialize<ApiResponse<List<FoodReview>>>(
+                            await reviewResponse.Content.ReadAsStringAsync(), _jsonOptions)?.Results ?? new List<FoodReview>()
+                        : new List<FoodReview>();
+                    return new { food.IdFood, Reviews = reviews };
+                });
+                var foodReviews = await Task.WhenAll(foodReviewTasks);
+                ViewBag.FoodReviews = foodReviews.ToDictionary(result => result.IdFood, result => result.Reviews);
 
                 return View(apiResponse.Results);
             }

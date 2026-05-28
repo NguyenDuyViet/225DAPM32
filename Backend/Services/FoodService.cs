@@ -20,7 +20,7 @@ namespace Backend.Services
         public async Task<IEnumerable<FoodResponse>> GetAllFoodsAsync()
         {
             var foods = await _foodRepository.GetAllWithDetailsAsync();
-            return _mapper.Map<IEnumerable<FoodResponse>>(foods);
+            return await MapWithSoldQuantitiesAsync(foods);
         }
 
         public async Task<FoodResponse?> GetFoodByIdAsync(int id)
@@ -29,7 +29,7 @@ namespace Backend.Services
             if (food == null)
                 return null;
 
-            return _mapper.Map<FoodResponse>(food);
+            return (await MapWithSoldQuantitiesAsync(new[] { food })).Single();
         }
 
         public async Task<FoodResponse> CreateFoodAsync(FoodRequest request)
@@ -40,7 +40,7 @@ namespace Backend.Services
             await _foodRepository.SaveChangesAsync();
 
             var createdFood = await _foodRepository.GetByIdWithDetailsAsync(food.IdFood) ?? food;
-            return _mapper.Map<FoodResponse>(createdFood);
+            return (await MapWithSoldQuantitiesAsync(new[] { createdFood })).Single();
         }
 
         public async Task<FoodResponse?> UpdateFoodAsync(int id, FoodRequest request)
@@ -54,7 +54,7 @@ namespace Backend.Services
             await _foodRepository.SaveChangesAsync();
 
             var updatedFood = await _foodRepository.GetByIdWithDetailsAsync(existingFood.IdFood) ?? existingFood;
-            return _mapper.Map<FoodResponse>(updatedFood);
+            return (await MapWithSoldQuantitiesAsync(new[] { updatedFood })).Single();
         }
 
         public async Task<bool> DeleteFoodAsync(int id)
@@ -70,13 +70,13 @@ namespace Backend.Services
         public async Task<IEnumerable<FoodResponse>> GetFoodsByRestaurantAsync(int restaurantId)
         {
             var foods = await _foodRepository.FindAsync(f => f.IdRestaurant == restaurantId);
-            return _mapper.Map<IEnumerable<FoodResponse>>(foods);
+            return await MapWithSoldQuantitiesAsync(foods);
         }
 
         public async Task<IEnumerable<FoodResponse>> GetFoodsByCategoryAsync(int categoryId)
         {
             var foods = await _foodRepository.FindAsync(f => f.IdCategory == categoryId);
-            return _mapper.Map<IEnumerable<FoodResponse>>(foods);
+            return await MapWithSoldQuantitiesAsync(foods);
         }
 
         public async Task<FoodResponse?> UpdateDailyQuantityAsync(int foodId, int quantity)
@@ -89,7 +89,19 @@ namespace Backend.Services
             _foodRepository.Update(existingFood);
             await _foodRepository.SaveChangesAsync();
 
-            return _mapper.Map<FoodResponse>(existingFood);
+            return (await MapWithSoldQuantitiesAsync(new[] { existingFood })).Single();
+        }
+
+        private async Task<List<FoodResponse>> MapWithSoldQuantitiesAsync(IEnumerable<Food> foods)
+        {
+            var foodList = foods.ToList();
+            var responses = _mapper.Map<List<FoodResponse>>(foodList);
+            var soldQuantities = await _foodRepository.GetCompletedSoldQuantitiesAsync(foodList.Select(food => food.IdFood));
+
+            foreach (var response in responses)
+                response.SoldQuantity = soldQuantities.GetValueOrDefault(response.IdFood);
+
+            return responses;
         }
     }
 }

@@ -67,6 +67,29 @@
                                                 }
                                             </div>
                                         }
+                                        @if (order.Status == "delivering")
+                                        {
+                                            <div class="border rounded p-3 mb-3 bg-light">
+                                                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                                    <span class="fw-semibold small"><i class="fas fa-motorcycle me-1 text-warning"></i>Vị trí đơn hàng</span>
+                                                    <span class="small text-success fw-semibold" id="customer-distance-@order.IdOrder">Đang cập nhật...</span>
+                                                </div>
+                                                @if (order.DeliveryLat.HasValue && order.DeliveryLng.HasValue)
+                                                {
+                                                    <div id="customer-map-@order.IdOrder" class="rounded overflow-hidden"
+                                                         style="height: 230px;"
+                                                         data-order-id="@order.IdOrder"
+                                                         data-destination-lat="@order.DeliveryLat.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                                         data-destination-lng="@order.DeliveryLng.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                                         data-driver-lat="@((order.DriverLat ?? 0).ToString(System.Globalization.CultureInfo.InvariantCulture))"
+                                                         data-driver-lng="@((order.DriverLng ?? 0).ToString(System.Globalization.CultureInfo.InvariantCulture))"></div>
+                                                }
+                                                else
+                                                {
+                                                    <p class="small text-muted mb-0">Đơn này chưa có tọa độ nhận hàng để tính khoảng cách.</p>
+                                                }
+                                            </div>
+                                        }
                                         <div class="small">
                                             @foreach (var item in order.Items)
                                             {
@@ -90,6 +113,13 @@
                                                 <input type="hidden" name="page" value="@currentPage" />
                                                 <button type="submit" class="btn btn-outline-danger btn-sm">Hủy đơn</button>
                                             </form>
+                                        }
+                                        @if (order.Status == "completed")
+                                        {
+                                            var reviewModalId = $"reviewOrder{order.IdOrder}";
+                                            <button type="button" class="btn btn-warning btn-sm mt-2" data-bs-toggle="modal" data-bs-target="#@reviewModalId">
+                                                <i class="fas fa-star me-1"></i>Đánh giá đơn hàng
+                                            </button>
                                         }
                                     </div>
                                 </div>
@@ -121,3 +151,134 @@
         </div>
     </div>
 </div>
+
+@foreach (var order in orders.Where(item => item.Status == "completed"))
+{
+    var reviewModalId = $"reviewOrder{order.IdOrder}";
+    <div class="modal fade text-start" id="@reviewModalId" tabindex="-1" aria-labelledby="@(reviewModalId)Label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+            <form asp-area="" asp-controller="Profile" asp-action="SubmitReview" method="post" class="modal-content border-0 shadow">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="IdOrder" value="@order.IdOrder" />
+                <input type="hidden" name="page" value="@currentPage" />
+                <div class="modal-header">
+                    <h5 class="modal-title" id="@(reviewModalId)Label">Đánh giá @(string.IsNullOrWhiteSpace(order.OrderCode) ? $"#{order.IdOrder}" : order.OrderCode)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Nhà hàng @order.RestaurantName</label>
+                            <select class="form-select" name="RestaurantRating" required>
+                                <option value="5">5 - Rất hài lòng</option>
+                                <option value="4">4 - Hài lòng</option>
+                                <option value="3">3 - Bình thường</option>
+                                <option value="2">2 - Chưa tốt</option>
+                                <option value="1">1 - Không hài lòng</option>
+                            </select>
+                            <textarea class="form-control mt-2" name="CommentForRestaurant" rows="2" placeholder="Nhận xét về nhà hàng"></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Shipper @(order.DriverName ?? "")</label>
+                            <select class="form-select" name="DriverRating" required>
+                                <option value="5">5 - Rất hài lòng</option>
+                                <option value="4">4 - Hài lòng</option>
+                                <option value="3">3 - Bình thường</option>
+                                <option value="2">2 - Chưa tốt</option>
+                                <option value="1">1 - Không hài lòng</option>
+                            </select>
+                            <textarea class="form-control mt-2" name="CommentForShipper" rows="2" placeholder="Nhận xét về shipper"></textarea>
+                        </div>
+                    </div>
+                    <h6 class="fw-bold mb-3">Đánh giá món ăn</h6>
+                    @for (var index = 0; index < order.Items.Count; index++)
+                    {
+                        var item = order.Items[index];
+                        <input type="hidden" name="Foods[@index].IdFood" value="@item.IdFood" />
+                        <div class="border rounded p-3 mb-2">
+                            <div class="row align-items-center g-2">
+                                <div class="col-md-4 fw-semibold">@item.FoodName</div>
+                                <div class="col-md-3">
+                                    <select class="form-select form-select-sm" name="Foods[@index].Rating" required>
+                                        <option value="5">5 sao</option>
+                                        <option value="4">4 sao</option>
+                                        <option value="3">3 sao</option>
+                                        <option value="2">2 sao</option>
+                                        <option value="1">1 sao</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-5">
+                                    <input class="form-control form-control-sm" name="Foods[@index].Comment" placeholder="Nhận xét món ăn" />
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-warning"><i class="fas fa-star me-1"></i>Gửi đánh giá</button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    @if (orders.Any(order => order.Status == "delivering" && order.DeliveryLat.HasValue && order.DeliveryLng.HasValue))
+    {
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script>
+            (() => {
+                const trackers = Array.from(document.querySelectorAll('[id^="customer-map-"]')).map(container => {
+                    const id = Number(container.dataset.orderId);
+                    const destination = [Number(container.dataset.destinationLat), Number(container.dataset.destinationLng)];
+                    const driver = [Number(container.dataset.driverLat), Number(container.dataset.driverLng)];
+                    const map = L.map(container.id).setView(destination, 15);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; OpenStreetMap contributors'
+                    }).addTo(map);
+                    L.marker(destination).addTo(map).bindPopup('Địa chỉ nhận hàng');
+
+                    const tracker = { id, destination, map, driverMarker: null, route: null };
+                    if (driver.some(value => value !== 0)) updateMap(tracker, driver);
+                    else document.getElementById(`customer-distance-${id}`).textContent = 'Đang chờ vị trí shipper';
+                    return tracker;
+                });
+
+                function updateMap(tracker, driver) {
+                    const distance = Math.round(L.latLng(driver).distanceTo(L.latLng(tracker.destination)));
+                    document.getElementById(`customer-distance-${tracker.id}`).textContent = `Còn ${distance.toLocaleString('vi-VN')} m`;
+                    if (!tracker.driverMarker) tracker.driverMarker = L.marker(driver).addTo(tracker.map).bindPopup('Shipper của bạn');
+                    tracker.driverMarker.setLatLng(driver);
+                    if (!tracker.route) tracker.route = L.polyline([driver, tracker.destination], { color: '#f97316', dashArray: '8 7' }).addTo(tracker.map);
+                    tracker.route.setLatLngs([driver, tracker.destination]);
+                    tracker.map.fitBounds(tracker.route.getBounds(), { padding: [30, 30] });
+                }
+
+                async function refreshTracking() {
+                    await Promise.all(trackers.map(async tracker => {
+                        try {
+                            const response = await fetch(`@Url.Action("TrackingStatus", "Profile", new { area = "" })?id=${tracker.id}`);
+                            if (!response.ok) return;
+                            const order = await response.json();
+                            if (order.status !== 'delivering') {
+                                document.getElementById(`customer-distance-${tracker.id}`).textContent = 'Đã cập nhật trạng thái đơn';
+                                return;
+                            }
+                            if (order.driverLat != null && order.driverLng != null &&
+                                (Number(order.driverLat) !== 0 || Number(order.driverLng) !== 0)) {
+                                updateMap(tracker, [Number(order.driverLat), Number(order.driverLng)]);
+                            }
+                        } catch { }
+                    }));
+                }
+
+                if (trackers.length) {
+                    refreshTracking();
+                    window.setInterval(refreshTracking, 10000);
+                }
+            })();
+        </script>
+    }
+}

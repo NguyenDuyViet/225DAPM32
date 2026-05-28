@@ -150,6 +150,16 @@ namespace _225DAPM32.Controllers
             return View(order);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> TrackingStatus(int id)
+        {
+            if (!IsLoggedIn())
+                return Unauthorized();
+
+            var order = await _apiClient.GetResultAsync<Order>($"Orders/{id}");
+            return order == null ? NotFound() : Json(order);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CancelOrder(int idOrder, int page = 1)
@@ -165,7 +175,22 @@ namespace _225DAPM32.Controllers
                 ? "Đã hủy đơn hàng. Đơn hàng vẫn được lưu trong danh sách của bạn."
                 : (message ?? "Không thể hủy đơn hàng.");
 
-            return RedirectToAction(nameof(Orders), new { page });
+            return RedirectToAction(nameof(Orders), "Profile", new { area = "", page });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitReview(SubmitOrderReviewRequest request, int page = 1)
+        {
+            if (!IsLoggedIn())
+                return RedirectToAction("Index", "Home", new { area = "", loginRequired = true });
+
+            var (success, _, message) = await _apiClient.PostResultAsync<bool>("Review/order", request);
+            TempData[success ? "Success" : "Error"] = success
+                ? "Cảm ơn bạn đã đánh giá đơn hàng."
+                : (message ?? "Không thể gửi đánh giá.");
+
+            return RedirectToAction(nameof(Orders), "Profile", new { area = "", page });
         }
 
         private async Task<User?> GetCurrentUserAsync()

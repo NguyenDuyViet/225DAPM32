@@ -22,5 +22,10 @@ namespace Backend.Services
         {
             return _reviewRepository.CreateReviewFood(request, idUser);
         }
+
+        public Task SubmitOrderReview(OrderReviewRequest request, int idUser)
+        {
+            return _reviewRepository.SubmitOrderReview(request, idUser);
+        }
     }
 }

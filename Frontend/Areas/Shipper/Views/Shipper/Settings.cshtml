@@ -2,140 +2,54 @@
     ViewData["Title"] = "Cài đặt";
 }
 
-<!-- Header -->
-<div class="admin-header bg-dark text-white py-4 mb-4">
-    <div class="container-fluid">
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <h1 class="h2 mb-0">
-                    <i class="fas fa-cog me-3"></i>Cài đặt
-                </h1>
-                <p class="mb-0 opacity-75">Tùy chỉnh tài khoản shipper</p>
-            </div>
-            <div class="col-md-6 text-end">
-                <div class="fw-bold">@DateTime.Now.ToString("dd/MM/yyyy")</div>
+<h2 class="mb-4">Cài đặt</h2>
+
+<div class="card border-0 shadow-sm p-4">
+    <form>
+        <div class="mb-4 row align-items-center">
+            <label class="col-sm-3 col-form-label fw-semibold">
+                <i class="fas fa-signal me-2"></i>Chế độ nhận đơn
+            </label>
+            <div class="col-sm-9">
+                <select class="form-select">
+                    <option selected>Online</option>
+                    <option>Offline</option>
+                </select>
             </div>
         </div>
-    </div>
+
+        <div class="mb-4 row align-items-center">
+            <label class="col-sm-3 col-form-label fw-semibold">
+                <i class="fas fa-motorcycle me-2"></i>Phương tiện
+            </label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control" value="Xe máy" />
+            </div>
+        </div>
+
+        <div class="mb-4 row align-items-center">
+            <label class="col-sm-3 col-form-label fw-semibold">
+                <i class="fas fa-map-marker-alt me-2"></i>Khu vực hoạt động
+            </label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control" value="Quận 1, Quận 3" />
+            </div>
+        </div>
+
+        <div class="mb-4 row align-items-center">
+            <label class="col-sm-3 col-form-label fw-semibold">
+                <i class="fas fa-bell me-2"></i>Thông báo
+            </label>
+            <div class="col-sm-9">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" checked />
+                    <label class="form-check-label">Bật thông báo đơn mới</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-end">
+            <button type="submit" class="btn btn-success px-4"><i class="fas fa-save me-1"></i>Lưu cài đặt</button>
+        </div>
+    </form>
 </div>
-
-<div class="container-fluid">
-    <div class="row">
-
-        <!-- Sidebar -->
-        <div class="col-md-2">
-            <div class="shipper-sidebar">
-                <nav class="nav flex-column">
-                    <a class="nav-link" href="@Url.Action("Index", "Shipper", new { area = "Shipper" })">
-                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                    </a>
-                    <a class="nav-link" href="@Url.Action("Orders", "Shipper", new { area = "Shipper" })">
-                        <i class="fas fa-clipboard-list me-2"></i>Đơn hàng
-                    </a>
-                    <a class="nav-link" href="@Url.Action("History", "Shipper", new { area = "Shipper" })">
-                        <i class="fas fa-history me-2"></i>Lịch sử
-                    </a>
-                    <a class="nav-link" href="@Url.Action("Earnings", "Shipper", new { area = "Shipper" })">
-                        <i class="fas fa-wallet me-2"></i>Thu nhập
-                    </a>
-                    <a class="nav-link" href="@Url.Action("Profile", "Shipper", new { area = "Shipper" })">
-                        <i class="fas fa-user me-2"></i>Profile
-                    </a>
-                    <a class="nav-link active" href="@Url.Action("Settings", "Shipper", new { area = "Shipper" })">
-                        <i class="fas fa-cog me-2"></i>Cài đặt
-                    </a>
-                </nav>
-            </div>
-        </div>
-
-        <!-- Main content -->
-        <div class="col-md-10">
-
-            <div class="card border-0 shadow-sm p-4">
-                <form>
-
-                    <!-- Trạng thái -->
-                    <div class="mb-4 row align-items-center">
-                        <label class="col-sm-3 col-form-label fw-semibold">
-                            <i class="fas fa-signal me-2"></i>Chế độ nhận đơn
-                        </label>
-                        <div class="col-sm-9">
-                            <select class="form-select">
-                                <option selected>Online</option>
-                                <option>Offline</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Phương tiện -->
-                    <div class="mb-4 row align-items-center">
-                        <label class="col-sm-3 col-form-label fw-semibold">
-                            <i class="fas fa-motorcycle me-2"></i>Phương tiện
-                        </label>
-                        <div class="col-sm-9">
-                            <input type="text" class="form-control" value="Xe máy" />
-                        </div>
-                    </div>
-
-                    <!-- Khu vực -->
-                    <div class="mb-4 row align-items-center">
-                        <label class="col-sm-3 col-form-label fw-semibold">
-                            <i class="fas fa-map-marker-alt me-2"></i>Khu vực hoạt động
-                        </label>
-                        <div class="col-sm-9">
-                            <input type="text" class="form-control" value="Quận 1, Quận 3" />
-                        </div>
-                    </div>
-
-                    <!-- Thông báo -->
-                    <div class="mb-4 row align-items-center">
-                        <label class="col-sm-3 col-form-label fw-semibold">
-                            <i class="fas fa-bell me-2"></i>Thông báo
-                        </label>
-                        <div class="col-sm-9">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" checked>
-                                <label class="form-check-label">Bật thông báo đơn mới</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Button -->
-                    <div class="text-end">
-                        <button type="submit" class="btn btn-success px-4">
-                            <i class="fas fa-save me-1"></i>Lưu cài đặt
-                        </button>
-                    </div>
-
-                </form>
-            </div>
-
-        </div>
-    </div>
-</div>
-
-<style>
-.shipper-sidebar {
-    background: #f8f9fa;
-    border-radius: 10px;
-    padding: 20px 0;
-    min-height: calc(100vh - 200px);
-}
-
-.shipper-sidebar .nav-link {
-    color: #495057;
-    padding: 12px 20px;
-    margin: 5px 15px;
-    border-radius: 8px;
-    transition: 0.3s;
-}
-
-.shipper-sidebar .nav-link:hover {
-    background: #e9ecef;
-}
-
-.shipper-sidebar .nav-link.active {
-    background: #ffc107;
-    color: #212529;
-}
-</style>

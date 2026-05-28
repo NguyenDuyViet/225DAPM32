@@ -94,15 +94,6 @@
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                         <h2 class="mb-0 fw-bold text-dark"><i class="fas fa-receipt me-2 text-success"></i>Quản lý Đơn hàng</h2>
                         <div class="d-flex align-items-center gap-2 flex-wrap">
-                            <form action="@Url.Action("SimulateDelivery", "Restaurant", new { area = "Restaurant" })" method="post" class="d-inline ps-2">
-                                <div class="input-group input-group-sm">
-                                    <input type="number" name="orderId" class="form-control rounded-start-pill text-center fw-bold" placeholder="ID đơn" required style="width: 80px; border-color: #10b981;">
-                                    <input type="hidden" name="page" value="@currentPage" />
-                                    <button type="submit" class="btn btn-success rounded-end-pill fw-bold px-3 shadow-sm">
-                                        <i class="fas fa-check-double me-1"></i>Shipper giao xong
-                                    </button>
-                                </div>
-                            </form>
                             <span class="badge bg-secondary px-3 py-2 rounded-pill fw-bold ms-2">Tổng cộng: @totalOrders đơn</span>
                         </div>
                     </div>
@@ -168,6 +159,7 @@
                                             TotalPrice = i.TotalPrice,
                                             Note = i.Note
                                         }) ?? new List<_225DAPM32.Models.OrderFoodViewModel>());
+                                        var canCancelWaitingOrder = order.Status == "pending" && DateTime.Now - order.CreatedAt >= TimeSpan.FromMinutes(5);
                                         <tr data-order-id="@order.IdOrder" data-order-code="@order.OrderCode" data-status="@order.Status">
                                             <td class="fw-bold text-primary">#@order.IdOrder</td>
                                             <td>
@@ -185,6 +177,7 @@
                                                     string badgeClass = order.Status switch
                                                     {
                                                         "pending" => "bg-warning text-dark",
+                                                        "confirmed" => "bg-warning text-dark",
                                                         "restaurant_accepted" => "bg-info text-white",
                                                         "preparing" => "bg-primary text-white",
                                                         "ready_for_pickup" => "bg-success text-white",
@@ -198,6 +191,7 @@
                                                     string statusName = order.Status switch
                                                     {
                                                         "pending" => "Chờ xác nhận",
+                                                        "confirmed" => "Shipper đã nhận",
                                                         "restaurant_accepted" => "Đã nhận",
                                                         "preparing" => "Đang chuẩn bị",
                                                         "ready_for_pickup" => "Nấu xong/Chờ tài xế",
@@ -212,7 +206,7 @@
                                                 <span class="badge @badgeClass px-2 py-1 rounded-pill fw-bold">@statusName</span>
                                             </td>
                                             <td>
-                                                @if ((order.Status == "delivering" || order.Status == "completed") && order.DriverName != "Chưa có" && !string.IsNullOrEmpty(order.DriverName))
+                                                @if (!string.IsNullOrEmpty(order.DriverName) && order.DriverName != "Chưa có")
                                                 {
                                                     <div class="fw-semibold">@order.DriverName</div>
                                                     @if (!string.IsNullOrEmpty(order.DriverPhone))
@@ -252,39 +246,33 @@
                                                                 data-foods='@foodsJson'>
                                                             <i class="fas fa-eye"></i>
                                                         </button>
-                                                        <button type="button" class="btn btn-sm btn-warning text-white fw-bold rounded-pill px-2.5 btn-edit-order" 
-                                                                data-id="@order.IdOrder" 
-                                                                data-address="@order.DeliveryAddress" 
-                                                                data-note="@order.Note" 
-                                                                data-status="@order.Status">
-                                                            <i class="fas fa-edit"></i>
-                                                        </button>
-                                                        <form action="@Url.Action("CancelOrder", "Restaurant", new { area = "Restaurant" })" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn hủy đơn hàng #@order.IdOrder? Đơn sẽ được giữ lại với trạng thái Đã hủy.')">
-                                                            <input type="hidden" name="orderId" value="@order.IdOrder" />
-                                                            <input type="hidden" name="page" value="@currentPage" />
-                                                            <button type="submit" class="btn btn-sm btn-danger fw-bold rounded-pill px-2.5">
-                                                                <i class="fas fa-ban"></i>
-                                                            </button>
-                                                        </form>
                                                     </div>
                                                     <!-- Hàng 2: Hành động nhanh -->
                                                     <div class="d-flex gap-1 mt-1 flex-wrap justify-content-center">
                                                         @if (order.Status == "pending")
+                                                        {
+                                                            <span class="text-warning small fw-bold"><i class="fas fa-motorcycle me-1"></i>Đang chờ shipper xác nhận</span>
+                                                            @if (canCancelWaitingOrder)
+                                                            {
+                                                                <form action="@Url.Action("CancelOrder", "Restaurant", new { area = "Restaurant" })" method="post" class="d-inline" onsubmit="return confirm('Đơn quá 5 phút chưa có shipper nhận. Xác nhận hủy đơn?')">
+                                                                    <input type="hidden" name="orderId" value="@order.IdOrder" />
+                                                                    <input type="hidden" name="page" value="@currentPage" />
+                                                                    <button type="submit" class="btn btn-xs btn-danger fw-bold rounded-pill px-2 py-0.5 shadow-sm">Hủy do chưa có shipper</button>
+                                                                </form>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="text-muted small">Có thể hủy sau 5 phút nếu chưa có shipper.</span>
+                                                            }
+                                                        }
+                                                        else if (order.Status == "confirmed")
                                                         {
                                                             <form action="@Url.Action("UpdateOrderStatus", "Restaurant", new { area = "Restaurant" })" method="post" class="d-inline">
                                                                 <input type="hidden" name="orderId" value="@order.IdOrder" />
                                                                 <input type="hidden" name="status" value="preparing" />
                                                                 <input type="hidden" name="page" value="@currentPage" />
                                                                 <button type="submit" class="btn btn-xs btn-primary fw-bold rounded-pill px-2 py-0.5 shadow-sm">
-                                                                    <i class="fas fa-check me-1"></i>Xác nhận đơn
-                                                                </button>
-                                                            </form>
-                                                            <form action="@Url.Action("UpdateOrderStatus", "Restaurant", new { area = "Restaurant" })" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn từ chối đơn hàng này?')">
-                                                                <input type="hidden" name="orderId" value="@order.IdOrder" />
-                                                                <input type="hidden" name="status" value="cancelled" />
-                                                                <input type="hidden" name="page" value="@currentPage" />
-                                                                <button type="submit" class="btn btn-xs btn-danger fw-bold rounded-pill px-2 py-0.5 shadow-sm">
-                                                                    <i class="fas fa-times me-1"></i>Từ chối
+                                                                    <i class="fas fa-utensils me-1"></i>Bắt đầu nấu
                                                                 </button>
                                                             </form>
                                                         }
@@ -301,11 +289,7 @@
                                                         }
                                                         else if (order.Status == "ready_for_pickup" || order.Status == "cooked")
                                                         {
-                                                            <button type="button" class="btn btn-xs btn-info text-white fw-bold rounded-pill px-2 py-0.5 shadow-sm btn-handover" 
-                                                                    data-id="@order.IdOrder" 
-                                                                    data-code="@(order.OrderCode ?? order.IdOrder.ToString())">
-                                                                <i class="fas fa-motorcycle me-1"></i>Bàn giao Shipper
-                                                            </button>
+                                                            <span class="text-info small fw-bold"><i class="fas fa-box me-1"></i>Chờ shipper xác nhận đã lấy hàng</span>
                                                         }
                                                         else if (order.Status == "delivering")
                                                         {
@@ -688,32 +672,8 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    // 3. Bàn giao Shipper Modal trigger
-    const handoverButtons = document.querySelectorAll(".btn-handover");
-    handoverButtons.forEach(button => {
-        button.addEventListener("click", function () {
-            const orderId = this.getAttribute("data-id");
-            const orderCode = this.getAttribute("data-code");
-
-            document.getElementById("handoverOrderId").value = orderId;
-            document.getElementById("tipOrderId").textContent = orderId;
-            document.getElementById("verifyCode").value = "";
-
-            const handoverModal = new bootstrap.Modal(document.getElementById("handoverOrderModal"));
-            handoverModal.show();
-        });
-    });
-
-    // ==========================================
-    // Realtime Simulation & Polling Mechanism
-    // ==========================================
+    // Poll for new customer orders; shipper assignment is shown only after a real shipper accepts.
     const RESTAURANT_ID = @(ViewBag.RestaurantId ?? 1);
-    const SIMULATED_DRIVERS = [
-        { name: "Nguyễn Minh Hùng", phone: "0903.112.233" },
-        { name: "Lê Hoàng Khánh", phone: "0918.445.566" },
-        { name: "Trần Thanh Sơn", phone: "0932.778.899" },
-        { name: "Phạm Quốc Bảo", phone: "0976.224.466" }
-    ];
 
     const knownOrderIds = new Set();
 
@@ -893,105 +853,21 @@ document.addEventListener("DOMContentLoaded", function () {
                     </div>
                 </div>
                 
-                <!-- Driver Status Section -->
-                <div class="mb-3 p-3 bg-light rounded-3 border-start border-4 border-warning shadow-sm" id="driver-status-box-${order.idOrder}">
-                    <div class="d-flex align-items-center">
-                        <div class="spinner-grow spinner-grow-sm text-warning me-2" role="status"></div>
-                        <span class="fw-bold text-warning small" id="driver-status-text-${order.idOrder}">🔍 Đang tìm tài xế gần nhất...</span>
-                    </div>
-                </div>
-                
-                <!-- Action Buttons -->
-                <div class="d-flex gap-2" id="action-buttons-box-${order.idOrder}" style="display: none !important;">
-                    <button class="btn btn-success flex-grow-1 fw-bold rounded-pill shadow-sm py-2" onclick="submitStatusUpdate(${order.idOrder}, 'preparing')">
-                        <i class="fas fa-check me-1"></i>Xác nhận đơn
-                    </button>
-                    <button class="btn btn-danger flex-grow-1 fw-bold rounded-pill shadow-sm py-2" onclick="if(confirm('Bạn có chắc chắn muốn hủy và từ chối đơn hàng này?')) submitStatusUpdate(${order.idOrder}, 'cancelled')">
-                        <i class="fas fa-times me-1"></i>Từ chối
-                    </button>
+                <div class="p-3 bg-light rounded-3 border-start border-4 border-warning shadow-sm">
+                    <span class="fw-bold text-warning small"><i class="fas fa-motorcycle me-2"></i>Đang chờ shipper thật xác nhận nhận đơn.</span>
+                    <div class="text-muted small mt-1">Nhà hàng sẽ bắt đầu nấu sau khi có shipper nhận.</div>
                 </div>
             </div>
         `;
 
         container.appendChild(toast);
-
-        // Driver found simulation timer after 4 seconds
-        setTimeout(() => {
-            const statusBox = document.getElementById(`driver-status-box-${order.idOrder}`);
-            const actionBox = document.getElementById(`action-buttons-box-${order.idOrder}`);
-            
-            if (statusBox && actionBox) {
-                playChimeSound();
-                
-                const driver = SIMULATED_DRIVERS[Math.floor(Math.random() * SIMULATED_DRIVERS.length)];
-                
-                statusBox.classList.remove('border-warning');
-                statusBox.classList.add('border-success');
-                statusBox.innerHTML = `
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center">
-                            <div class="text-success me-2 fs-5"><i class="fas fa-check-circle"></i></div>
-                            <div>
-                                <span class="fw-bold text-success small d-block">✅ Đã tìm thấy tài xế!</span>
-                                <span class="fw-bold text-dark" style="font-size: 0.85rem;">${driver.name}</span>
-                            </div>
-                        </div>
-                        <div class="text-end text-muted small" style="font-size: 0.75rem;">
-                            <i class="fas fa-phone me-1"></i>${driver.phone}
-                        </div>
-                    </div>
-                `;
-                
-                actionBox.style.setProperty('display', 'flex', 'important');
-                actionBox.classList.add('fade-in');
-            }
-        }, 4000);
     }
 
-    // Start polling every 3 seconds
+    // New orders still trigger the notification; refresh exposes a real shipper acceptance.
     setInterval(checkNewOrders, 3000);
+    setInterval(() => window.location.reload(), 12000);
 });
 </script>
-
-<!-- Modal Bàn Giao Shipper -->
-<div class="modal fade" id="handoverOrderModal" tabindex="-1" aria-labelledby="handoverOrderModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
-            <div class="modal-header bg-dark text-white p-4 border-0">
-                <h5 class="modal-title fw-bold" id="handoverOrderModalLabel">
-                    <i class="fas fa-motorcycle me-2 text-info"></i>Xác nhận Bàn giao Shipper
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="@Url.Action("UpdateOrderStatusWithVerify", "Restaurant", new { area = "Restaurant" })" method="post">
-                <div class="modal-body p-4">
-                    <input type="hidden" name="orderId" id="handoverOrderId" />
-                    <input type="hidden" name="status" value="delivering" />
-                    <input type="hidden" name="page" value="@currentPage" />
-                    
-                    <div class="text-center mb-4">
-                        <div class="display-6 text-info mb-2"><i class="fas fa-truck-loading"></i></div>
-                        <p class="fw-semibold text-muted">Vui lòng yêu cầu tài xế cung cấp Mã đơn hàng hoặc nhập mã đơn hàng hiển thị trên ứng dụng của họ để xác thực bàn giao chính xác.</p>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="verifyCode" class="form-label fw-bold text-dark">Nhập mã xác nhận (Mã ID đơn hàng hoặc mã Code ORD)</label>
-                        <input type="text" class="form-control text-center fw-bold fs-4 text-primary bg-light border-2" 
-                               name="verifyCode" id="verifyCode" required placeholder="Ví dụ: 12 hoặc DH-..." 
-                               style="border-radius: 12px; padding: 12px; border-color: #38bdf8 !important;">
-                        <div class="form-text text-center mt-2 text-muted">
-                            Mẹo: Có thể nhập số ID đơn hàng (Ví dụ: <span class="fw-bold text-dark" id="tipOrderId">12</span>) hoặc mã hóa đơn đầy đủ.
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer bg-light p-3 border-0">
-                    <button type="button" class="btn btn-outline-secondary fw-bold rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-info text-white fw-bold rounded-pill px-4">Xác nhận & Bàn giao</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
 <!-- Floating Notification Container for New Orders -->
 <div id="new-orders-toast-container" class="position-fixed bottom-0 end-0 p-4" style="z-index: 1080; max-width: 420px; width: 100%;">

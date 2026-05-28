@@ -25,7 +25,6 @@ namespace _225DAPM32.Areas.Admin
             var users = await _apiClient.GetResultAsync<List<User>>("Users") ?? new List<User>();
             var orders = await _apiClient.GetResultAsync<List<Order>>("Orders/admin") ?? new List<Order>();
             var today = DateTime.Today;
-            var past7Days = Enumerable.Range(0, 7).Select(offset => today.AddDays(offset - 6)).ToList();
 
             ViewData["Title"] = "Admin Dashboard";
             return View(new AdminDashboardViewModel
@@ -33,15 +32,8 @@ namespace _225DAPM32.Areas.Admin
                 RestaurantsCount = restaurants.Count,
                 UsersCount = users.Count,
                 OrdersToday = orders.Count(o => o.CreatedAt.Date == today),
-                RevenueToday = orders
-                    .Where(o => o.CreatedAt.Date == today && o.Status != "canceled" && o.Status != "cancelled")
-                    .Sum(o => o.FinalTotal),
                 RecentOrders = orders.OrderByDescending(o => o.CreatedAt).Take(5).ToList(),
                 RecentRestaurants = restaurants.OrderByDescending(r => r.IdRestaurant).Take(5).ToList(),
-                RevenueLabels = past7Days.Select(day => day.ToString("dd/MM")).ToList(),
-                RevenueData = past7Days.Select(day => orders
-                    .Where(o => o.CreatedAt.Date == day && o.Status != "canceled" && o.Status != "cancelled")
-                    .Sum(o => o.FinalTotal)).ToList(),
                 StatusLabels = new List<string> { "Hoàn thành", "Đang giao", "Đã xác nhận", "Chờ xử lý", "Đã hủy" },
                 StatusData = new List<int>
                 {
@@ -72,6 +64,17 @@ namespace _225DAPM32.Areas.Admin
             return View(await _apiClient.GetResultAsync<List<User>>("Users") ?? new List<User>());
         }
 
+        public async Task<IActionResult> Shippers()
+        {
+            if (!RequireAdmin())
+                return RedirectToAction("Index", "Home", new { area = "" });
+
+            ViewData["Title"] = "Quản lý Shipper";
+            var users = await _apiClient.GetResultAsync<List<User>>("Users") ?? new List<User>();
+            return View(users.Where(user => user.IdRole == 4 ||
+                string.Equals(user.RoleName, "shipper", StringComparison.OrdinalIgnoreCase)).ToList());
+        }
+
         public async Task<IActionResult> Orders()
         {
             if (!RequireAdmin())
@@ -93,6 +96,53 @@ namespace _225DAPM32.Areas.Admin
                 ? "Đã cập nhật trạng thái tài khoản."
                 : "Không thể cập nhật trạng thái tài khoản.");
             return RedirectToAction(nameof(Users));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateRestaurant(
+            string nameRestaurant,
+            string description,
+            string image,
+            string address,
+            TimeSpan openTime,
+            TimeSpan closeTime,
+            decimal lat,
+            decimal lng)
+        {
+            if (!RequireAdmin())
+                return RedirectToAction("Index", "Home", new { area = "" });
+
+            var (success, _, message) = await _apiClient.PostResultAsync<RestaurantEntity>("Restaurants", new
+            {
+                NameRestaurant = nameRestaurant,
+                Description = description,
+                Image = image,
+                Address = address,
+                OpenTime = openTime,
+                CloseTime = closeTime,
+                Lat = lat,
+                Lng = lng
+            });
+
+            TempData[success ? "Success" : "Error"] = message ?? (success
+                ? "Đã thêm nhà hàng mới."
+                : "Không thể thêm nhà hàng mới.");
+            return RedirectToAction(nameof(Restaurants));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateShipper(CreateShipperRequest request)
+        {
+            if (!RequireAdmin())
+                return RedirectToAction("Index", "Home", new { area = "" });
+
+            var (success, _, message) = await _apiClient.PostResultAsync<User>("Shipper/accounts", request);
+            TempData[success ? "Success" : "Error"] = message ?? (success
+                ? "Đã tạo tài khoản shipper."
+                : "Không thể tạo tài khoản shipper.");
+            return RedirectToAction(nameof(Shippers));
         }
 
         public IActionResult Policies()

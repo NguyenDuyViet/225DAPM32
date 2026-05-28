@@ -130,14 +130,14 @@
                         <a class="nav-link @(currentAction == "Users" ? "active" : "")" asp-area="Admin" asp-controller="Admin" asp-action="Users">
                             <i class="fas fa-user-friends me-2"></i>Người dùng
                         </a>
+                        <a class="nav-link @(currentAction == "Shippers" ? "active" : "")" asp-area="Admin" asp-controller="Admin" asp-action="Shippers">
+                            <i class="fas fa-motorcycle me-2"></i>Shipper
+                        </a>
                         <a class="nav-link @(currentAction == "Policies" ? "active" : "")" asp-area="Admin" asp-controller="Admin" asp-action="Policies">
                             <i class="fas fa-shield-alt me-2"></i>Chính sách
                         </a>
                         <a class="nav-link @(currentAction == "Violations" ? "active" : "")" asp-area="Admin" asp-controller="Admin" asp-action="Violations">
                             <i class="fas fa-hand-paper me-2"></i>Vi phạm
-                        </a>
-                        <a class="nav-link @(currentAction == "Orders" ? "active" : "")" asp-area="Admin" asp-controller="Admin" asp-action="Orders">
-                            <i class="fas fa-truck-fast me-2"></i>Đơn hàng
                         </a>
                         <a class="nav-link @(currentAction == "Reports" ? "active" : "")" asp-area="Admin" asp-controller="Admin" asp-action="Reports">
                             <i class="fas fa-chart-pie me-2"></i>Báo cáo

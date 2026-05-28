@@ -5,7 +5,80 @@
 
 <div class="d-flex align-items-center justify-content-between mb-4">
     <h2 class="mb-0">Quản lý Nhà hàng</h2>
-    <span class="badge bg-light text-dark border">@Model.Count() nhà hàng</span>
+    <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-light text-dark border">@Model.Count() nhà hàng</span>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createRestaurantModal">
+            <i class="fas fa-plus me-1"></i>Thêm nhà hàng mới
+        </button>
+    </div>
+</div>
+
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @success
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+    </div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @error
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+    </div>
+}
+
+<div class="modal fade" id="createRestaurantModal" tabindex="-1" aria-labelledby="createRestaurantModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <form asp-area="Admin" asp-controller="Admin" asp-action="CreateRestaurant" method="post" class="modal-content">
+            @Html.AntiForgeryToken()
+            <div class="modal-header">
+                <h5 class="modal-title" id="createRestaurantModalLabel">Thêm nhà hàng mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small">Tạo thông tin nhà hàng sau khi yêu cầu mở mới đã được phê duyệt.</p>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Tên nhà hàng</label>
+                        <input class="form-control" name="nameRestaurant" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Ảnh (URL)</label>
+                        <input class="form-control" name="image" />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Địa chỉ</label>
+                        <input class="form-control" name="address" required />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Mô tả</label>
+                        <textarea class="form-control" name="description" rows="2"></textarea>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Giờ mở cửa</label>
+                        <input type="time" class="form-control" name="openTime" required />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Giờ đóng cửa</label>
+                        <input type="time" class="form-control" name="closeTime" required />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Vĩ độ</label>
+                        <input type="number" step="0.0000001" class="form-control" name="lat" value="0" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Kinh độ</label>
+                        <input type="number" step="0.0000001" class="form-control" name="lng" value="0" />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="submit" class="btn btn-primary">Tạo nhà hàng</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <div class="table-responsive">

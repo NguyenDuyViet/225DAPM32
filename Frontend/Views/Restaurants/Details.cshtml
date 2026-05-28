@@ -3,6 +3,8 @@
 @{
     ViewData["Title"] = Model.NameRestaurant;
     var foods = ViewBag.Foods as List<_225DAPM32.Models.Food> ?? new List<_225DAPM32.Models.Food>();
+    var restaurantReviews = ViewBag.RestaurantReviews as List<_225DAPM32.Models.RestaurantReview> ?? new List<_225DAPM32.Models.RestaurantReview>();
+    var restaurantRating = restaurantReviews.Any() ? restaurantReviews.Average(review => review.FoodRating) : (double?)null;
     string imageUrl(string? image) => string.IsNullOrWhiteSpace(image)
         ? "/images/placeholder-restaurant.svg"
         : (image.StartsWith("http", StringComparison.OrdinalIgnoreCase) || image.StartsWith("/") ? image : "/" + image);
@@ -40,6 +42,14 @@
                     <div class="flex items-center gap-1">
                         <span class="material-symbols-outlined text-[18px]">restaurant_menu</span>
                         @foods.Count món
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <span class="material-symbols-outlined text-yellow-400 text-[18px]">star</span>
+                        @(restaurantRating?.ToString("0.0") ?? "Chưa có đánh giá")
+                        @if (restaurantReviews.Any())
+                        {
+                            <span>(@restaurantReviews.Count)</span>
+                        }
                     </div>
                 </div>
             </div>
@@ -165,6 +175,10 @@
                             <span class="material-symbols-outlined text-orange-600 text-base">restaurant_menu</span>
                             <span>@foods.Count món ăn</span>
                         </div>
+                        <div class="flex items-center gap-2 text-sm text-gray-600">
+                            <span class="material-symbols-outlined text-yellow-500 text-base">star</span>
+                            <span>@(restaurantRating?.ToString("0.0") ?? "Chưa có đánh giá")</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -173,6 +187,27 @@
             <div class="mt-4 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                 <h3 class="font-semibold text-gray-800 mb-2">Giới thiệu</h3>
                 <p class="text-sm text-gray-600 leading-relaxed">@Model.Description</p>
+            </div>
+
+            <div class="mt-4 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                <h3 class="font-semibold text-gray-800 mb-3">Đánh giá nhà hàng</h3>
+                @if (!restaurantReviews.Any())
+                {
+                    <p class="text-sm text-gray-500 mb-0">Chưa có đánh giá từ khách hàng.</p>
+                }
+                else
+                {
+                    @foreach (var review in restaurantReviews.OrderByDescending(item => item.CreatedAt).Take(4))
+                    {
+                        <div class="border-b border-gray-100 pb-3 mb-3 last:border-0 last:mb-0">
+                            <div class="flex justify-between text-sm">
+                                <strong>@(review.CustomerName ?? "Khách hàng")</strong>
+                                <span class="text-orange-600 font-semibold"><span class="material-symbols-outlined text-sm align-middle">star</span> @review.FoodRating.ToString("0.0")</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1 mb-0">@(string.IsNullOrWhiteSpace(review.CommentForRes) ? "Khách hàng đã chấm điểm nhà hàng." : review.CommentForRes)</p>
+                        </div>
+                    }
+                }
             </div>
         </aside>
     </div>

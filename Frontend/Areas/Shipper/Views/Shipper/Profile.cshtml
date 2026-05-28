@@ -3,147 +3,49 @@
     ViewData["Title"] = "Thông tin cá nhân";
 }
 
-<!-- Header -->
-<div class="admin-header bg-dark text-white py-4 mb-4">
-    <div class="container-fluid">
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <h1 class="h2 mb-0">
-                    <i class="fas fa-user me-3"></i>Thông tin cá nhân
-                </h1>
-                <p class="mb-0 opacity-75">Quản lý hồ sơ shipper</p>
-            </div>
-            <div class="col-md-6 text-end">
-                <div class="fw-bold">@DateTime.Now.ToString("dd/MM/yyyy")</div>
-            </div>
-        </div>
-    </div>
-</div>
+<h2 class="mb-4">Thông tin cá nhân</h2>
 
-<div class="container-fluid">
-    <div class="row">
-
-        <!-- Sidebar -->
-        <div class="col-md-2">
-            <div class="shipper-sidebar">
-                <nav class="nav flex-column">
-                    <a class="nav-link" href="@Url.Action("Index", "Shipper", new { area = "Shipper" })">
-                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                    </a>
-                    <a class="nav-link" href="@Url.Action("Orders", "Shipper", new { area = "Shipper" })">
-                        <i class="fas fa-clipboard-list me-2"></i>Đơn hàng
-                    </a>
-                    <a class="nav-link" href="@Url.Action("History", "Shipper", new { area = "Shipper" })">
-                        <i class="fas fa-history me-2"></i>Lịch sử
-                    </a>
-                    <a class="nav-link" href="@Url.Action("Earnings", "Shipper", new { area = "Shipper" })">
-                        <i class="fas fa-wallet me-2"></i>Thu nhập
-                    </a>
-                    <a class="nav-link active" href="@Url.Action("Profile", "Shipper", new { area = "Shipper" })">
-                        <i class="fas fa-user me-2"></i>Profile
-                    </a>
-                    <a class="nav-link" href="@Url.Action("Settings", "Shipper", new { area = "Shipper" })">
-                        <i class="fas fa-cog me-2"></i>Cài đặt
-                    </a>
-                </nav>
+<div class="card border-0 shadow-sm p-4">
+    <div class="row align-items-center">
+        <div class="col-md-3 text-center">
+            <div class="avatar-circle mx-auto">
+                <span>@(string.IsNullOrEmpty(Model.Name) ? "S" : Model.Name.Substring(0, 1).ToUpper())</span>
             </div>
         </div>
 
-        <!-- Main content -->
-        <div class="col-md-10">
-
-            <div class="card border-0 shadow-sm p-4">
-                <div class="row align-items-center">
-
-                    <!-- Avatar -->
-                    <div class="col-md-3 text-center">
-                        <div class="avatar-circle mx-auto">
-                            <span>
-                                @(string.IsNullOrEmpty(Model.Name) ? "S" : Model.Name.Substring(0,1).ToUpper())
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Info -->
-                    <div class="col-md-9">
-                        <h3 class="mb-3">@Model.Name</h3>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <p><i class="fas fa-phone me-2"></i><strong>Điện thoại:</strong> @Model.Phone</p>
-                                <p><i class="fas fa-envelope me-2"></i><strong>Email:</strong> @Model.Email</p>
-                                <p>
-                                    <i class="fas fa-circle me-2 text-success"></i>
-                                    <strong>Trạng thái:</strong> @Model.Status
-                                </p>
-                            </div>
-
-                            <div class="col-md-6">
-                                <p>
-                                    <i class="fas fa-star text-warning me-2"></i>
-                                    <strong>Đánh giá:</strong> @Model.Rating
-                                </p>
-                                <p>
-                                    <i class="fas fa-check-circle text-success me-2"></i>
-                                    <strong>Đơn hoàn thành:</strong> @Model.CompletedDeliveries
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="mt-3">
-                            <button class="btn btn-primary me-2">
-                                <i class="fas fa-edit me-1"></i>Cập nhật hồ sơ
-                            </button>
-
-                            <button class="btn btn-outline-secondary">
-                                <i class="fas fa-key me-1"></i>Đổi mật khẩu
-                            </button>
-                        </div>
-                    </div>
-
+        <div class="col-md-9">
+            <h3 class="mb-3">@Model.Name</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><i class="fas fa-phone me-2"></i><strong>Điện thoại:</strong> @Model.Phone</p>
+                    <p><i class="fas fa-envelope me-2"></i><strong>Email:</strong> @Model.Email</p>
+                    <p><i class="fas fa-circle me-2 text-success"></i><strong>Trạng thái:</strong> @Model.Status</p>
+                </div>
+                <div class="col-md-6">
+                    <p><i class="fas fa-star text-warning me-2"></i><strong>Đánh giá:</strong> @Model.Rating</p>
+                    <p><i class="fas fa-check-circle text-success me-2"></i><strong>Đơn hoàn thành:</strong> @Model.CompletedDeliveries</p>
                 </div>
             </div>
 
+            <div class="mt-3">
+                <button class="btn btn-primary me-2"><i class="fas fa-edit me-1"></i>Cập nhật hồ sơ</button>
+                <button class="btn btn-outline-secondary"><i class="fas fa-key me-1"></i>Đổi mật khẩu</button>
+            </div>
         </div>
     </div>
 </div>
 
 <style>
-.shipper-sidebar {
-    background: #f8f9fa;
-    border-radius: 10px;
-    padding: 20px 0;
-    min-height: calc(100vh - 200px);
-}
-
-.shipper-sidebar .nav-link {
-    color: #495057;
-    padding: 12px 20px;
-    margin: 5px 15px;
-    border-radius: 8px;
-    transition: 0.3s;
-}
-
-.shipper-sidebar .nav-link:hover {
-    background: #e9ecef;
-}
-
-.shipper-sidebar .nav-link.active {
-    background: #ffc107;
-    color: #212529;
-}
-
-/* Avatar đẹp hơn */
-.avatar-circle {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #ffc107, #fd7e14);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 40px;
-    color: white;
-    font-weight: bold;
-}
+    .avatar-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ffc107, #fd7e14);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        color: white;
+        font-weight: bold;
+    }
 </style>

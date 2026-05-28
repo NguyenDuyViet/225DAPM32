@@ -25,6 +25,19 @@ namespace Backend.Repositories
                 .FirstOrDefaultAsync(f => f.IdFood == id);
         }
 
+        public async Task<Dictionary<int, int>> GetCompletedSoldQuantitiesAsync(IEnumerable<int> foodIds)
+        {
+            var ids = foodIds.Distinct().ToList();
+            if (ids.Count == 0)
+                return new Dictionary<int, int>();
+
+            return await _context.OrderFoods
+                .Where(orderFood => ids.Contains(orderFood.IdFood) && orderFood.Order.Status == "completed")
+                .GroupBy(orderFood => orderFood.IdFood)
+                .Select(group => new { IdFood = group.Key, Quantity = group.Sum(orderFood => orderFood.Quantity) })
+                .ToDictionaryAsync(item => item.IdFood, item => item.Quantity);
+        }
+
         public async Task<int> GetNextIdAsync()
         {
             return await _context.Foods.AnyAsync()

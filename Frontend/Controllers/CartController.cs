@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using _225DAPM32.Models;
 using _225DAPM32.Services;
+using System.Globalization;
 
 namespace _225DAPM32.Controllers
 {
@@ -73,7 +74,7 @@ namespace _225DAPM32.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Checkout(string deliveryAddress, string paymentMethod = "cash", int? idVoucher = null, string? note = null)
+        public async Task<IActionResult> Checkout(string deliveryAddress, string? deliveryLat, string? deliveryLng, string paymentMethod = "cash", int? idVoucher = null, string? note = null)
         {
             if (!IsLoggedIn())
                 return RedirectToAction("Index", "Home", new { area = "", loginRequired = true });
@@ -81,6 +82,8 @@ namespace _225DAPM32.Controllers
             var (success, order, message) = await _apiClient.PostResultAsync<Order>("Orders/checkout", new CreateOrderRequest
             {
                 DeliveryAddress = deliveryAddress,
+                DeliveryLat = ParseCoordinate(deliveryLat),
+                DeliveryLng = ParseCoordinate(deliveryLng),
                 PaymentMethod = paymentMethod,
                 IdVoucher = idVoucher,
                 ShippingFee = 15000m,
@@ -95,6 +98,13 @@ namespace _225DAPM32.Controllers
 
             TempData["Success"] = $"Đặt hàng thành công! Mã đơn hàng: {order.OrderCode}";
             return RedirectToAction("Orders", "Profile", new { area = "" });
+        }
+
+        private static decimal? ParseCoordinate(string? value)
+        {
+            return decimal.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var coordinate)
+                ? coordinate
+                : null;
         }
 
         private bool IsLoggedIn()

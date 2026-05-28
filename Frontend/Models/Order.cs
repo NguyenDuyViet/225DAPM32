@@ -11,6 +11,9 @@ namespace _225DAPM32.Models
         public string OrderCode { get; set; }
         public int IdRestaurant { get; set; }
         public string RestaurantName { get; set; }
+        public string? RestaurantAddress { get; set; }
+        public decimal? RestaurantLat { get; set; }
+        public decimal? RestaurantLng { get; set; }
         public string DeliveryAddress { get; set; }
         public decimal? DeliveryLat { get; set; }
         public decimal? DeliveryLng { get; set; }
@@ -41,9 +44,14 @@ namespace _225DAPM32.Models
         public string? TrackingNumber { get; set; }
         public string? DriverName { get; set; }
         public string? DriverPhone { get; set; }
+        public decimal? DriverLat { get; set; }
+        public decimal? DriverLng { get; set; }
         public string? CustomerName { get; set; }
         public string? CustomerPhone { get; set; }
         public DateTime? EstimatedDelivery { get; set; }
+        public float? DriverRating { get; set; }
+        public string? CommentForShipper { get; set; }
+        public DateTime? ReviewedAt { get; set; }
 
         [ForeignKey("IdUser")]
         public User? User { get; set; }
@@ -56,10 +64,10 @@ namespace _225DAPM32.Models
         {
             "completed" => "Hoàn thành",
             "delivering" => "Đang giao",
-            "confirmed" => "Đang nấu",
+            "confirmed" => "Shipper đã nhận - chờ nấu",
             "restaurant_accepted" => "Đang nấu",
             "preparing" => "Đang nấu",
-            "ready_for_pickup" => "Chờ shipper nhận đơn",
+            "ready_for_pickup" => "Đang lấy hàng",
             "cooked" => "Chờ shipper nhận đơn",
             "pending" => "Chờ xử lý",
             "cancelled" => "Đã hủy",
@@ -71,7 +79,7 @@ namespace _225DAPM32.Models
         {
             "completed" => "success",
             "delivering" => "warning",
-            "confirmed" => "info",
+            "confirmed" => "warning",
             "restaurant_accepted" => "info",
             "preparing" => "info",
             "ready_for_pickup" => "primary",

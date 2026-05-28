@@ -7,6 +7,9 @@ namespace Backend.DTOs.Response
         public int IdUser { get; set; }
         public int IdRestaurant { get; set; }
         public string RestaurantName { get; set; } = string.Empty;
+        public string RestaurantAddress { get; set; } = string.Empty;
+        public decimal? RestaurantLat { get; set; }
+        public decimal? RestaurantLng { get; set; }
         public string DeliveryAddress { get; set; } = string.Empty;
         public decimal? DeliveryLat { get; set; }
         public decimal? DeliveryLng { get; set; }
@@ -24,9 +27,14 @@ namespace Backend.DTOs.Response
         public string? CancelReason { get; set; }
         public string? DriverName { get; set; }
         public string? DriverPhone { get; set; }
+        public decimal? DriverLat { get; set; }
+        public decimal? DriverLng { get; set; }
         public DateTime? EstimatedDelivery { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public float? DriverRating { get; set; }
+        public string? CommentForShipper { get; set; }
+        public DateTime? ReviewedAt { get; set; }
         public List<OrderItemResponse> Items { get; set; } = new();
     }
 }

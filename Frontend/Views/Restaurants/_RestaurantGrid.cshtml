@@ -36,7 +36,8 @@ else
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         @foreach (var restaurant in Model)
         {
-            <div class="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1">
+            <a href="@Url.Action("Details", "Restaurants", new { area = "", id = restaurant.IdRestaurant })"
+               class="group block no-underline bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1">
                 <div class="relative">
                     <img src="@imageUrl(restaurant.Image)" alt="@restaurant.NameRestaurant" class="w-full h-48 object-cover" onerror="this.onerror=null;this.src='/images/placeholder-restaurant.svg';" />
                     <div class="absolute bottom-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md flex items-center gap-1">
@@ -60,12 +61,12 @@ else
                             <span class="material-symbols-outlined text-base">schedule</span>
                             <span>@restaurant.OpenTime.ToString(@"hh\:mm") - @restaurant.CloseTime.ToString(@"hh\:mm")</span>
                         </div>
-                        <a href="@Url.Action("Details", "Restaurants", new { area = "", id = restaurant.IdRestaurant })" class="px-4 py-2 rounded-md bg-orange-600 text-white text-sm font-medium hover:bg-orange-700 transition-colors">
+                        <span class="px-4 py-2 rounded-md bg-orange-600 text-white text-sm font-medium group-hover:bg-orange-700 transition-colors">
                             Xem menu
-                        </a>
+                        </span>
                     </div>
                 </div>
-            </div>
+            </a>
         }
     </div>
 

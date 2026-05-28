@@ -3,144 +3,89 @@
     ViewData["Title"] = "Lịch sử giao hàng";
 }
 
-<!-- Header -->
-<div class="admin-header bg-dark text-white py-4 mb-4">
-    <div class="container-fluid">
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <h1 class="h2 mb-0">
-                    <i class="fas fa-history me-3"></i>Lịch sử giao hàng
-                </h1>
-                <p class="mb-0 opacity-75">Xem lại các đơn đã hoàn thành</p>
-            </div>
-            <div class="col-md-6 text-end">
-                <div class="fw-bold">@DateTime.Now.ToString("dd/MM/yyyy")</div>
-            </div>
-        </div>
+<h2 class="mb-4">Lịch sử giao hàng</h2>
+
+@if (!Model.Any())
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center text-muted py-5">Chưa có lịch sử giao hàng.</div>
     </div>
-</div>
-
-<div class="container-fluid">
-    <div class="row">
-
-        <!-- Sidebar -->
-        <div class="col-md-2">
-            <div class="shipper-sidebar">
-                <nav class="nav flex-column">
-                    <a class="nav-link" href="@Url.Action("Index", "Shipper", new { area = "Shipper" })">
-                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                    </a>
-                    <a class="nav-link" href="@Url.Action("Orders", "Shipper", new { area = "Shipper" })">
-                        <i class="fas fa-clipboard-list me-2"></i>Đơn hàng
-                    </a>
-                    <a class="nav-link active" href="@Url.Action("History", "Shipper", new { area = "Shipper" })">
-                        <i class="fas fa-history me-2"></i>Lịch sử
-                    </a>
-                    <a class="nav-link" href="@Url.Action("Earnings", "Shipper", new { area = "Shipper" })">
-                        <i class="fas fa-wallet me-2"></i>Thu nhập
-                    </a>
-                    <a class="nav-link" href="@Url.Action("Profile", "Shipper", new { area = "Shipper" })">
-                        <i class="fas fa-user me-2"></i>Profile
-                    </a>
-                    <a class="nav-link" href="@Url.Action("Settings", "Shipper", new { area = "Shipper" })">
-                        <i class="fas fa-cog me-2"></i>Cài đặt
-                    </a>
-                </nav>
-            </div>
-        </div>
-
-        <!-- Main content -->
-        <div class="col-md-10">
-
+}
+else
+{
+    <div class="vstack gap-3">
+        @foreach (var order in Model)
+        {
+            var canceled = order.Status == "cancelled" || order.Status == "canceled";
+            var hasDriverReview = !canceled && order.DriverRating.HasValue && order.DriverRating.Value > 0;
             <div class="card border-0 shadow-sm">
-                <div class="card-body">
-
-                    <!-- Table -->
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Mã đơn</th>
-                                    <th>Trạng thái</th>
-                                    <th>Tổng tiền</th>
-                                    <th>Thời gian giao</th>
-                                    <th>Shipper</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (!Model.Any())
-                                {
-                                    <tr>
-                                        <td colspan="5" class="text-center text-muted py-5">Chưa có lịch sử giao hàng.</td>
-                                    </tr>
-                                }
-                                @foreach (var order in Model)
-                                {
-                                    var canceled = order.Status == "cancelled" || order.Status == "canceled";
-                                    <tr>
-                                        <td>
-                                            <strong>@order.OrderCode</strong>
-                                        </td>
-
-                                        <td>
-                                            <span class="badge @(canceled ? "bg-danger" : "bg-success")">
-                                                @(canceled ? "Đã hủy" : "Hoàn thành")
-                                            </span>
-                                        </td>
-
-                                        <td class="fw-bold text-primary">
-                                            @order.FinalTotal.ToString("N0") VND
-                                        </td>
-
-                                        <td>
-                                            @order.UpdatedAt?.ToString("HH:mm dd/MM")
-                                        </td>
-
-                                        <td>
-                                            <i class="fas fa-user me-1"></i>
-                                            @order.DriverName
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
+                <div class="card-body p-4">
+                    <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-3">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <h5 class="mb-0 fw-bold">@order.OrderCode</h5>
+                                <span class="badge @(canceled ? "bg-danger" : "bg-success")">
+                                    @(canceled ? "Đã hủy" : "Hoàn thành")
+                                </span>
+                            </div>
+                            <div class="text-muted small">
+                                <i class="fas fa-store me-1"></i>@order.RestaurantName
+                                <span class="mx-2">|</span>
+                                @order.UpdatedAt?.ToString("HH:mm dd/MM/yyyy")
+                            </div>
+                        </div>
+                        <div class="text-lg-end">
+                            <div class="text-muted small">Phí giao hàng</div>
+                            <div class="fw-bold text-success fs-5">@order.ShippingFee.ToString("N0") VND</div>
+                        </div>
                     </div>
 
+                    <div class="row g-3">
+                        <div class="col-lg-7">
+                            <div class="bg-light rounded-3 p-3 h-100">
+                                <h6 class="fw-bold mb-3">Thông tin đơn đã giao</h6>
+                                <p class="mb-1"><i class="fas fa-user me-2 text-muted"></i>@(order.CustomerName ?? "Khách hàng") <span class="text-muted">@order.CustomerPhone</span></p>
+                                <p class="mb-3"><i class="fas fa-location-dot me-2 text-muted"></i>@order.DeliveryAddress</p>
+                                <div class="border-top pt-2">
+                                    @foreach (var item in order.Items)
+                                    {
+                                        <div class="d-flex justify-content-between small py-1">
+                                            <span>@item.Quantity x @item.FoodName</span>
+                                            <span class="text-muted">@item.TotalPrice.ToString("N0") VND</span>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="d-flex justify-content-between border-top mt-2 pt-2 fw-semibold">
+                                    <span>Tổng đơn hàng</span>
+                                    <span>@order.FinalTotal.ToString("N0") VND</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-5">
+                            <div class="border rounded-3 p-3 h-100">
+                                <h6 class="fw-bold mb-3"><i class="fas fa-star text-warning me-2"></i>Đánh giá về shipper</h6>
+                                @if (hasDriverReview)
+                                {
+                                    <div class="d-flex align-items-center mb-2">
+                                        <span class="fs-4 fw-bold text-warning">@order.DriverRating?.ToString("0.0")</span>
+                                        <span class="ms-2 text-warning"><i class="fas fa-star"></i> / 5</span>
+                                    </div>
+                                    <p class="mb-2">@(string.IsNullOrWhiteSpace(order.CommentForShipper) ? "Khách hàng không để lại nhận xét." : order.CommentForShipper)</p>
+                                    @if (order.ReviewedAt.HasValue)
+                                    {
+                                        <small class="text-muted">Đánh giá lúc @order.ReviewedAt.Value.ToString("HH:mm dd/MM/yyyy")</small>
+                                    }
+                                }
+                                else
+                                {
+                                    <p class="text-muted mb-0">Khách hàng chưa đánh giá shipper cho đơn hàng này.</p>
+                                }
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-        </div>
+        }
     </div>
-</div>
-
-<style>
-.shipper-sidebar {
-    background: #f8f9fa;
-    border-radius: 10px;
-    padding: 20px 0;
-    min-height: calc(100vh - 200px);
 }
-
-.shipper-sidebar .nav-link {
-    color: #495057;
-    padding: 12px 20px;
-    margin: 5px 15px;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-}
-
-.shipper-sidebar .nav-link:hover {
-    background: #e9ecef;
-}
-
-.shipper-sidebar .nav-link.active {
-    background: #ffc107;
-    color: #212529;
-}
-
-/* Table đẹp hơn */
-.table tbody tr:hover {
-    background-color: #f8f9fa;
-    transition: 0.2s;
-}
-</style>

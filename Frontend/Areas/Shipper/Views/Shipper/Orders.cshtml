@@ -1,177 +1,234 @@
 @model IEnumerable<_225DAPM32.Models.Order>
 @{
     ViewData["Title"] = "Đơn hàng cần giao";
+    var assignedOrders = Model.ToList();
+    var availableOrders = ViewBag.AvailableOrders as List<_225DAPM32.Models.Order> ?? new();
+    var routeOrders = assignedOrders.Where(order => order.Status != "completed" && order.Status != "cancelled" && order.Status != "canceled").ToList();
 }
 
-<!-- Header -->
-<div class="admin-header bg-dark text-white py-4 mb-4">
-    <div class="container-fluid">
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <h1 class="h2 mb-0">
-                    <i class="fas fa-clipboard-list me-3"></i>Đơn hàng cần giao
-                </h1>
-                <p class="mb-0 opacity-75">Danh sách đơn đang chờ xử lý</p>
-            </div>
-            <div class="col-md-6 text-end">
-                <div class="fw-bold">@DateTime.Now.ToString("dd/MM/yyyy")</div>
-            </div>
-        </div>
+<h2 class="mb-4">Đơn hàng gần bạn</h2>
+
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success alert-dismissible fade show">@success<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger alert-dismissible fade show">@error<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+
+<form id="shipperLocationForm" class="d-none">@Html.AntiForgeryToken()</form>
+
+<section class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-bell text-warning me-2"></i>Đơn mới chờ shipper nhận</h5>
+        <span class="badge bg-warning text-dark">@availableOrders.Count đơn trong phạm vi gần</span>
     </div>
-</div>
-
-<div class="container-fluid">
-    <div class="row">
-
-        <!-- Sidebar -->
-        <div class="col-md-2">
-            <div class="shipper-sidebar">
-                <nav class="nav flex-column">
-                    <a class="nav-link" href="@Url.Action("Index", "Shipper", new { area = "Shipper" })">
-                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                    </a>
-                    <a class="nav-link active" href="@Url.Action("Orders", "Shipper", new { area = "Shipper" })">
-                        <i class="fas fa-clipboard-list me-2"></i>Đơn hàng
-                    </a>
-                    <a class="nav-link" href="@Url.Action("History", "Shipper", new { area = "Shipper" })">
-                        <i class="fas fa-history me-2"></i>Lịch sử
-                    </a>
-                    <a class="nav-link" href="@Url.Action("Earnings", "Shipper", new { area = "Shipper" })">
-                        <i class="fas fa-wallet me-2"></i>Thu nhập
-                    </a>
-                    <a class="nav-link" href="@Url.Action("Profile", "Shipper", new { area = "Shipper" })">
-                        <i class="fas fa-user me-2"></i>Profile
-                    </a>
-                    <a class="nav-link" href="@Url.Action("Settings", "Shipper", new { area = "Shipper" })">
-                        <i class="fas fa-cog me-2"></i>Cài đặt
-                    </a>
-                </nav>
-            </div>
-        </div>
-
-        <!-- Main content -->
-        <div class="col-md-10">
-            @if (TempData["Success"] is string success)
-            {
-                <div class="alert alert-success">@success</div>
-            }
-            @if (TempData["Error"] is string error)
-            {
-                <div class="alert alert-danger">@error</div>
-            }
-
-            <!-- Filter -->
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <input type="text" class="form-control w-25" placeholder="Tìm mã đơn...">
-                <input type="date" class="form-control w-auto">
-            </div>
-
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Mã đơn</th>
-                                    <th>Trạng thái</th>
-                                    <th>Tổng tiền</th>
-                                    <th>Shipper</th>
-                                    <th>Dự kiến giao</th>
-                                    <th>Hành động</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (!Model.Any())
-                                {
-                                    <tr>
-                                        <td colspan="6" class="text-center text-muted py-5">Chưa có đơn đang giao được phân công.</td>
-                                    </tr>
-                                }
-                                @foreach (var order in Model)
-                                {
-                                    var statusClass = order.Status switch
-                                    {
-                                        "pending" => "bg-warning text-dark",
-                                        "confirmed" => "bg-primary",
-                                        "delivering" => "bg-info",
-                                        "completed" => "bg-success",
-                                        _ => "bg-secondary"
-                                    };
-                                    var statusText = order.Status == "delivering" ? "Đang giao" : order.Status;
-
-                                    <tr>
-                                        <td><strong>@order.OrderCode</strong></td>
-
-                                        <td>
-                                            <span class="badge @statusClass">
-                                                @statusText
-                                            </span>
-                                        </td>
-
-                                        <td class="fw-bold text-primary">
-                                            @order.FinalTotal.ToString("N0") VND
-                                        </td>
-
-                                        <td>
-                                            <i class="fas fa-user me-1"></i>
-                                            @order.DriverName
-                                        </td>
-
-                                        <td>
-                                            @order.EstimatedDelivery?.ToString("HH:mm dd/MM")
-                                        </td>
-
-                                        <td>
-                                            @if (order.Status == "delivering")
-                                            {
-                                                <form asp-area="Shipper" asp-controller="Shipper" asp-action="MarkCompleted" method="post" class="d-inline">
-                                                    <input type="hidden" name="orderId" value="@order.IdOrder" />
-                                                    <button type="submit" class="btn btn-success btn-sm">
-                                                        <i class="fas fa-check me-1"></i>Đã giao
-                                                    </button>
-                                                </form>
-                                            }
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
+    <div class="card-body">
+        @if (!availableOrders.Any())
+        {
+            <p class="text-muted mb-0 text-center py-3">Chưa có đơn mới gần vị trí của bạn.</p>
+        }
+        else
+        {
+            <div class="row g-3">
+                @foreach (var order in availableOrders)
+                {
+                    <div class="col-lg-6">
+                        <div class="border rounded-3 p-3 bg-light h-100 available-order"
+                             data-pickup-lat="@(order.RestaurantLat?.ToString(System.Globalization.CultureInfo.InvariantCulture))"
+                             data-pickup-lng="@(order.RestaurantLng?.ToString(System.Globalization.CultureInfo.InvariantCulture))">
+                            <div class="d-flex justify-content-between mb-2">
+                                <strong>@order.OrderCode</strong>
+                                <span class="badge bg-warning text-dark">Mới</span>
+                            </div>
+                            <div class="small mb-1"><i class="fas fa-store text-success me-2"></i>@order.RestaurantName - @order.RestaurantAddress</div>
+                            <div class="small mb-2"><i class="fas fa-location-dot text-danger me-2"></i>@order.DeliveryAddress</div>
+                            <div class="text-primary small fw-semibold mb-3 js-pickup-distance">Đang tính khoảng cách tới nhà hàng...</div>
+                            <form asp-area="Shipper" asp-controller="Shipper" asp-action="AcceptOrder" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="orderId" value="@order.IdOrder" />
+                                <button type="submit" class="btn btn-warning fw-semibold w-100">
+                                    <i class="fas fa-check-circle me-1"></i>Xác nhận nhận đơn
+                                </button>
+                            </form>
+                        </div>
                     </div>
-
-                </div>
+                }
             </div>
+        }
+    </div>
+</section>
 
+@if (routeOrders.Any())
+{
+    <section class="mb-4">
+        <h5 class="mb-3"><i class="fas fa-route me-2 text-primary"></i>Lộ trình đang thực hiện</h5>
+        <div class="row g-3">
+            @foreach (var order in routeOrders)
+            {
+                <div class="col-xl-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <strong>@order.OrderCode</strong>
+                                <span class="badge bg-@order.StatusColor">@order.StatusText</span>
+                            </div>
+                            <div class="small mb-1"><i class="fas fa-store text-success me-2"></i>Lấy hàng: @order.RestaurantAddress</div>
+                            <div class="small mb-2"><i class="fas fa-house text-danger me-2"></i>Giao hàng: @order.DeliveryAddress</div>
+                            <div class="text-primary small fw-semibold mb-2" id="shipper-distance-@order.IdOrder">Đang lấy vị trí...</div>
+                            <div id="shipper-map-@order.IdOrder" class="rounded overflow-hidden route-map" style="height: 300px;"
+                                 data-order-id="@order.IdOrder"
+                                 data-pickup-address="@order.RestaurantAddress"
+                                 data-pickup-lat="@(order.RestaurantLat?.ToString(System.Globalization.CultureInfo.InvariantCulture))"
+                                 data-pickup-lng="@(order.RestaurantLng?.ToString(System.Globalization.CultureInfo.InvariantCulture))"
+                                 data-destination-address="@order.DeliveryAddress"
+                                 data-destination-lat="@(order.DeliveryLat?.ToString(System.Globalization.CultureInfo.InvariantCulture))"
+                                 data-destination-lng="@(order.DeliveryLng?.ToString(System.Globalization.CultureInfo.InvariantCulture))"></div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0">@assignedOrders.Count đơn bạn đã nhận đang xử lý</h5>
+        <input id="orderSearch" type="search" class="form-control" style="max-width: 300px" placeholder="Tìm mã đơn hoặc địa chỉ..." />
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr><th>Đơn hàng</th><th>Điểm lấy/giao</th><th>Trạng thái</th><th>Hành động</th></tr>
+                </thead>
+                <tbody id="orderRows">
+                    @if (!assignedOrders.Any())
+                    {
+                        <tr><td colspan="4" class="text-center text-muted py-5">Bạn chưa nhận đơn giao nào.</td></tr>
+                    }
+                    @foreach (var order in assignedOrders)
+                    {
+                        <tr data-search="@($"{order.OrderCode} {order.RestaurantName} {order.DeliveryAddress}".ToLowerInvariant())">
+                            <td><strong>@order.OrderCode</strong><div class="small text-muted">@order.Items.Count món - @order.FinalTotal.ToString("N0") đ</div></td>
+                            <td class="small"><div>@order.RestaurantName</div><div class="text-muted">@order.DeliveryAddress</div></td>
+                            <td><span class="badge bg-@order.StatusColor">@order.StatusText</span></td>
+                            <td>
+                                @if (order.Status == "confirmed" || order.Status == "preparing")
+                                {
+                                    <span class="small text-warning fw-semibold"><i class="fas fa-clock me-1"></i>Đang lấy hàng, chờ nhà hàng nấu xong</span>
+                                }
+                                else if (order.Status == "ready_for_pickup" || order.Status == "cooked")
+                                {
+                                    <form asp-area="Shipper" asp-controller="Shipper" asp-action="MarkPickedUp" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="orderId" value="@order.IdOrder" />
+                                        <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-box me-1"></i>Đã lấy hàng - Bắt đầu giao</button>
+                                    </form>
+                                }
+                                else if (order.Status == "delivering")
+                                {
+                                    <form asp-area="Shipper" asp-controller="Shipper" asp-action="MarkCompleted" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="orderId" value="@order.IdOrder" />
+                                        <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Xác nhận đơn đã giao thành công?')"><i class="fas fa-check me-1"></i>Đã giao</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
-<style>
-.shipper-sidebar {
-    background: #f8f9fa;
-    border-radius: 10px;
-    padding: 20px 0;
-    min-height: calc(100vh - 200px);
-}
+@section Scripts {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        document.getElementById('orderSearch')?.addEventListener('input', function () {
+            const query = this.value.toLowerCase().trim();
+            document.querySelectorAll('#orderRows tr[data-search]').forEach(row => {
+                row.classList.toggle('d-none', query && !row.dataset.search.includes(query));
+            });
+        });
 
-.shipper-sidebar .nav-link {
-    color: #495057;
-    padding: 12px 20px;
-    margin: 5px 15px;
-    border-radius: 8px;
-    transition: 0.3s;
-}
+        (() => {
+            const token = document.querySelector('#shipperLocationForm input[name="__RequestVerificationToken"]')?.value;
+            const routeContainers = Array.from(document.querySelectorAll('.route-map'));
+            const routeItems = [];
 
-.shipper-sidebar .nav-link:hover {
-    background: #e9ecef;
-}
+            async function coordinateOrAddress(lat, lng, address) {
+                if (Number(lat) || Number(lng)) return [Number(lat), Number(lng)];
+                try {
+                    const result = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(address)}`).then(response => response.json());
+                    return result.length ? [Number(result[0].lat), Number(result[0].lon)] : null;
+                } catch { return null; }
+            }
 
-.shipper-sidebar .nav-link.active {
-    background: #ffc107;
-    color: #212529;
-}
+            async function setupRoutes() {
+                for (const container of routeContainers) {
+                    const pickup = await coordinateOrAddress(container.dataset.pickupLat, container.dataset.pickupLng, container.dataset.pickupAddress);
+                    const destination = await coordinateOrAddress(container.dataset.destinationLat, container.dataset.destinationLng, container.dataset.destinationAddress);
+                    if (!pickup || !destination) {
+                        container.innerHTML = '<div class="alert alert-warning small h-100 mb-0">Không xác định được tọa độ từ địa chỉ.</div>';
+                        continue;
+                    }
+                    const map = L.map(container.id).setView(pickup, 14);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+                    L.marker(pickup).addTo(map).bindPopup('Nhà hàng - điểm lấy hàng');
+                    L.marker(destination).addTo(map).bindPopup('Khách hàng - điểm giao');
+                    const path = L.polyline([pickup, destination], { color: '#94a3b8', dashArray: '7 6' }).addTo(map);
+                    map.fitBounds(path.getBounds(), { padding: [30, 30] });
+                    routeItems.push({ id: Number(container.dataset.orderId), pickup, destination, map, driverMarker: null, line: null });
+                }
+            }
 
-.table tbody tr:hover {
-    background-color: #f8f9fa;
+            function updateLocation(coordinates) {
+                document.querySelectorAll('.available-order').forEach(card => {
+                    const pickup = [Number(card.dataset.pickupLat), Number(card.dataset.pickupLng)];
+                    if (!pickup[0] && !pickup[1]) return;
+                    const metres = Math.round(L.latLng(coordinates).distanceTo(L.latLng(pickup)));
+                    card.querySelector('.js-pickup-distance').textContent = `Cách nhà hàng ${metres.toLocaleString('vi-VN')} m`;
+                });
+                routeItems.forEach(item => {
+                    const target = item.destination;
+                    const metres = Math.round(L.latLng(coordinates).distanceTo(L.latLng(target)));
+                    document.getElementById(`shipper-distance-${item.id}`).textContent = `Còn ${metres.toLocaleString('vi-VN')} m tới khách hàng`;
+                    if (!item.driverMarker) item.driverMarker = L.marker(coordinates).addTo(item.map).bindPopup('Vị trí của bạn');
+                    item.driverMarker.setLatLng(coordinates);
+                    if (!item.line) item.line = L.polyline([coordinates, item.pickup, item.destination], { color: '#f97316' }).addTo(item.map);
+                    item.line.setLatLngs([coordinates, item.pickup, item.destination]);
+                    item.map.fitBounds(item.line.getBounds(), { padding: [30, 30] });
+                });
+            }
+
+            setupRoutes();
+            let lastSentAt = 0;
+            navigator.geolocation?.watchPosition(position => {
+                const coordinates = [position.coords.latitude, position.coords.longitude];
+                updateLocation(coordinates);
+                if (Date.now() - lastSentAt < 8000) return;
+                lastSentAt = Date.now();
+                fetch('@Url.Action("UpdateLocation", "Shipper", new { area = "Shipper" })', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        latitude: position.coords.latitude.toFixed(7),
+                        longitude: position.coords.longitude.toFixed(7),
+                        __RequestVerificationToken: token ?? ''
+                    })
+                }).catch(() => {});
+            }, () => {
+                document.querySelectorAll('.js-pickup-distance').forEach(element => element.textContent = 'Bật vị trí để tính khoảng cách');
+            }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 12000 });
+
+            if (!routeContainers.length) {
+                window.setInterval(() => window.location.reload(), 12000);
+            }
+        })();
+    </script>
 }
-</style>

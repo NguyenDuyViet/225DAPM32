@@ -13,6 +13,7 @@ namespace Backend.DTOs.Response
         public int? CookCount { get; set; }
         public int? PrepTime { get; set; }
         public int DailyQuantity { get; set; }
+        public int SoldQuantity { get; set; }
         
         // Optional: Thông tin bổ sung
         public string? CategoryName { get; set; }
