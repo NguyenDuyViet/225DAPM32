@@ -18,7 +18,7 @@ builder.Services.AddControllers()
 
 builder.Services.AddEndpointsApiExplorer();
 
-// AutoMapper
+// AutoMapper 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 // Repositories
 builder.Services.AddRepositories();
