@@ -249,15 +249,17 @@ namespace _225DAPM32.Areas.Restaurant
             return RedirectToAction("Orders", new { area = "Restaurant", page });
         }
 
-        public async Task<IActionResult> Analytics()
+        public async Task<IActionResult> Analytics(string period = "week")
         {
             ViewData["Title"] = "Thống kê";
+            period = NormalizeAnalyticsPeriod(period);
+            ViewBag.Period = period;
             int restaurantId = GetRestaurantId();
             var client = GetApiClient();
 
             try
             {
-                var response = await client.GetAsync($"Restaurants/{restaurantId}/analytics");
+                var response = await client.GetAsync($"Restaurants/{restaurantId}/analytics?period={Uri.EscapeDataString(period)}");
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
@@ -265,8 +267,11 @@ namespace _225DAPM32.Areas.Restaurant
 
                     if (apiResponse?.Results != null)
                     {
+                        ViewBag.Period = apiResponse.Results.Period;
                         ViewBag.DayLabels = apiResponse.Results.DayLabels;
+                        ViewBag.BucketKeys = apiResponse.Results.BucketKeys;
                         ViewBag.RevenueData = apiResponse.Results.RevenueData;
+                        ViewBag.Details = apiResponse.Results.Details;
                         ViewBag.StatusLabels = apiResponse.Results.StatusLabels;
                         ViewBag.StatusData = apiResponse.Results.StatusData;
                     }
@@ -278,6 +283,16 @@ namespace _225DAPM32.Areas.Restaurant
             }
 
             return View();
+        }
+
+        private static string NormalizeAnalyticsPeriod(string? period)
+        {
+            return period?.Trim().ToLowerInvariant() switch
+            {
+                "month" => "month",
+                "year" => "year",
+                _ => "week"
+            };
         }
 
         public async Task<IActionResult> ExportRevenueReport()
@@ -926,10 +941,25 @@ namespace _225DAPM32.Areas.Restaurant
 
         public class BackendAnalyticsStats
         {
-            public List<string> DayLabels { get; set; }
-            public List<decimal> RevenueData { get; set; }
-            public List<string> StatusLabels { get; set; }
-            public List<int> StatusData { get; set; }
+            public string Period { get; set; } = "week";
+            public List<string> DayLabels { get; set; } = new();
+            public List<string> BucketKeys { get; set; } = new();
+            public List<decimal> RevenueData { get; set; } = new();
+            public List<BackendAnalyticsDetail> Details { get; set; } = new();
+            public List<string> StatusLabels { get; set; } = new();
+            public List<int> StatusData { get; set; } = new();
+        }
+
+        public class BackendAnalyticsDetail
+        {
+            public string Key { get; set; } = string.Empty;
+            public string Label { get; set; } = string.Empty;
+            public DateTime StartDate { get; set; }
+            public DateTime EndDate { get; set; }
+            public int OrderCount { get; set; }
+            public int RevenueOrderCount { get; set; }
+            public decimal Revenue { get; set; }
+            public List<BackendRecentOrder> Orders { get; set; } = new();
         }
 
         public class BackendOrder

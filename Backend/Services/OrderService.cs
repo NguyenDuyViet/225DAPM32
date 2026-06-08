@@ -434,28 +434,57 @@ namespace Backend.Services
             };
         }
 
-        public async Task<object> GetAnalyticsStatsAsync(int restaurantId)
+        public async Task<object> GetAnalyticsStatsAsync(int restaurantId, string period = "week")
         {
             var now = DateTime.Now;
-            var past7Days = Enumerable.Range(0, 7)
-                .Select(i => now.Date.AddDays(-i))
-                .Reverse()
-                .ToList();
+            var normalizedPeriod = NormalizeAnalyticsPeriod(period);
+            var buckets = BuildAnalyticsBuckets(now, normalizedPeriod);
+            var startDate = buckets.First().Start;
+            var endDate = buckets.Last().End;
 
             var orders = await _context.Orders
-                .Where(o => o.IdRestaurant == restaurantId && o.CreatedAt >= now.Date.AddDays(-6))
+                .Include(o => o.User)
+                .Include(o => o.OrderFoods)
+                    .ThenInclude(of => of.Food)
+                .Where(o => o.IdRestaurant == restaurantId && o.CreatedAt >= startDate && o.CreatedAt < endDate)
                 .ToListAsync();
 
             var dailyRevenueList = new List<decimal>();
             var dayLabels = new List<string>();
-            string[] viDays = { "Chủ nhật", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7" };
+            var bucketKeys = new List<string>();
+            var details = new List<object>();
 
-            foreach (var day in past7Days)
+            foreach (var bucket in buckets)
             {
-                dailyRevenueList.Add(orders
-                    .Where(o => o.CreatedAt.Date == day.Date && o.Status != "canceled" && o.Status != "cancelled")
-                    .Sum(o => o.FinalTotal));
-                dayLabels.Add(viDays[(int)day.DayOfWeek]);
+                var bucketOrders = orders
+                    .Where(o => o.CreatedAt >= bucket.Start && o.CreatedAt < bucket.End)
+                    .OrderByDescending(o => o.CreatedAt)
+                    .ToList();
+                var revenueOrders = bucketOrders.Where(IsRevenueOrder).ToList();
+
+                dailyRevenueList.Add(revenueOrders.Sum(o => o.FinalTotal));
+                dayLabels.Add(bucket.Label);
+                bucketKeys.Add(bucket.Key);
+                details.Add(new
+                {
+                    Key = bucket.Key,
+                    Label = bucket.Label,
+                    StartDate = bucket.Start,
+                    EndDate = bucket.End.AddTicks(-1),
+                    OrderCount = bucketOrders.Count,
+                    RevenueOrderCount = revenueOrders.Count,
+                    Revenue = revenueOrders.Sum(o => o.FinalTotal),
+                    Orders = bucketOrders.Select(o => new
+                    {
+                        o.IdOrder,
+                        o.OrderCode,
+                        CustomerName = o.User?.FullName ?? "Khach hang",
+                        o.FinalTotal,
+                        o.Status,
+                        o.CreatedAt,
+                        ItemsText = string.Join(", ", (o.OrderFoods ?? new List<OrderFood>()).Select(of => $"{of.Quantity} {of.Food?.Name}"))
+                    }).ToList()
+                });
             }
 
             var allRestaurantOrders = await _context.Orders
@@ -471,12 +500,60 @@ namespace Backend.Services
 
             return new
             {
+                Period = normalizedPeriod,
                 DayLabels = dayLabels,
+                BucketKeys = bucketKeys,
                 RevenueData = dailyRevenueList,
+                Details = details,
                 StatusLabels = statusCounts.Keys.ToList(),
                 StatusData = statusCounts.Values.ToList()
             };
         }
+
+        private static string NormalizeAnalyticsPeriod(string? period)
+        {
+            return period?.Trim().ToLowerInvariant() switch
+            {
+                "month" => "month",
+                "year" => "year",
+                _ => "week"
+            };
+        }
+
+        private static List<AnalyticsBucket> BuildAnalyticsBuckets(DateTime now, string period)
+        {
+            return period switch
+            {
+                "month" => Enumerable.Range(0, 30)
+                    .Select(i => now.Date.AddDays(-i))
+                    .Reverse()
+                    .Select(day => new AnalyticsBucket(day.ToString("yyyy-MM-dd"), day.ToString("dd/MM"), day, day.AddDays(1)))
+                    .ToList(),
+                "year" => Enumerable.Range(0, 12)
+                    .Select(i => new DateTime(now.Year, now.Month, 1).AddMonths(-i))
+                    .Reverse()
+                    .Select(month => new AnalyticsBucket(month.ToString("yyyy-MM"), $"T{month.Month:00}/{month.Year}", month, month.AddMonths(1)))
+                    .ToList(),
+                _ => Enumerable.Range(0, 7)
+                    .Select(i => now.Date.AddDays(-i))
+                    .Reverse()
+                    .Select(day => new AnalyticsBucket(day.ToString("yyyy-MM-dd"), GetVietnameseDayLabel(day), day, day.AddDays(1)))
+                    .ToList()
+            };
+        }
+
+        private static bool IsRevenueOrder(Order order)
+        {
+            return order.Status is not "canceled" and not "cancelled";
+        }
+
+        private static string GetVietnameseDayLabel(DateTime day)
+        {
+            string[] viDays = { "Chủ nhật", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7" };
+            return viDays[(int)day.DayOfWeek];
+        }
+
+        private sealed record AnalyticsBucket(string Key, string Label, DateTime Start, DateTime End);
 
         public async Task<Order> SeedOrderAsync()
         {

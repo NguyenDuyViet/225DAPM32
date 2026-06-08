@@ -101,9 +101,9 @@ namespace Backend.Controllers
         }
 
         [HttpGet("{id}/analytics")]
-        public async Task<ActionResult<ApiResponse<object>>> GetAnalyticsStats(int id)
+        public async Task<ActionResult<ApiResponse<object>>> GetAnalyticsStats(int id, [FromQuery] string period = "week")
         {
-            var stats = await _orderService.GetAnalyticsStatsAsync(id);
+            var stats = await _orderService.GetAnalyticsStatsAsync(id, period);
             return Ok(new ApiResponse<object>
             {
                 Code = 200,

@@ -35,6 +35,10 @@ builder.Services.AddHttpClient("API", client =>
 
 var app = builder.Build();
 
+// Quan trọng cho Render
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5241";
+app.Urls.Add($"http://0.0.0.0:{port}");
+
 // Configure the HTTP request pipeline.
 app.UseForwardedHeaders();
 

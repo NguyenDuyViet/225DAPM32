@@ -1,5 +1,6 @@
 @{
     ViewData["Title"] = "Thống kê";
+    var selectedPeriod = (ViewBag.Period as string) ?? "week";
 }
 
 <div class="admin-header bg-dark text-white py-4 mb-4">
@@ -86,16 +87,31 @@
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                         <h2 class="mb-0 fw-bold text-dark"><i class="fas fa-chart-bar me-2 text-success"></i>Báo cáo & Thống kê</h2>
-                        <a asp-area="Restaurant" asp-controller="Restaurant" asp-action="ExportRevenueReport" class="btn btn-danger fw-semibold">
-                            <i class="fas fa-file-pdf me-2"></i>Xuất PDF doanh thu 
-                        </a>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <div class="btn-group analytics-period" role="group" aria-label="Chọn chu kỳ thống kê">
+                                <a class="btn btn-sm @(selectedPeriod == "week" ? "btn-success" : "btn-outline-success")"
+                                   asp-area="Restaurant" asp-controller="Restaurant" asp-action="Analytics" asp-route-period="week">Tuần</a>
+                                <a class="btn btn-sm @(selectedPeriod == "month" ? "btn-success" : "btn-outline-success")"
+                                   asp-area="Restaurant" asp-controller="Restaurant" asp-action="Analytics" asp-route-period="month">Tháng</a>
+                                <a class="btn btn-sm @(selectedPeriod == "year" ? "btn-success" : "btn-outline-success")"
+                                   asp-area="Restaurant" asp-controller="Restaurant" asp-action="Analytics" asp-route-period="year">Năm</a>
+                            </div>
+                            <a asp-area="Restaurant" asp-controller="Restaurant" asp-action="ExportRevenueReport" class="btn btn-danger fw-semibold">
+                                <i class="fas fa-file-pdf me-2"></i>Xuất PDF doanh thu 
+                            </a>
+                        </div>
                     </div>
                     
                     <div class="row g-4">
                         <div class="col-md-7">
                             <div class="card border-0 shadow-sm bg-light">
                                 <div class="card-body p-4">
-                                    <h5 class="fw-bold mb-3 text-dark"><i class="fas fa-money-bill-wave me-2 text-success"></i>Doanh thu 7 ngày gần đây</h5>
+                                    <div class="d-flex justify-content-between align-items-start mb-3 gap-2 flex-wrap">
+                                        <div>
+                                            <h5 class="fw-bold mb-1 text-dark"><i class="fas fa-money-bill-wave me-2 text-success"></i>Doanh thu theo chu kỳ</h5>
+                                            <small class="text-muted">Bấm vào từng cột để xem chi tiết đơn hàng</small>
+                                        </div>
+                                    </div>
                                     <div style="position: relative; height:320px;">
                                         <canvas id="restaurantRevenue"></canvas>
                                     </div>
@@ -110,6 +126,46 @@
                                         <canvas id="restaurantStatus"></canvas>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm bg-light mt-4" id="revenueDetailCard">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+                                <div>
+                                    <h5 class="fw-bold mb-1 text-dark"><i class="fas fa-receipt me-2 text-success"></i>Chi tiết cột doanh thu</h5>
+                                    <div class="text-muted" id="detailPeriodText">Chọn một cột trên biểu đồ để xem đơn hàng.</div>
+                                </div>
+                                <div class="d-flex gap-4 text-end">
+                                    <div>
+                                        <small class="text-muted d-block">Đơn hợp lệ</small>
+                                        <strong id="detailOrderCount">0</strong>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block">Doanh thu</small>
+                                        <strong class="text-success" id="detailRevenue">0 đ</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Mã đơn</th>
+                                            <th>Khách hàng</th>
+                                            <th>Món</th>
+                                            <th>Trạng thái</th>
+                                            <th class="text-end">Tổng tiền</th>
+                                            <th>Thời gian</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="detailOrderRows">
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted py-4">Chưa chọn cột doanh thu.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -149,6 +205,21 @@
     background: #10b981;
     color: white;
 }
+
+.analytics-period .btn {
+    min-width: 72px;
+}
+
+#restaurantRevenue {
+    cursor: pointer;
+}
+
+#revenueDetailCard .table th {
+    color: #475569;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
 </style>
 
 @section Scripts {
@@ -159,9 +230,12 @@
             const revenueCtx = document.getElementById('restaurantRevenue');
             if (revenueCtx) {
                 const dayLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.DayLabels ?? new List<string> { "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ nhật" }));
+                const bucketKeys = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.BucketKeys ?? new List<string>()));
                 const revenueData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.RevenueData ?? new List<decimal> { 0, 0, 0, 0, 0, 0, 0 }));
+                const revenueDetails = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Details ?? new List<object>()));
+                const detailByKey = new Map(revenueDetails.map(item => [item.Key, item]));
 
-                new Chart(revenueCtx, {
+                const revenueChart = new Chart(revenueCtx, {
                     type: 'bar',
                     data: {
                         labels: dayLabels,
@@ -177,9 +251,29 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        onHover: function(event, elements) {
+                            event.native.target.style.cursor = elements.length ? 'pointer' : 'default';
+                        },
+                        onClick: function(event, elements) {
+                            if (!elements.length) {
+                                return;
+                            }
+
+                            const index = elements[0].index;
+                            const key = bucketKeys[index];
+                            const detail = detailByKey.get(key);
+                            renderRevenueDetail(detail);
+                        },
                         plugins: {
                             legend: {
                                 display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.parsed.y.toLocaleString('vi-VN') + ' đ';
+                                    }
+                                }
                             }
                         },
                         scales: {
@@ -194,6 +288,10 @@
                         }
                     }
                 });
+
+                if (revenueDetails.length > 0) {
+                    renderRevenueDetail(revenueDetails[revenueDetails.length - 1]);
+                }
             }
 
             // Biểu đồ trạng thái đơn hàng
@@ -228,6 +326,90 @@
                         }
                     }
                 });
+            }
+
+            function renderRevenueDetail(detail) {
+                const periodText = document.getElementById('detailPeriodText');
+                const orderCount = document.getElementById('detailOrderCount');
+                const revenue = document.getElementById('detailRevenue');
+                const rows = document.getElementById('detailOrderRows');
+
+                if (!detail || !rows) {
+                    return;
+                }
+
+                periodText.textContent = `${formatDate(detail.StartDate)} - ${formatDate(detail.EndDate)} (${detail.Label})`;
+                orderCount.textContent = (detail.RevenueOrderCount ?? 0).toLocaleString('vi-VN');
+                revenue.textContent = formatCurrency(detail.Revenue ?? 0);
+
+                const orders = detail.Orders || [];
+                if (!orders.length) {
+                    rows.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Không có đơn hàng trong chu kỳ này.</td></tr>';
+                    return;
+                }
+
+                rows.innerHTML = orders.map(order => `
+                    <tr>
+                        <td class="fw-semibold">${escapeHtml(order.OrderCode || '#' + order.IdOrder)}</td>
+                        <td>${escapeHtml(order.CustomerName || 'Khách hàng')}</td>
+                        <td class="text-muted">${escapeHtml(order.ItemsText || '')}</td>
+                        <td><span class="badge ${getStatusClass(order.Status)}">${getStatusText(order.Status)}</span></td>
+                        <td class="text-end fw-semibold">${formatCurrency(order.FinalTotal || 0)}</td>
+                        <td>${formatDateTime(order.CreatedAt)}</td>
+                    </tr>
+                `).join('');
+            }
+
+            function formatCurrency(value) {
+                return Number(value || 0).toLocaleString('vi-VN') + ' đ';
+            }
+
+            function formatDate(value) {
+                return new Date(value).toLocaleDateString('vi-VN');
+            }
+
+            function formatDateTime(value) {
+                return new Date(value).toLocaleString('vi-VN', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+            }
+
+            function getStatusText(status) {
+                switch ((status || '').toLowerCase()) {
+                    case 'pending': return 'Chờ xử lý';
+                    case 'confirmed': return 'Đã xác nhận';
+                    case 'preparing': return 'Đang chuẩn bị';
+                    case 'ready_for_pickup':
+                    case 'cooked': return 'Chờ shipper lấy';
+                    case 'delivering': return 'Đang giao';
+                    case 'completed': return 'Hoàn thành';
+                    case 'cancelled':
+                    case 'canceled': return 'Đã hủy';
+                    default: return status || 'Không rõ';
+                }
+            }
+
+            function getStatusClass(status) {
+                switch ((status || '').toLowerCase()) {
+                    case 'completed': return 'bg-success';
+                    case 'cancelled':
+                    case 'canceled': return 'bg-danger';
+                    case 'delivering': return 'bg-primary';
+                    case 'preparing':
+                    case 'ready_for_pickup':
+                    case 'cooked': return 'bg-warning text-dark';
+                    default: return 'bg-secondary';
+                }
+            }
+
+            function escapeHtml(value) {
+                const div = document.createElement('div');
+                div.textContent = value;
+                return div.innerHTML;
             }
         });
     </script>
